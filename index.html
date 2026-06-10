@@ -145,6 +145,37 @@ tr:hover td{background:#fafafa}
 .tc{background:#f1f5f9;color:#475569}
 .cdate{font-size:.63rem;color:var(--muted);white-space:nowrap;padding-top:2px}
 
+
+/* ── Overview card ── */
+.ov-card{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:1px solid #334155;border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.ov-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e293b}
+.ov-label{font-size:.58rem;color:#475569;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ov-name{font-size:1.25rem;font-weight:800;color:#fff;line-height:1.2}
+.ov-sub{font-size:.68rem;color:#475569;margin-top:3px}
+.ov-btns{display:flex;gap:7px;flex-wrap:wrap;flex-shrink:0}
+.ov-btn{padding:6px 13px;border-radius:7px;font-size:.71rem;font-weight:600;text-decoration:none;white-space:nowrap}
+.ov-btn-dark{background:#0f172a;border:1px solid #334155;color:#94a3b8}
+.ov-btn-accent{background:#6366f1;border:1px solid #6366f1;color:#fff}
+.ov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.ov-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.ov-grid{grid-template-columns:1fr}}
+.ov-box{background:#0f172a;border-radius:8px;padding:10px 13px}
+.ov-box-title{font-size:.58rem;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700}
+.ov-row{display:flex;justify-content:space-between;align-items:center;font-size:.71rem;margin-bottom:3px}
+.ov-key{color:#64748b}
+.ov-val{color:#22d3ee;font-weight:700}
+.ov-svc{display:flex;align-items:center;gap:6px;font-size:.71rem;color:#94a3b8;margin-bottom:5px}
+.ov-dot{width:7px;height:7px;border-radius:50%;background:#475569;display:inline-block;flex-shrink:0}
+.ov-ping{margin-left:auto;font-size:.62rem;color:#475569}
+.ov-act{font-size:.69rem;color:#64748b;margin-bottom:4px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-act-val{color:#e2e8f0}
+.ov-act-purple{color:#a78bfa}
+.ov-act-green{color:#4ade80}
+.ov-phase{font-size:.69rem;color:#94a3b8;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.ov-phase-dim{color:#475569}
+.ov-phase-done{color:#4ade80}
+.ov-phase-now{color:#60a5fa}
+
 /* ── States ── */
 .st{text-align:center;padding:26px;font-size:.81rem;color:var(--muted)}
 .sp{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;vertical-align:middle;margin-right:6px}
@@ -195,69 +226,44 @@ tr:hover td{background:#fafafa}
 
 
   <!-- ══ PROJECT OVERVIEW ══ -->
-  <div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:#334155">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:4px 0 12px">
-      <div>
-        <div style="font-size:.65rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Проект</div>
-        <div style="font-size:1.3rem;font-weight:800;color:#fff">🐍 snake-game</div>
-        <div style="font-size:.72rem;color:#64748b;margin-top:2px">Supabase · West EU (Ireland) · FREE plan · NANO compute</div>
+  <div class="ov-card">
+    <div class="ov-top">
+      <div class="ov-title">
+        <div class="ov-label">ПРОЕКТ</div>
+        <div class="ov-name">🐍 snake-game</div>
+        <div class="ov-sub">Supabase · West EU (Ireland) · FREE plan · NANO compute</div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <a href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr" target="_blank"
-           style="background:#1a1a2e;border:1px solid #334155;color:#94a3b8;padding:7px 14px;border-radius:8px;font-size:.73rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px">
-          🗄️ Supabase Dashboard
-        </a>
-        <a href="https://github.com/youngsanifone/snake" target="_blank"
-           style="background:#1a1a2e;border:1px solid #334155;color:#94a3b8;padding:7px 14px;border-radius:8px;font-size:.73rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px">
-          🐙 GitHub Repo
-        </a>
-        <a href="https://youngsanifone.github.io/snake/" target="_blank"
-           style="background:#6366f1;border:1px solid #6366f1;color:#fff;padding:7px 14px;border-radius:8px;font-size:.73rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px">
-          🎮 Открыть игру
-        </a>
+      <div class="ov-btns">
+        <a href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr" target="_blank" class="ov-btn ov-btn-dark">🗄️ Supabase</a>
+        <a href="https://github.com/youngsanifone/snake" target="_blank" class="ov-btn ov-btn-dark">🐙 GitHub</a>
+        <a href="https://youngsanifone.github.io/snake/" target="_blank" class="ov-btn ov-btn-accent">🎮 Открыть игру</a>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;padding-top:12px;border-top:1px solid #1e293b">
-      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
-        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">База данных</div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="display:flex;justify-content:space-between;font-size:.72rem"><span style="color:#94a3b8">leaderboard</span><span id="ov-lb-rows" style="color:#22d3ee;font-weight:700">—</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:.72rem"><span style="color:#94a3b8">players</span><span id="ov-pl-rows" style="color:#22d3ee;font-weight:700">—</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:.72rem"><span style="color:#94a3b8">player_events</span><span id="ov-ev-rows" style="color:#22d3ee;font-weight:700">—</span></div>
-        </div>
+    <div class="ov-grid">
+      <div class="ov-box">
+        <div class="ov-box-title">База данных</div>
+        <div class="ov-row"><span class="ov-key">leaderboard</span><span id="ov-lb-rows" class="ov-val">—</span></div>
+        <div class="ov-row"><span class="ov-key">players</span><span id="ov-pl-rows" class="ov-val">—</span></div>
+        <div class="ov-row"><span class="ov-key">player_events</span><span id="ov-ev-rows" class="ov-val">—</span></div>
       </div>
-      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
-        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Статус сервисов</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <div style="display:flex;align-items:center;gap:7px;font-size:.72rem;color:#94a3b8">
-            <span id="ov-dot-sb" style="width:7px;height:7px;border-radius:50%;background:#64748b;display:inline-block;flex-shrink:0"></span>Supabase API
-            <span id="ov-ms-sb" style="margin-left:auto;color:#64748b;font-size:.65rem"></span>
-          </div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:.72rem;color:#94a3b8">
-            <span id="ov-dot-gh" style="width:7px;height:7px;border-radius:50%;background:#64748b;display:inline-block;flex-shrink:0"></span>GitHub Pages
-            <span id="ov-ms-gh" style="margin-left:auto;color:#64748b;font-size:.65rem"></span>
-          </div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:.72rem;color:#94a3b8">
-            <span id="ov-dot-gm" style="width:7px;height:7px;border-radius:50%;background:#64748b;display:inline-block;flex-shrink:0"></span>Игра (live)
-          </div>
-        </div>
+      <div class="ov-box">
+        <div class="ov-box-title">Статус сервисов</div>
+        <div class="ov-svc"><span id="ov-dot-sb" class="ov-dot"></span><span>Supabase API</span><span id="ov-ms-sb" class="ov-ping"></span></div>
+        <div class="ov-svc"><span id="ov-dot-gh" class="ov-dot"></span><span>GitHub Pages</span></div>
+        <div class="ov-svc"><span id="ov-dot-gm" class="ov-dot"></span><span>Игра (live)</span></div>
       </div>
-      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
-        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Последние действия</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <div style="font-size:.7rem;color:#94a3b8">🔀 <span id="ov-last-commit" style="color:#e2e8f0">загрузка...</span></div>
-          <div style="font-size:.7rem;color:#94a3b8">🗄️ Миграция: <span style="color:#a78bfa">full_optimization_pass</span></div>
-          <div style="font-size:.7rem;color:#94a3b8">🔒 RLS: <span style="color:#4ade80">включён на всех таблицах</span></div>
-        </div>
+      <div class="ov-box">
+        <div class="ov-box-title">Последние действия</div>
+        <div class="ov-act">🔀 <span id="ov-last-commit" class="ov-act-val">загрузка...</span></div>
+        <div class="ov-act">🗄️ Миграция: <span class="ov-act-purple">full_optimization_pass</span></div>
+        <div class="ov-act">🔒 RLS: <span class="ov-act-green">включён везде</span></div>
       </div>
-      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
-        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Фазы проекта</div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#4ade80">✅</span><span style="color:#94a3b8">Фаза 1–2: Игра готова</span></div>
-          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#60a5fa">🔵</span><span style="color:#94a3b8">Фаза 3: Online / Supabase</span></div>
-          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#64748b">⏳</span><span style="color:#64748b">Фаза 4: Capacitor mobile</span></div>
-          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#64748b">⏳</span><span style="color:#64748b">Фаза 5: App Store / Play</span></div>
-        </div>
+      <div class="ov-box">
+        <div class="ov-box-title">Фазы проекта</div>
+        <div class="ov-phase"><span class="ov-phase-done">✅</span> Фаза 1–2: Игра готова</div>
+        <div class="ov-phase"><span class="ov-phase-now">🔵</span> Фаза 3: Online / Supabase</div>
+        <div class="ov-phase ov-phase-dim"><span>⏳</span> Фаза 4: Capacitor mobile</div>
+        <div class="ov-phase ov-phase-dim"><span>⏳</span> Фаза 5: App Store / Play</div>
       </div>
     </div>
   </div>
@@ -705,42 +711,64 @@ function renderAll(rows){
   </table>`;
 }
 
-// ── GitHub commits ────────────────────────────────────────
-let cmtOk=false;
+// ── GitHub commits (кеш + rate-limit защита) ──────────────
+let cmtOk=false, cmtCache=null;
 async function loadCommits(){
   const el=document.getElementById('commits');
+  const CACHE_KEY='gh_commits_cache';
+  const CACHE_TS='gh_commits_ts';
+  const cached=sessionStorage.getItem(CACHE_KEY);
+  const cachedTs=Number(sessionStorage.getItem(CACHE_TS)||0);
+  const AGE=Date.now()-cachedTs;
+  // Показываем кеш сразу если есть
+  if(cached){renderCommits(JSON.parse(cached),el,AGE);}
+  // Не перезапрашиваем чаще 15 минут
+  if(AGE < 15*60*1000 && cached) return;
   const t0=Date.now();
   try{
     const r=await fetch('https://api.github.com/repos/youngsanifone/snake/commits?per_page=10',
       {headers:{Accept:'application/vnd.github.v3+json','User-Agent':'snake-admin-panel'}});
+    if(r.status===403||r.status===429){
+      // Rate limited — показываем кеш без ошибки
+      if(cached){setDot('sd1','warn','limit');return;}
+      el.innerHTML='<div class="st">GitHub: лимит запросов. Данные обновятся автоматически.</div>';
+      return;
+    }
     if(!r.ok) throw new Error('GitHub '+r.status);
     const data=await r.json();
+    sessionStorage.setItem(CACHE_KEY,JSON.stringify(data));
+    sessionStorage.setItem(CACHE_TS,Date.now());
     setDot('sd1','on',(Date.now()-t0)+'ms');
     document.getElementById('cmtBadge').textContent=data.length+' коммитов';
     document.getElementById('cmtBadge').className='badge bg';
     cmtOk=true;
-    // Overview: последний коммит + статус GitHub
+    renderCommits(data,el,0);
+    // Overview
     if(data.length>0){
       const lc=data[0].commit.message.split('\n')[0];
       document.getElementById('ov-last-commit').textContent=lc.substring(0,42)+(lc.length>42?'…':'');
     }
     const ghDot=document.getElementById('ov-dot-gh');
     if(ghDot) ghDot.style.background='#4ade80';
-    // Статус игры
     try{await fetch('https://youngsanifone.github.io/snake/',{mode:'no-cors'});
       const gd=document.getElementById('ov-dot-gm');if(gd)gd.style.background='#4ade80';}catch(e){}
-    el.innerHTML=data.map(c=>{
-      const msg=c.commit.message.split('\n')[0];
-      return `<a class="cmt" href="${c.html_url}" target="_blank">
-        <span class="chash">${c.sha.substring(0,7)}</span>
-        <span class="cmsg">${cmtTag(msg)}${msg}</span>
-        <span class="cdate">${ago(c.commit.author.date)}</span>
-      </a>`;
-    }).join('');
   }catch(e){
     setDot('sd1','off','');
-    if(!cmtOk) el.innerHTML=`<div class="eb">⚠️ GitHub: ${e.message}<button onclick="loadCommits()">Повторить</button></div>`;
+    if(!cached) el.innerHTML=`<div class="eb">⚠️ GitHub: ${e.message}<button onclick="loadCommits()">Повторить</button></div>`;
   }
+}
+function renderCommits(data,el,ageMs){
+  document.getElementById('cmtBadge').textContent=data.length+' коммитов';
+  document.getElementById('cmtBadge').className='badge bg';
+  const ageTxt=ageMs>60000?` · обновлено ${Math.round(ageMs/60000)} мин назад`:'';
+  el.innerHTML=data.map(c=>{
+    const msg=c.commit.message.split('\n')[0];
+    return `<a class="cmt" href="${c.html_url}" target="_blank">
+      <span class="chash">${c.sha.substring(0,7)}</span>
+      <span class="cmsg">${cmtTag(msg)}${msg}</span>
+      <span class="cdate">${ago(c.commit.author.date)}</span>
+    </a>`;
+  }).join('')+(ageTxt?`<div style="font-size:.62rem;color:#94a3b8;padding:6px 12px">${ageTxt}</div>`:'');
 }
 
 // ── Game check ────────────────────────────────────────────
