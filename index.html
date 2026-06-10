@@ -197,7 +197,7 @@ tr:hover td{background:#fafafa}
   <div class="row row4" style="margin-bottom:12px">
     <div class="stat"><div class="stat-n" id="s-total">—</div><div class="stat-l">Всего игр</div><div class="stat-d" id="s-total-d">загрузка...</div></div>
     <div class="stat"><div class="stat-n" id="s-players">—</div><div class="stat-l">Игроков</div><div class="stat-d" id="s-players-d">уникальных</div></div>
-    <div class="stat online"><div class="stat-n" id="s-online">—</div><div class="stat-l">Онлайн сейчас</div><div class="stat-d">за последние 15 мин</div></div>
+    <div class="stat online"><div class="stat-n" id="s-online">—</div><div class="stat-l">Онлайн сейчас</div><div class="stat-d">за последние 30 мин</div></div>
     <div class="stat"><div class="stat-n" id="s-today">—</div><div class="stat-l">Сегодня</div><div class="stat-d">игр за сутки</div></div>
   </div>
   <div class="row row4" style="margin-bottom:12px">
@@ -490,14 +490,19 @@ function updateCharts(rows){
 }
 
 // ── Main data load ────────────────────────────────────────
-let allRows=[];
+let allRows=[], onlineEvents=[];
 async function loadData(){
   const t0=Date.now();
   try{
-    // Fetch up to 200 most recent for stats + charts
-    const r=await fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=200',{headers:H});
+    // Fetch leaderboard + player_events (онлайн) параллельно
+    const since=new Date(Date.now()-30*60*1000).toISOString();
+    const [r, re]=await Promise.all([
+      fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=200',{headers:H}),
+      fetch(SB+`/rest/v1/player_events?select=player_id,event,created_at&event=eq.visit&created_at=gte.${since}&order=created_at.desc`,{headers:H})
+    ]);
     if(!r.ok) throw new Error('HTTP '+r.status);
     allRows=await r.json();
+    onlineEvents=re.ok ? await re.json() : [];
     setDot('sd0','on',(Date.now()-t0)+'ms');
     renderAll(allRows);
   }catch(e){
@@ -521,7 +526,8 @@ function renderAll(rows){
 
   // Stats
   const uniquePlayers=[...new Set(rows.map(r=>r.name).filter(Boolean))];
-  const onlineRows=rows.filter(r=>r.created_at&&(now-new Date(r.created_at))<15*60*1000);
+  // Онлайн — уникальные player_id из player_events за последние 30 мин
+  const onlinePlayerIds=[...new Set(onlineEvents.map(e=>e.player_id))];
   const todayRows=rows.filter(r=>r.created_at&&new Date(r.created_at)>=todayStart);
   const byScore=[...rows].sort((a,b)=>b.score-a.score);
 
@@ -529,7 +535,7 @@ function renderAll(rows){
   document.getElementById('s-total-d').textContent='всего записей в БД';
   document.getElementById('s-players').textContent=uniquePlayers.length;
   document.getElementById('s-players-d').textContent='разных имён';
-  document.getElementById('s-online').textContent=onlineRows.length;
+  document.getElementById('s-online').textContent=onlinePlayerIds.length;
   document.getElementById('s-today').textContent=todayRows.length;
   document.getElementById('s-top').textContent=byScore[0]?.score??'—';
   document.getElementById('s-top-d').textContent=byScore[0]?.name??'—';
@@ -542,21 +548,23 @@ function renderAll(rows){
   // Charts
   updateCharts(rows);
 
-  // Online now
+  // Online now (из player_events — heartbeat каждые 5 мин)
   const onlineBadge=document.getElementById('onlineBadge');
-  onlineBadge.textContent=onlineRows.length+' игроков';
-  onlineBadge.className='badge '+(onlineRows.length>0?'bg':'bq');
-  if(onlineRows.length){
-    document.getElementById('onlineList').innerHTML=onlineRows.slice(0,8).map(r=>`
+  onlineBadge.textContent=onlinePlayerIds.length+' игроков';
+  onlineBadge.className='badge '+(onlinePlayerIds.length>0?'bg':'bq');
+  if(onlineEvents.length){
+    // Для каждого уникального player_id берём последний визит
+    const latestByPlayer={};
+    onlineEvents.forEach(e=>{if(!latestByPlayer[e.player_id])latestByPlayer[e.player_id]=e;});
+    document.getElementById('onlineList').innerHTML=Object.values(latestByPlayer).slice(0,8).map(e=>`
       <div class="game-item">
         <span class="online-dot"></span>
-        <span class="gi-name">${(r.name||'Аноним').substring(0,16)}</span>
-        <span class="gi-score">${r.score}</span>
-        <span class="gi-meta"><span class="ttg">${r.mode||'classic'}</span></span>
-        <span class="gi-time">${ago(r.created_at)}</span>
+        <span class="gi-name">${e.player_id.substring(0,8)}…</span>
+        <span class="gi-meta">активен</span>
+        <span class="gi-time">${ago(e.created_at)}</span>
       </div>`).join('');
   }else{
-    document.getElementById('onlineList').innerHTML='<div class="st">Никого за последние 15 мин</div>';
+    document.getElementById('onlineList').innerHTML='<div class="st">Никого за последние 30 мин</div>';
   }
 
   // Recent games (last 10)
