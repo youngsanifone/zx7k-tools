@@ -6,270 +6,228 @@
 <title>Snake — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{color-scheme:light;--bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--text:#0f172a;--sub:#64748b;--muted:#94a3b8;--accent:#6366f1}
+:root{--bg:#f1f5f9;--card:#fff;--brd:#e2e8f0;--txt:#0f172a;--sub:#64748b;--mut:#94a3b8;--acc:#6366f1}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
 
 /* ── Login ── */
 #loginWrap{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999}
-.lbox{background:#1e293b;border-radius:18px;padding:40px 34px;width:330px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.6)}
-.llogo{font-size:2.6rem;margin-bottom:8px}
-.ltitle{color:#fff;font-size:1.15rem;font-weight:700;margin-bottom:4px}
-.lsub{color:#475569;font-size:.78rem;margin-bottom:26px}
-.linput{width:100%;background:#0f172a;border:1.5px solid #334155;color:#fff;padding:12px 14px;border-radius:10px;font-size:.92rem;outline:none;transition:border-color .15s}
-.linput:focus{border-color:var(--accent)}
+.lbox{background:#1e293b;border-radius:18px;padding:40px 34px;width:320px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.llogo{font-size:2.4rem;margin-bottom:6px}
+.ltitle{color:#fff;font-size:1.1rem;font-weight:700;margin-bottom:3px}
+.lsub{color:#475569;font-size:.76rem;margin-bottom:22px}
+.linput{width:100%;background:#0f172a;border:1.5px solid #334155;color:#fff;padding:11px 13px;border-radius:9px;font-size:.9rem;outline:none;transition:border-color .15s}
+.linput:focus{border-color:var(--acc)}
 .linput.shake{animation:shake .35s ease}
-@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-.lbtn{width:100%;margin-top:12px;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;transition:background .15s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.lbtn{width:100%;margin-top:10px;background:var(--acc);color:#fff;border:none;padding:11px;border-radius:9px;font-size:.9rem;font-weight:700;cursor:pointer}
 .lbtn:hover{background:#4f46e5}
-.lerr{color:#f87171;font-size:.76rem;margin-top:10px;min-height:18px}
+.lerr{color:#f87171;font-size:.74rem;margin-top:8px;min-height:16px}
 
 /* ── Header ── */
-.hdr{background:#0f172a;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.3)}
-.hdr-l{display:flex;align-items:center;gap:10px}
-.hdr h1{font-size:.98rem;font-weight:700}
-.pulse{width:9px;height:9px;border-radius:50%;background:#4ade80;animation:blink 2s infinite;flex-shrink:0}
+.hdr{background:#0f172a;color:#fff;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.hdr-l{display:flex;align-items:center;gap:9px}
+.pulse{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:blink 2s infinite;flex-shrink:0}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hdr h1{font-size:.95rem;font-weight:700}
 .hdr-r{display:flex;align-items:center;gap:10px}
-.clock{font-size:.78rem;color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
-.ticker{font-size:.7rem;color:rgba(255,255,255,.3)}
-.rbtn{background:rgba(255,255,255,.1);border:none;color:#fff;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:.74rem;font-weight:600}
-.rbtn:hover{background:rgba(255,255,255,.2)}
+.times{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
+.time-local{font-size:.82rem;color:#fff;font-variant-numeric:tabular-nums;font-weight:600}
+.time-utc{font-size:.63rem;color:#475569}
+.ticker{font-size:.68rem;color:#334155;font-variant-numeric:tabular-nums}
+.hbtn{background:rgba(255,255,255,.09);border:none;color:rgba(255,255,255,.7);padding:5px 11px;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:600}
+.hbtn:hover{background:rgba(255,255,255,.16)}
+
+/* ── Services strip ── */
+.svc-strip{background:#1e293b;border-bottom:1px solid #0f172a;padding:6px 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.svc-item{display:flex;align-items:center;gap:5px;font-size:.72rem;color:#64748b;text-decoration:none;transition:color .15s}
+.svc-item:hover{color:#94a3b8}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.don{background:#4ade80}.doff{background:#f87171}.dwarn{background:#fbbf24}
+.svc-ms{font-size:.63rem;color:#475569;margin-left:2px}
+.svc-name{color:#94a3b8}
 
 /* ── Layout ── */
-.wrap{max-width:960px;margin:0 auto;padding:14px}
-.row{display:grid;gap:12px}
-.row2{grid-template-columns:1fr 1fr}
-.row3{grid-template-columns:1fr 1fr 1fr}
-.row4{grid-template-columns:repeat(4,1fr)}
-
-/* ── Stat cards ── */
-.stat{background:var(--card);border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.07);border:1px solid var(--border)}
-.stat-n{font-size:1.75rem;font-weight:800;line-height:1}
-.stat-l{font-size:.61rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
-.stat-d{font-size:.68rem;color:var(--sub);margin-top:2px}
-.stat.online .stat-n{color:#16a34a}
-
-/* ── Cards ── */
-.card{background:var(--card);border-radius:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);border:1px solid var(--border);overflow:hidden}
-.card-h{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
-.card-t{font-size:.85rem;font-weight:700}
-.badge{font-size:.62rem;padding:3px 9px;border-radius:20px;font-weight:600}
+.wrap{max-width:980px;margin:0 auto;padding:12px 14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:var(--card);border-radius:11px;border:1px solid var(--brd);box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:10px}
+.card-h{padding:10px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.card-t{font-size:.83rem;font-weight:700}
+.badge{font-size:.61rem;padding:3px 8px;border-radius:20px;font-weight:700;white-space:nowrap}
 .bg{background:#dcfce7;color:#15803d}.bb{background:#dbeafe;color:#1d4ed8}
-.br{background:#fee2e2;color:#dc2626}.by{background:#fef9c3;color:#854d0e}
 .bq{background:#f1f5f9;color:#475569}.bp{background:#ede9fe;color:#7c3aed}
+.by{background:#fef9c3;color:#854d0e}.br{background:#fee2e2;color:#dc2626}
 .bc{background:#e0f2fe;color:#0369a1}
 
-/* ── Services ── */
-.svcs{display:grid;grid-template-columns:1fr 1fr}
-.svc{padding:11px 16px;display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:background .12s}
-.svc:hover{background:#f8fafc}
-.svc:nth-child(even){border-right:none}
-.svc:nth-child(3),.svc:nth-child(4){border-bottom:none}
-.svc-ico{font-size:1.3rem;flex-shrink:0}
-.svc-name{font-size:.79rem;font-weight:600}
-.svc-sub{font-size:.62rem;color:var(--muted)}
-.svc-r{margin-left:auto;display:flex;align-items:center;gap:5px;flex-shrink:0}
-.svc-ping{font-size:.62rem;color:var(--muted)}
-.sdot{width:8px;height:8px;border-radius:50%;transition:background .3s}
-.don{background:#4ade80}.doff{background:#f87171}.dchk{background:#fbbf24;animation:blink 1s infinite}
+/* ── Compact stats row ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.sstat{background:var(--card);border:1px solid var(--brd);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.sstat-ico{font-size:1.3rem;flex-shrink:0}
+.sstat-body{}
+.sstat-n{font-size:1.45rem;font-weight:800;line-height:1}
+.sstat-l{font-size:.61rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.sstat-d{font-size:.68rem;color:var(--sub);margin-top:1px}
+.sstat.online .sstat-n{color:#16a34a}
+
+/* ── Chart ── */
+.chart-wrap{padding:12px 14px;height:190px;position:relative}
+
+/* ── Online / Recent ── */
+.gi{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid #f8fafc;transition:background .1s}
+.gi:last-child{border:none}
+.gi:hover{background:#fafafa}
+.gi-name{font-size:.79rem;font-weight:600;min-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gi-score{font-weight:800;color:#16a34a;font-size:.85rem;min-width:32px}
+.gi-tag{font-size:.6rem;background:#ede9fe;color:#7c3aed;padding:2px 6px;border-radius:10px;font-weight:700}
+.gi-meta{font-size:.65rem;color:var(--mut);flex:1}
+.gi-time{font-size:.63rem;color:var(--mut);white-space:nowrap}
+.odot{width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;flex-shrink:0;animation:blink 2s infinite}
+.dev-badge{font-size:.6rem;padding:2px 6px;border-radius:8px;font-weight:600;margin-left:3px}
+.dev-mobile{background:#fef3c7;color:#92400e}
+.dev-desktop{background:#e0f2fe;color:#0369a1}
+.dev-unknown{background:#f1f5f9;color:#475569}
+
+/* ── Tables ── */
+.lb-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.6rem;text-transform:uppercase;color:var(--mut);padding:7px 13px;text-align:left;border-bottom:1px solid var(--brd);white-space:nowrap}
+td{padding:7px 13px;font-size:.8rem;border-bottom:1px solid #f8fafc}
+tr:last-child td{border:none}
+tr:hover td{background:#fafafa}
+.tsc{font-weight:800;color:#16a34a}
+.ttg{font-size:.6rem;background:#ede9fe;color:#7c3aed;padding:2px 6px;border-radius:10px;font-weight:600}
+
+/* ── Commits ── */
+.cmt{display:flex;align-items:flex-start;gap:9px;padding:7px 14px;border-bottom:1px solid #f8fafc;text-decoration:none;color:inherit;transition:background .1s}
+.cmt:last-child{border:none}
+.cmt:hover{background:#fafafa}
+.chash{font-family:monospace;font-size:.63rem;color:var(--mut);flex-shrink:0;padding-top:2px;width:48px}
+.cmsg{font-size:.76rem;color:#334155;flex:1;line-height:1.4}
+.ctag{font-size:.58rem;padding:2px 5px;border-radius:8px;font-weight:700;margin-right:3px}
+.tf{background:#dcfce7;color:#15803d}.tx{background:#fee2e2;color:#dc2626}.tc{background:#f1f5f9;color:#475569}
+.cdate{font-size:.62rem;color:var(--mut);white-space:nowrap;padding-top:2px}
 
 /* ── Actions ── */
-.acts{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px}
-.ab{padding:7px 15px;border:none;border-radius:22px;cursor:pointer;font-size:.75rem;font-weight:600;text-decoration:none;display:inline-block;transition:all .15s}
+.acts{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px}
+.ab{padding:6px 13px;border:none;border-radius:20px;cursor:pointer;font-size:.73rem;font-weight:600;text-decoration:none;display:inline-block;transition:all .12s}
 .ab:hover{filter:brightness(.92);transform:translateY(-1px)}
 .a0{background:#0f172a;color:#fff}.a1{background:#dcfce7;color:#15803d}
 .a2{background:#dbeafe;color:#1d4ed8}.a3{background:#ede9fe;color:#7c3aed}
 .a4{background:#fff7ed;color:#c2410c}.a5{background:#fee2e2;color:#dc2626}
 
-/* ── Table ── */
-.lb-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th{font-size:.61rem;text-transform:uppercase;color:var(--muted);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:8px 14px;font-size:.81rem;border-bottom:1px solid #f8fafc}
-tr:last-child td{border:none}
-tr:hover td{background:#fafafa}
-.tsc{font-weight:800;color:#16a34a}
-.ttg{font-size:.62rem;background:#ede9fe;color:#7c3aed;padding:2px 7px;border-radius:20px;font-weight:600}
-.ttm{font-size:.64rem;color:#cbd5e1}
-.tnm{font-weight:600}
-
-/* ── Game items ── */
-.game-item{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid #f8fafc;transition:background .1s}
-.game-item:last-child{border:none}
-.game-item:hover{background:#fafafa}
-.gi-name{font-size:.8rem;font-weight:600;min-width:100px}
-.gi-score{font-weight:800;color:#16a34a;font-size:.85rem;min-width:55px}
-.gi-meta{font-size:.65rem;color:var(--muted);flex:1}
-.gi-time{font-size:.65rem;color:var(--muted);white-space:nowrap}
-.online-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:4px;animation:blink 2s infinite}
-
-/* ── Charts ── */
-.chart-wrap{padding:14px 16px;height:200px;position:relative}
-
-/* ── Overview card ── */
-.ov-card{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:1px solid #334155;border-radius:12px;padding:16px 18px;margin-bottom:12px}
-.ov-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e293b}
-.ov-label{font-size:.58rem;color:#475569;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
-.ov-name{font-size:1.25rem;font-weight:800;color:#fff;line-height:1.2}
-.ov-sub{font-size:.68rem;color:#475569;margin-top:3px}
-.ov-btns{display:flex;gap:7px;flex-wrap:wrap;flex-shrink:0}
-.ov-btn{padding:6px 13px;border-radius:7px;font-size:.71rem;font-weight:600;text-decoration:none;white-space:nowrap}
-.ov-btn-dark{background:#0f172a;border:1px solid #334155;color:#94a3b8}
-.ov-btn-accent{background:#6366f1;border:1px solid #6366f1;color:#fff}
-.ov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media(max-width:900px){.ov-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:540px){.ov-grid{grid-template-columns:1fr}}
-.ov-box{background:#0f172a;border-radius:8px;padding:10px 13px}
-.ov-box-title{font-size:.58rem;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700}
-.ov-row{display:flex;justify-content:space-between;align-items:center;font-size:.71rem;margin-bottom:3px}
-.ov-key{color:#64748b}
-.ov-val{color:#22d3ee;font-weight:700}
-.ov-svc{display:flex;align-items:center;gap:6px;font-size:.71rem;color:#94a3b8;margin-bottom:5px}
-.ov-dot{width:7px;height:7px;border-radius:50%;background:#475569;display:inline-block;flex-shrink:0}
-.ov-ping{margin-left:auto;font-size:.62rem;color:#475569}
-.ov-act{font-size:.69rem;color:#64748b;margin-bottom:4px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ov-act-val{color:#e2e8f0}
-.ov-act-purple{color:#a78bfa}
-.ov-act-green{color:#4ade80}
-.ov-phase{font-size:.69rem;color:#94a3b8;margin-bottom:4px;display:flex;align-items:center;gap:5px}
-.ov-phase-dim{color:#475569}
-.ov-phase-done{color:#4ade80}
-.ov-phase-now{color:#60a5fa}
-
-/* ── Commits ── */
-.cmt{display:flex;align-items:flex-start;gap:10px;padding:8px 16px;border-bottom:1px solid #f8fafc;text-decoration:none;color:inherit;transition:background .1s}
-.cmt:last-child{border:none}
-.cmt:hover{background:#fafafa}
-.chash{font-family:monospace;font-size:.64rem;color:var(--muted);flex-shrink:0;padding-top:2px;width:54px}
-.cmsg{font-size:.77rem;color:#334155;flex:1;line-height:1.45}
-.ctag{font-size:.59rem;padding:2px 6px;border-radius:10px;font-weight:700;margin-right:4px}
-.tf{background:#dcfce7;color:#15803d}.tx{background:#fee2e2;color:#dc2626}.tc{background:#f1f5f9;color:#475569}
-.cdate{font-size:.63rem;color:var(--muted);white-space:nowrap;padding-top:2px}
-
 /* ── States ── */
-.st{text-align:center;padding:26px;font-size:.81rem;color:var(--muted)}
-.sp{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;vertical-align:middle;margin-right:6px}
+.st{text-align:center;padding:20px;font-size:.79rem;color:var(--mut)}
+.sp{display:inline-block;width:13px;height:13px;border:2px solid var(--brd);border-top-color:var(--acc);border-radius:50%;animation:spin .65s linear infinite;vertical-align:middle;margin-right:5px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.eb{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:9px 14px;margin:12px;font-size:.77rem;color:#dc2626;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.eb button{background:#dc2626;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.71rem;font-weight:600}
+.eb{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;margin:10px;font-size:.75rem;color:#dc2626;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.eb button{background:#dc2626;color:#fff;border:none;padding:3px 9px;border-radius:5px;cursor:pointer;font-size:.7rem;font-weight:600}
 
 /* ── Toast ── */
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 18px;border-radius:20px;font-size:.78rem;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9998}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:7px 16px;border-radius:18px;font-size:.76rem;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9998}
 #toast.show{opacity:1}
 
-/* ═══════════════ TABS ═══════════════ */
-.tool-panel{margin-bottom:12px}
-.tab-nav{background:var(--card);border-radius:12px 12px 0 0;border:1px solid var(--border);border-bottom:none;padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.tab-btn{padding:6px 14px;border:1.5px solid var(--border);border-radius:8px;background:transparent;color:var(--sub);font-size:.77rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
-.tab-btn:hover{border-color:#6366f1;color:#6366f1;background:#ede9fe}
-.tab-btn.active{background:#6366f1;border-color:#6366f1;color:#fff}
-.tab-content{display:none;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px}
+/* ═══ TABS ═══ */
+.tab-nav{background:var(--card);border-radius:11px 11px 0 0;border:1px solid var(--brd);border-bottom:none;padding:8px 12px;display:flex;gap:5px;flex-wrap:wrap}
+.tab-btn{padding:5px 12px;border:1.5px solid var(--brd);border-radius:7px;background:transparent;color:var(--sub);font-size:.74rem;font-weight:600;cursor:pointer;transition:all .13s;white-space:nowrap}
+.tab-btn:hover{border-color:var(--acc);color:var(--acc);background:#ede9fe}
+.tab-btn.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.tab-content{display:none;background:var(--card);border:1px solid var(--brd);border-top:none;border-radius:0 0 11px 11px;margin-bottom:10px}
 .tab-content.active{display:block}
-.tab-desc{font-size:.75rem;color:var(--sub);padding:8px 16px 0;border-bottom:1px solid var(--border);padding-bottom:10px;background:#f8fafc}
+.tab-desc{font-size:.73rem;color:var(--sub);padding:8px 14px;background:#f8fafc;border-bottom:1px solid var(--brd);line-height:1.4}
 
-/* ═══════════════ SQL TERMINAL ═══════════════ */
-.sql-presets{display:flex;flex-direction:column;gap:6px;padding:12px 16px}
-.sql-preset-row{display:flex;align-items:center;gap:8px;background:#f8fafc;border-radius:8px;padding:9px 13px;border:1px solid var(--border)}
+/* ── SQL ── */
+.sql-preset-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--brd);transition:background .1s}
+.sql-preset-row:last-child{border:none}
+.sql-preset-row:hover{background:#fafafa}
 .sql-preset-info{flex:1}
-.sql-preset-label{font-size:.79rem;font-weight:600;color:var(--text)}
-.sql-preset-desc{font-size:.64rem;color:var(--muted);margin-top:1px}
-.sql-preset-btns{display:flex;gap:5px;flex-shrink:0}
-.sbtn{font-size:.7rem;padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:600;transition:all .12s}
-.sbtn-run{background:#16a34a;color:#fff}
-.sbtn-run:hover{background:#15803d}
-.sbtn-run:disabled{background:#86efac;cursor:wait}
-.sbtn-copy{background:#ede9fe;color:#7c3aed}
-.sbtn-copy:hover{background:#ddd6fe}
-.sql-divider{margin:0 16px;border:none;border-top:1px solid var(--border)}
-.sql-custom{padding:12px 16px}
-.sql-area{width:100%;height:100px;background:#0f172a;color:#e2e8f0;border:1.5px solid #334155;border-radius:8px;padding:10px 13px;font-family:monospace;font-size:.82rem;resize:vertical;outline:none;transition:border-color .15s;line-height:1.5}
-.sql-area:focus{border-color:#6366f1}
-.sql-run-row{display:flex;align-items:center;gap:10px;margin-top:8px}
-.sql-run-btn{background:#6366f1;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:background .15s}
+.sql-pl{font-size:.78rem;font-weight:600}
+.sql-pd{font-size:.63rem;color:var(--mut);margin-top:1px}
+.sql-btns{display:flex;gap:4px;flex-shrink:0}
+.sbtn{font-size:.69rem;padding:5px 11px;border:none;border-radius:6px;cursor:pointer;font-weight:700;transition:all .12s;white-space:nowrap}
+.sbtn-r{background:#16a34a;color:#fff}
+.sbtn-r:hover{background:#15803d}
+.sbtn-r:disabled{background:#86efac;cursor:wait}
+.sbtn-c{background:#ede9fe;color:#7c3aed}
+.sbtn-c:hover{background:#ddd6fe}
+.sql-custom{padding:12px 14px}
+.sql-area{width:100%;height:90px;background:#0f172a;color:#e2e8f0;border:1.5px solid #334155;border-radius:8px;padding:9px 12px;font-family:monospace;font-size:.8rem;resize:vertical;outline:none;transition:border-color .15s;line-height:1.5}
+.sql-area:focus{border-color:var(--acc)}
+.sql-run-row{display:flex;align-items:center;gap:9px;margin-top:7px}
+.sql-run-btn{background:var(--acc);color:#fff;border:none;padding:7px 18px;border-radius:7px;font-size:.8rem;font-weight:700;cursor:pointer;transition:background .15s}
 .sql-run-btn:hover{background:#4f46e5}
 .sql-run-btn:disabled{background:#a5b4fc;cursor:wait}
-.sql-hint{font-size:.68rem;color:var(--muted)}
-.sql-result{margin:0 16px 16px;min-height:40px}
-.res-meta{font-size:.72rem;color:#16a34a;font-weight:600;padding:6px 0;display:flex;align-items:center;gap:8px}
+.sql-hint{font-size:.67rem;color:var(--mut)}
+.sql-result{padding:0 14px 14px}
+.res-meta{font-size:.71rem;color:#16a34a;font-weight:600;padding:6px 0;display:flex;align-items:center;gap:7px}
 .res-meta.err{color:#dc2626}
-.res-scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
-.res-table th{background:#f8fafc;font-size:.63rem}
-.res-table td{font-size:.77rem;font-family:monospace;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.res-table td:hover{white-space:normal;max-width:none}
-.res-empty{font-size:.8rem;color:var(--muted);padding:12px 0;text-align:center}
+.res-scroll{overflow-x:auto;border-radius:7px;border:1px solid var(--brd)}
+.res-scroll table th{background:#f8fafc;font-size:.62rem}
+.res-scroll table td{font-family:monospace;font-size:.74rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res-scroll table td:hover{white-space:normal;max-width:none}
+.res-empty{font-size:.78rem;color:var(--mut);padding:10px 0;text-align:center}
 
-/* ═══════════════ TABLE EDITOR ═══════════════ */
-.tbl-selector{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-bottom:1px solid var(--border)}
-.tbl-btn{padding:5px 13px;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--sub);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
-.tbl-btn:hover{border-color:var(--accent);color:var(--accent)}
-.tbl-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.tbl-pagination{display:flex;align-items:center;gap:8px;padding:8px 16px;border-top:1px solid var(--border);font-size:.75rem;color:var(--sub)}
-.tbl-pagination button{padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer;font-size:.73rem;font-weight:600}
-.tbl-pagination button:disabled{opacity:.4;cursor:default}
-.tbl-data{overflow-x:auto;max-height:400px;overflow-y:auto}
-.tbl-data table{min-width:600px}
-.tbl-data td{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace;font-size:.76rem}
-.tbl-search-row{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}
-.tbl-search{flex:1;border:1px solid var(--border);border-radius:7px;padding:7px 11px;font-size:.8rem;outline:none}
-.tbl-search:focus{border-color:var(--accent)}
+/* ── Table Editor ── */
+.tbl-sel{display:flex;flex-wrap:wrap;gap:5px;padding:10px 14px;border-bottom:1px solid var(--brd)}
+.tbl-b{padding:4px 12px;border:1.5px solid var(--brd);border-radius:18px;background:transparent;color:var(--sub);font-size:.73rem;font-weight:600;cursor:pointer;transition:all .13s}
+.tbl-b:hover{border-color:var(--acc);color:var(--acc)}
+.tbl-b.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.tbl-data{overflow-x:auto;max-height:380px;overflow-y:auto}
+.tbl-data table td{font-family:monospace;font-size:.74rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbl-page-row{display:flex;align-items:center;gap:7px;padding:7px 14px;border-top:1px solid var(--brd);font-size:.73rem;color:var(--sub)}
+.tbl-page-row button{padding:3px 10px;border:1px solid var(--brd);border-radius:5px;background:var(--card);cursor:pointer;font-size:.71rem;font-weight:600}
+.tbl-page-row button:disabled{opacity:.4;cursor:default}
+.tbl-search-row{padding:8px 14px;border-bottom:1px solid var(--brd);display:flex;gap:7px}
+.tbl-search{flex:1;border:1px solid var(--brd);border-radius:6px;padding:6px 10px;font-size:.78rem;outline:none}
+.tbl-search:focus{border-color:var(--acc)}
 
-/* ═══════════════ ADVISORS ═══════════════ */
-.adv-list{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
-.adv-item{display:flex;align-items:flex-start;gap:10px;padding:10px 13px;border-radius:9px;border:1px solid transparent}
+/* ── Advisors ── */
+.adv-list{padding:10px 14px;display:flex;flex-direction:column;gap:7px}
+.adv-item{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;border-radius:8px;border:1px solid transparent}
 .adv-warn{background:#fffbeb;border-color:#fde68a}
 .adv-info{background:#eff6ff;border-color:#bfdbfe}
 .adv-ok{background:#f0fdf4;border-color:#bbf7d0}
 .adv-err{background:#fef2f2;border-color:#fecaca}
-.adv-ico{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.adv-ico{font-size:1rem;flex-shrink:0;margin-top:1px}
 .adv-body{flex:1}
-.adv-title{font-size:.8rem;font-weight:700;color:var(--text)}
-.adv-detail{font-size:.71rem;color:var(--sub);margin-top:2px;line-height:1.4}
-.adv-badge{font-size:.59rem;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px}
-.adv-btn{font-size:.68rem;padding:3px 9px;border:none;border-radius:5px;cursor:pointer;font-weight:600;margin-top:6px;background:#f1f5f9;color:var(--text)}
-.adv-section-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:8px 16px 0;margin-top:4px}
+.adv-title{font-size:.79rem;font-weight:700}
+.adv-detail{font-size:.7rem;color:var(--sub);margin-top:2px;line-height:1.4}
+.adv-section{font-size:.68rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;padding:10px 14px 2px;margin-top:2px}
 
-/* ═══════════════ STORAGE ═══════════════ */
-.stor-content{padding:14px 16px}
-.stor-empty{text-align:center;padding:24px;color:var(--sub)}
-.stor-empty-ico{font-size:2.5rem;margin-bottom:8px}
-.stor-empty-title{font-size:.9rem;font-weight:700;margin-bottom:6px}
-.stor-empty-desc{font-size:.76rem;color:var(--muted);max-width:380px;margin:0 auto;line-height:1.5}
-.stor-bucket{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:9px;border:1px solid var(--border);background:#f8fafc;margin-bottom:6px}
-.stor-bname{font-size:.82rem;font-weight:700}
-.stor-bmeta{font-size:.68rem;color:var(--muted);margin-top:1px}
-.stor-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.stor-info-card{background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:11px 13px}
-.stor-info-title{font-size:.67rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;margin-bottom:6px}
-.stor-info-text{font-size:.75rem;color:var(--text);line-height:1.5}
+/* ── Storage ── */
+.stor-bucket{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;border:1px solid var(--brd);background:#f8fafc;margin-bottom:6px}
+.stor-bname{font-size:.81rem;font-weight:700}
+.stor-bmeta{font-size:.67rem;color:var(--mut)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.info-card{background:#f8fafc;border:1px solid var(--brd);border-radius:8px;padding:10px 12px}
+.info-title{font-size:.66rem;font-weight:700;text-transform:uppercase;color:var(--mut);letter-spacing:.05em;margin-bottom:5px}
+.info-text{font-size:.74rem;color:var(--txt);line-height:1.5}
 
-/* ═══════════════ AUTH ═══════════════ */
-.auth-content{padding:14px 16px}
-.auth-status-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:11px 14px;border-radius:9px;border:1px solid var(--border);background:#f8fafc}
-.auth-svc-name{font-size:.85rem;font-weight:700}
-.auth-svc-ver{font-size:.68rem;color:var(--muted);margin-top:1px}
-.auth-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.auth-info-card{background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:11px 13px}
-.auth-info-title{font-size:.67rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;margin-bottom:6px}
-.auth-info-text{font-size:.75rem;color:var(--text);line-height:1.5}
-.auth-provider{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:600;margin:2px;border:1px solid var(--border)}
-.auth-prov-off{background:#f1f5f9;color:#94a3b8}
-.auth-prov-on{background:#dcfce7;color:#15803d}
+/* ── Auth ── */
+.auth-status-row{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--brd);background:#f8fafc}
+.auth-svc-name{font-size:.84rem;font-weight:700}
+.auth-svc-ver{font-size:.67rem;color:var(--mut);margin-top:1px}
+.prov{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:18px;font-size:.69rem;font-weight:600;margin:2px;border:1px solid var(--brd)}
+.prov-on{background:#dcfce7;color:#15803d}.prov-off{background:#f1f5f9;color:#94a3b8}
 
-/* ═══════════════ ACTION LOG ═══════════════ */
-.actlog-list{max-height:380px;overflow-y:auto;padding:8px 16px}
-.actlog-empty{text-align:center;padding:30px;font-size:.8rem;color:var(--muted)}
-.actlog-entry{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc;font-size:.77rem}
-.actlog-entry:last-child{border:none}
-.actlog-time{font-size:.63rem;color:var(--muted);white-space:nowrap;min-width:54px;padding-top:2px;font-variant-numeric:tabular-nums}
-.actlog-ico{font-size:1rem;flex-shrink:0}
-.actlog-msg{color:var(--text);line-height:1.4;flex:1}
-.actlog-footer{padding:8px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.actlog-count{font-size:.68rem;color:var(--muted)}
-.actlog-clear{font-size:.7rem;padding:4px 11px;border:1px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer;font-weight:600}
+/* ── Log ── */
+.log-list{max-height:360px;overflow-y:auto;padding:7px 14px}
+.log-empty{text-align:center;padding:28px;font-size:.79rem;color:var(--mut)}
+.log-entry{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f8fafc;font-size:.75rem}
+.log-entry:last-child{border:none}
+.log-time{font-size:.62rem;color:var(--mut);white-space:nowrap;min-width:50px;padding-top:2px;font-variant-numeric:tabular-nums}
+.log-msg{color:var(--txt);line-height:1.4;flex:1}
+.log-foot{padding:7px 14px;border-top:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.log-cnt{font-size:.67rem;color:var(--mut)}
+.log-clr{font-size:.69rem;padding:3px 10px;border:1px solid var(--brd);border-radius:5px;background:var(--card);cursor:pointer;font-weight:600}
 
-.footer{text-align:center;padding:14px;font-size:.64rem;color:var(--muted);background:var(--card);border-radius:12px;border:1px solid var(--border);margin-bottom:4px}
-@media(max-width:640px){.row2,.row3,.row4{grid-template-columns:1fr 1fr}.svcs{grid-template-columns:1fr}.sql-preset-row{flex-direction:column;align-items:flex-start}.auth-info-grid,.stor-info-grid{grid-template-columns:1fr}}
+.footer{text-align:center;padding:12px;font-size:.63rem;color:var(--mut);background:var(--card);border-radius:10px;border:1px solid var(--brd);margin-bottom:6px}
+
+@media(max-width:680px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .row2{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:1fr}
+  .svc-strip{gap:10px}
+}
 </style>
 </head>
 <body>
@@ -278,349 +236,233 @@ tr:hover td{background:#fafafa}
 <div id="loginWrap">
   <div class="lbox">
     <div class="llogo">🐍</div>
-    <div class="ltitle">Snake Control Panel</div>
-    <div class="lsub">Введи пароль для доступа</div>
+    <div class="ltitle">Snake — Control Panel</div>
+    <div class="lsub">Пароль администратора</div>
     <input class="linput" id="pwInput" type="password" placeholder="Пароль"
       autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="lbtn" onclick="doLogin()">Войти</button>
+    <button class="lbtn" onclick="doLogin()">Войти →</button>
     <div class="lerr" id="loginErr"></div>
   </div>
 </div>
 
-<!-- Toast -->
-<div id="toast">Скопировано ✓</div>
+<div id="toast"></div>
 
 <!-- Header -->
 <div class="hdr">
   <div class="hdr-l">
     <div class="pulse"></div>
-    <h1>🐍 Snake — Control Panel</h1>
+    <h1>🐍 Snake Admin</h1>
   </div>
   <div class="hdr-r">
-    <span class="clock" id="clock">--:--:--</span>
-    <span class="ticker">↻ <span id="cd">5</span>с</span>
-    <button class="rbtn" onclick="refresh()">Обновить всё</button>
+    <div class="times">
+      <span class="time-local" id="clock">--:--:--</span>
+      <span class="time-utc" id="clockUTC">UTC --:--</span>
+    </div>
+    <span class="ticker">↺ <span id="cd">5</span>с</span>
+    <button class="hbtn" onclick="refresh()">Обновить всё</button>
   </div>
+</div>
+
+<!-- Services strip -->
+<div class="svc-strip">
+  <a class="svc-item" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr" target="_blank">
+    <div class="sdot dwarn" id="sd-sb"></div>
+    <span class="svc-name">Supabase</span>
+    <span class="svc-ms" id="ms-sb"></span>
+  </a>
+  <a class="svc-item" href="https://wopvlulqfzecujmfoezr.supabase.co/functions/v1/admin-sql" target="_blank">
+    <div class="sdot dwarn" id="sd-ef"></div>
+    <span class="svc-name">Edge Functions</span>
+    <span class="svc-ms" id="ms-ef"></span>
+  </a>
+  <a class="svc-item" href="https://github.com/youngsanifone/snake" target="_blank">
+    <div class="sdot dwarn" id="sd-gh"></div>
+    <span class="svc-name">GitHub</span>
+    <span class="svc-ms" id="ms-gh"></span>
+  </a>
+  <a class="svc-item" href="https://youngsanifone.github.io/snake/" target="_blank">
+    <div class="sdot dwarn" id="sd-gm"></div>
+    <span class="svc-name">Игра</span>
+  </a>
+  <a class="svc-item" href="https://analytics.google.com" target="_blank">
+    <div class="sdot don"></div>
+    <span class="svc-name">Analytics</span>
+  </a>
+  <span style="margin-left:auto;font-size:.62rem;color:#334155" id="svc-summary"></span>
 </div>
 
 <div class="wrap">
 
-  <!-- ══ PROJECT OVERVIEW ══ -->
-  <div class="ov-card">
-    <div class="ov-top">
-      <div class="ov-title">
-        <div class="ov-label">ПРОЕКТ</div>
-        <div class="ov-name">🐍 snake-game</div>
-        <div class="ov-sub">Supabase · West EU (Ireland) · FREE plan · Edge Functions включены</div>
-      </div>
-      <div class="ov-btns">
-        <a href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr" target="_blank" class="ov-btn ov-btn-dark">🗄️ Supabase</a>
-        <a href="https://github.com/youngsanifone/snake" target="_blank" class="ov-btn ov-btn-dark">🐙 GitHub</a>
-        <a href="https://youngsanifone.github.io/snake/" target="_blank" class="ov-btn ov-btn-accent">🎮 Открыть игру</a>
+  <!-- 4 compact stats -->
+  <div class="stats-row">
+    <div class="sstat online">
+      <div class="sstat-ico">🟢</div>
+      <div class="sstat-body">
+        <div class="sstat-n" id="s-online">—</div>
+        <div class="sstat-l">Онлайн</div>
+        <div class="sstat-d">за 30 мин</div>
       </div>
     </div>
-    <div class="ov-grid">
-      <div class="ov-box">
-        <div class="ov-box-title">База данных</div>
-        <div class="ov-row"><span class="ov-key">leaderboard</span><span id="ov-lb-rows" class="ov-val">—</span></div>
-        <div class="ov-row"><span class="ov-key">players</span><span id="ov-pl-rows" class="ov-val">—</span></div>
-        <div class="ov-row"><span class="ov-key">player_events</span><span id="ov-ev-rows" class="ov-val">—</span></div>
-      </div>
-      <div class="ov-box">
-        <div class="ov-box-title">Статус сервисов</div>
-        <div class="ov-svc"><span id="ov-dot-sb" class="ov-dot"></span><span>Supabase API</span><span id="ov-ms-sb" class="ov-ping"></span></div>
-        <div class="ov-svc"><span id="ov-dot-ef" class="ov-dot"></span><span>Edge Functions</span><span id="ov-ms-ef" class="ov-ping"></span></div>
-        <div class="ov-svc"><span id="ov-dot-gh" class="ov-dot"></span><span>GitHub Pages</span></div>
-      </div>
-      <div class="ov-box">
-        <div class="ov-box-title">Последние действия</div>
-        <div class="ov-act">🔀 <span id="ov-last-commit" class="ov-act-val">загрузка...</span></div>
-        <div class="ov-act">🗄️ Migration: <span class="ov-act-purple">create_admin_execute_function</span></div>
-        <div class="ov-act">⚡ EF: <span class="ov-act-green">admin-sql задеплоен</span></div>
-      </div>
-      <div class="ov-box">
-        <div class="ov-box-title">Фазы проекта</div>
-        <div class="ov-phase"><span class="ov-phase-done">✅</span> Фаза 1–2: Игра готова</div>
-        <div class="ov-phase"><span class="ov-phase-now">🔵</span> Фаза 3: Online / Supabase</div>
-        <div class="ov-phase ov-phase-dim"><span>⏳</span> Фаза 4: Capacitor mobile</div>
-        <div class="ov-phase ov-phase-dim"><span>⏳</span> Фаза 5: App Store / Play</div>
+    <div class="sstat">
+      <div class="sstat-ico">🎮</div>
+      <div class="sstat-body">
+        <div class="sstat-n" id="s-today">—</div>
+        <div class="sstat-l">Сегодня</div>
+        <div class="sstat-d" id="s-today-d">игр</div>
       </div>
     </div>
-  </div>
-
-  <!-- Stats -->
-  <div class="row row4" style="margin-bottom:12px">
-    <div class="stat"><div class="stat-n" id="s-total">—</div><div class="stat-l">Всего игр</div><div class="stat-d" id="s-total-d">загрузка...</div></div>
-    <div class="stat"><div class="stat-n" id="s-players">—</div><div class="stat-l">Игроков</div><div class="stat-d">уникальных имён</div></div>
-    <div class="stat online"><div class="stat-n" id="s-online">—</div><div class="stat-l">Онлайн сейчас</div><div class="stat-d">за последние 30 мин</div></div>
-    <div class="stat"><div class="stat-n" id="s-today">—</div><div class="stat-l">Сегодня</div><div class="stat-d">игр за сутки</div></div>
-  </div>
-  <div class="row row4" style="margin-bottom:12px">
-    <div class="stat"><div class="stat-n" id="s-top">—</div><div class="stat-l">Топ счёт</div><div class="stat-d" id="s-top-d">—</div></div>
-    <div class="stat"><div class="stat-n" id="s-avg">—</div><div class="stat-l">Среднее</div><div class="stat-d">по всем играм</div></div>
-    <div class="stat"><div class="stat-n" id="s-modes">—</div><div class="stat-l">Режимов</div><div class="stat-d" id="s-modes-d">—</div></div>
-    <div class="stat"><div class="stat-n" id="s-maxlvl">—</div><div class="stat-l">Макс уровень</div><div class="stat-d">достигнут</div></div>
-  </div>
-
-  <!-- Charts -->
-  <div class="row row2" style="margin-bottom:12px">
-    <div class="card" style="margin-bottom:0">
-      <div class="card-h"><span class="card-t">📈 Активность (последние 20 игр)</span></div>
-      <div class="chart-wrap"><canvas id="chartLine"></canvas></div>
+    <div class="sstat">
+      <div class="sstat-ico">🏆</div>
+      <div class="sstat-body">
+        <div class="sstat-n" id="s-top">—</div>
+        <div class="sstat-l">Топ счёт</div>
+        <div class="sstat-d" id="s-top-d">—</div>
+      </div>
     </div>
-    <div class="card" style="margin-bottom:0">
-      <div class="card-h"><span class="card-t">🥧 Режимы игры</span></div>
-      <div class="chart-wrap"><canvas id="chartMode"></canvas></div>
+    <div class="sstat">
+      <div class="sstat-ico">📊</div>
+      <div class="sstat-body">
+        <div class="sstat-n" id="s-total">—</div>
+        <div class="sstat-l">Всего игр</div>
+        <div class="sstat-d" id="s-total-d">в базе</div>
+      </div>
     </div>
   </div>
 
   <!-- Online + Recent -->
-  <div class="row row2" style="margin-bottom:12px">
+  <div class="row2">
     <div class="card" style="margin-bottom:0">
       <div class="card-h">
         <span class="card-t">🟢 Онлайн сейчас</span>
         <span class="badge bg" id="onlineBadge">—</span>
       </div>
-      <div id="onlineList"><div class="st"><span class="sp"></span>Проверяю...</div></div>
+      <div id="onlineList"><div class="st"><span class="sp"></span></div></div>
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="card-h">
         <span class="card-t">🕹️ Последние игры</span>
-        <span class="badge bq" id="recentBadge">—</span>
+        <span class="badge bq">последние 10</span>
       </div>
-      <div id="recentList"><div class="st"><span class="sp"></span>Загрузка...</div></div>
+      <div id="recentList"><div class="st"><span class="sp"></span></div></div>
+    </div>
+  </div>
+  <div style="height:10px"></div>
+
+  <!-- Charts -->
+  <div class="row2">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-h"><span class="card-t">📈 Активность</span><span class="badge bq" id="chartBadge">последние 20</span></div>
+      <div class="chart-wrap"><canvas id="chartLine"></canvas></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-h"><span class="card-t">🥧 Режимы</span><span class="badge bb" id="modesBadge">—</span></div>
+      <div class="chart-wrap"><canvas id="chartMode"></canvas></div>
+    </div>
+  </div>
+  <div style="height:10px"></div>
+
+  <!-- ═══ TOOL TABS ═══ -->
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tbn-sql"      onclick="openTab('sql')">💻 SQL</button>
+    <button class="tab-btn"        id="tbn-tables"   onclick="openTab('tables')">📋 Таблицы</button>
+    <button class="tab-btn"        id="tbn-advisors" onclick="openTab('advisors')">🔍 Советники</button>
+    <button class="tab-btn"        id="tbn-storage"  onclick="openTab('storage')">🗂️ Storage</button>
+    <button class="tab-btn"        id="tbn-auth"     onclick="openTab('auth')">🔐 Auth</button>
+    <button class="tab-btn"        id="tbn-actlog"   onclick="openTab('actlog')">📝 Лог</button>
+  </div>
+
+  <!-- SQL -->
+  <div id="tab-sql" class="tab-content active">
+    <div class="tab-desc">Нажми <b>▶ Run</b> — SQL выполнится через Edge Function <code>admin-sql</code> и вернёт результат здесь. Нет copy-paste.</div>
+    <div id="sqlPresets">
+      <div class="sql-preset-row"><div class="sql-preset-info"><div class="sql-pl">📊 Статистика по режимам</div><div class="sql-pd">Игры, средний и макс. счёт по каждому режиму</div></div><div class="sql-btns"><button class="sbtn sbtn-r" onclick="runPreset(this,`SELECT mode,COUNT(*) games,ROUND(AVG(score)) avg_score,MAX(score) top_score FROM leaderboard GROUP BY mode ORDER BY games DESC`)">▶ Run</button><button class="sbtn sbtn-c" onclick="copySql(`SELECT mode,COUNT(*) games,ROUND(AVG(score)) avg_score,MAX(score) top_score FROM leaderboard GROUP BY mode ORDER BY games DESC`)">Копировать</button></div></div>
+      <div class="sql-preset-row"><div class="sql-preset-info"><div class="sql-pl">📅 Активность за 7 дней</div><div class="sql-pd">Количество игр и лучший счёт по дням</div></div><div class="sql-btns"><button class="sbtn sbtn-r" onclick="runPreset(this,`SELECT DATE(created_at) day,COUNT(*) games,MAX(score) best FROM leaderboard WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">▶ Run</button><button class="sbtn sbtn-c" onclick="copySql(`SELECT DATE(created_at) day,COUNT(*) games,MAX(score) best FROM leaderboard WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">Копировать</button></div></div>
+      <div class="sql-preset-row"><div class="sql-preset-info"><div class="sql-pl">🟢 Кто онлайн прямо сейчас</div><div class="sql-pd">Уникальные игроки с heartbeat за 30 минут + устройство</div></div><div class="sql-btns"><button class="sbtn sbtn-r" onclick="runPreset(this,`SELECT player_id,metadata,MAX(created_at) last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '30 minutes' GROUP BY player_id,metadata ORDER BY last_seen DESC`)">▶ Run</button><button class="sbtn sbtn-c" onclick="copySql(`SELECT player_id,metadata,MAX(created_at) last_seen FROM player_events WHERE event='visit' AND created_at>NOW()-INTERVAL '30 minutes' GROUP BY player_id,metadata ORDER BY last_seen DESC`)">Копировать</button></div></div>
+      <div class="sql-preset-row"><div class="sql-preset-info"><div class="sql-pl">🏆 Топ-10 по лучшему счёту</div><div class="sql-pd">Лучший результат каждого игрока</div></div><div class="sql-btns"><button class="sbtn sbtn-r" onclick="runPreset(this,`SELECT name,MAX(score) best_score,COUNT(*) games,MAX(level) max_level FROM leaderboard GROUP BY name ORDER BY best_score DESC LIMIT 10`)">▶ Run</button><button class="sbtn sbtn-c" onclick="copySql(`SELECT name,MAX(score) best_score,COUNT(*) games,MAX(level) max_level FROM leaderboard GROUP BY name ORDER BY best_score DESC LIMIT 10`)">Копировать</button></div></div>
+      <div class="sql-preset-row"><div class="sql-preset-info"><div class="sql-pl">🗄️ Здоровье таблиц</div><div class="sql-pd">Строки, мёртвые кортежи, размер</div></div><div class="sql-btns"><button class="sbtn sbtn-r" onclick="runPreset(this,`SELECT relname table_name,n_live_tup live_rows,n_dead_tup dead_rows,pg_size_pretty(pg_relation_size(relid)) size FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`)">▶ Run</button><button class="sbtn sbtn-c" onclick="copySql(`SELECT relname table_name,n_live_tup live_rows,n_dead_tup dead_rows,pg_size_pretty(pg_relation_size(relid)) size FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`)">Копировать</button></div></div>
+      <div class="sql-preset-row"><div class="sql-preset-info"><div class="sql-pl">📈 Использование индексов</div><div class="sql-pd">Сколько раз каждый индекс использовался</div></div><div class="sql-btns"><button class="sbtn sbtn-r" onclick="runPreset(this,`SELECT tablename,indexname,idx_scan scans,idx_tup_read rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">▶ Run</button><button class="sbtn sbtn-c" onclick="copySql(`SELECT tablename,indexname,idx_scan scans,idx_tup_read rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">Копировать</button></div></div>
+      <div class="sql-preset-row"><div class="sql-preset-info"><div class="sql-pl">🕐 pg_cron задания</div><div class="sql-pd">Список scheduled заданий</div></div><div class="sql-btns"><button class="sbtn sbtn-r" onclick="runPreset(this,`SELECT jobname,schedule,command,active FROM cron.job`)">▶ Run</button><button class="sbtn sbtn-c" onclick="copySql(`SELECT jobname,schedule,command,active FROM cron.job`)">Копировать</button></div></div>
+      <div class="sql-preset-row" style="background:#fef2f2"><div class="sql-preset-info"><div class="sql-pl" style="color:#dc2626">⚠️ Удалить тестовые записи</div><div class="sql-pd">Удаляет строки где name содержит "test"</div></div><div class="sql-btns"><button class="sbtn" style="background:#dc2626;color:#fff" onclick="if(confirm('Удалить тестовые записи?'))runPreset(this,`DELETE FROM leaderboard WHERE LOWER(name) LIKE '%test%' RETURNING id,name,score`)">⚠ Run</button><button class="sbtn sbtn-c" onclick="copySql(`DELETE FROM leaderboard WHERE LOWER(name) LIKE '%test%' RETURNING id,name,score`)">Копировать</button></div></div>
+    </div>
+    <div class="sql-custom">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <span style="font-size:.79rem;font-weight:700">Свой запрос</span>
+        <button onclick="exportCSV()" style="font-size:.67rem;padding:3px 9px;border:1px solid var(--brd);border-radius:5px;cursor:pointer;background:var(--card)">↓ CSV</button>
+      </div>
+      <textarea class="sql-area" id="sqlInput" placeholder="SELECT * FROM leaderboard ORDER BY score DESC LIMIT 20;"></textarea>
+      <div class="sql-run-row">
+        <button class="sql-run-btn" id="sqlRunBtn" onclick="runCustomSQL()">▶ Выполнить SQL</button>
+        <span class="sql-hint" id="sqlMeta"></span>
+      </div>
+    </div>
+    <div class="sql-result" id="sqlResult"></div>
+  </div>
+
+  <!-- Tables -->
+  <div id="tab-tables" class="tab-content">
+    <div class="tab-desc"><b>Table Editor</b> — просматривай данные с пагинацией и поиском.</div>
+    <div class="tbl-sel">
+      <button class="tbl-b active" onclick="loadTbl('leaderboard',this)">🏆 leaderboard</button>
+      <button class="tbl-b" onclick="loadTbl('players',this)">👤 players</button>
+      <button class="tbl-b" onclick="loadTbl('player_events',this)">📡 player_events</button>
+      <button class="tbl-b" onclick="loadTbl('top_players',this)">🌟 top_players</button>
+      <button class="tbl-b" onclick="loadTbl('daily_stats',this)">📅 daily_stats</button>
+    </div>
+    <div class="tbl-search-row">
+      <input type="text" class="tbl-search" id="tblSearch" placeholder="Поиск..." oninput="filterTbl()">
+      <span id="tblMeta" style="font-size:.69rem;color:var(--mut);white-space:nowrap;align-self:center"></span>
+    </div>
+    <div class="tbl-data" id="tblData"><div class="st">Выбери таблицу выше</div></div>
+    <div class="tbl-page-row">
+      <button id="tblPrev" onclick="tblPageChange(-1)" disabled>← Назад</button>
+      <span id="tblPage" style="font-size:.73rem">Стр. 1</span>
+      <button id="tblNext" onclick="tblPageChange(1)">Вперёд →</button>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       ══ MAIN TOOL PANEL — TABS ══
-  ═══════════════════════════════════════════════════════ -->
-  <div class="tool-panel">
-    <div class="tab-nav">
-      <button class="tab-btn active" id="tbn-sql"      onclick="openTab('sql')">💻 SQL Терминал</button>
-      <button class="tab-btn"        id="tbn-tables"   onclick="openTab('tables')">📋 Таблицы</button>
-      <button class="tab-btn"        id="tbn-advisors" onclick="openTab('advisors')">🔍 Советники</button>
-      <button class="tab-btn"        id="tbn-storage"  onclick="openTab('storage')">🗂️ Storage</button>
-      <button class="tab-btn"        id="tbn-auth"     onclick="openTab('auth')">🔐 Auth</button>
-      <button class="tab-btn"        id="tbn-actlog"   onclick="openTab('actlog')">📝 Лог</button>
+  <!-- Advisors -->
+  <div id="tab-advisors" class="tab-content">
+    <div class="tab-desc"><b>Советники</b> — безопасность и производительность базы данных.</div>
+    <div style="padding:9px 14px;border-bottom:1px solid var(--brd);display:flex;gap:7px;flex-wrap:wrap">
+      <button class="sbtn sbtn-r" onclick="loadAdvisors()">🔍 Обновить</button>
+      <button class="sbtn sbtn-c" onclick="runPreset(null,`SELECT relname table_name,n_live_tup live_rows,n_dead_tup dead_rows,pg_size_pretty(pg_relation_size(relid)) size FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`)">📊 Таблицы</button>
+      <button class="sbtn sbtn-c" onclick="runPreset(null,`SELECT tablename,indexname,idx_scan scans FROM pg_stat_user_indexes WHERE schemaname='public' AND idx_scan=0`)">📈 Неисп. индексы</button>
     </div>
+    <div id="advisorsList"><div class="st">Нажми "Обновить"</div></div>
+  </div>
 
-    <!-- ── TAB: SQL TERMINAL ── -->
-    <div id="tab-sql" class="tab-content active">
-      <div class="tab-desc">
-        <b>SQL Терминал</b> — выполняй запросы напрямую через Edge Function <code>admin-sql</code>. Нажми <b>▶ Run</b> — SQL запустится и вернёт результат прямо сюда.
-      </div>
-      <div class="adv-section-title" style="padding-top:12px">Готовые запросы</div>
-      <div class="sql-presets" id="sqlPresets">
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">📊 Статистика по режимам</div>
-            <div class="sql-preset-desc">Количество игр, средний и максимальный счёт по каждому режиму</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" onclick="runPreset(0,`SELECT mode, COUNT(*) as games, ROUND(AVG(score)) as avg_score, MAX(score) as top_score FROM leaderboard GROUP BY mode ORDER BY games DESC`)">▶ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`SELECT mode, COUNT(*) as games, ROUND(AVG(score)) as avg_score, MAX(score) as top_score FROM leaderboard GROUP BY mode ORDER BY games DESC`)">Копировать</button>
-          </div>
-        </div>
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">📅 Активность за 7 дней</div>
-            <div class="sql-preset-desc">Количество игр по дням за последнюю неделю</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" onclick="runPreset(1,`SELECT DATE(created_at) as day, COUNT(*) as games, MAX(score) as best FROM leaderboard WHERE created_at > NOW() - INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">▶ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`SELECT DATE(created_at) as day, COUNT(*) as games, MAX(score) as best FROM leaderboard WHERE created_at > NOW() - INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">Копировать</button>
-          </div>
-        </div>
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">🟢 Онлайн прямо сейчас</div>
-            <div class="sql-preset-desc">Уникальные игроки с heartbeat за последние 30 минут</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" onclick="runPreset(2,`SELECT player_id, MAX(created_at) as last_seen FROM player_events WHERE event='visit' AND created_at > NOW() - INTERVAL '30 minutes' GROUP BY player_id ORDER BY last_seen DESC`)">▶ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`SELECT player_id, MAX(created_at) as last_seen FROM player_events WHERE event='visit' AND created_at > NOW() - INTERVAL '30 minutes' GROUP BY player_id ORDER BY last_seen DESC`)">Копировать</button>
-          </div>
-        </div>
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">🏆 Топ-10 игроков (лучший счёт)</div>
-            <div class="sql-preset-desc">Лучший результат каждого уникального игрока</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" onclick="runPreset(3,`SELECT name, MAX(score) as best_score, COUNT(*) as games, MAX(level) as max_level FROM leaderboard GROUP BY name ORDER BY best_score DESC LIMIT 10`)">▶ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`SELECT name, MAX(score) as best_score, COUNT(*) as games, MAX(level) as max_level FROM leaderboard GROUP BY name ORDER BY best_score DESC LIMIT 10`)">Копировать</button>
-          </div>
-        </div>
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">🗄️ Размеры таблиц и здоровье БД</div>
-            <div class="sql-preset-desc">Строки, мёртвые кортежи, размер каждой таблицы</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" onclick="runPreset(4,`SELECT relname as table_name, n_live_tup as live_rows, n_dead_tup as dead_rows, pg_size_pretty(pg_relation_size(c.oid)) as size FROM pg_stat_user_tables s JOIN pg_class c ON c.relname=s.relname WHERE s.schemaname='public' ORDER BY n_live_tup DESC`)">▶ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`SELECT relname as table_name, n_live_tup as live_rows, n_dead_tup as dead_rows, pg_size_pretty(pg_relation_size(c.oid)) as size FROM pg_stat_user_tables s JOIN pg_class c ON c.relname=s.relname WHERE s.schemaname='public' ORDER BY n_live_tup DESC`)">Копировать</button>
-          </div>
-        </div>
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">📈 Использование индексов</div>
-            <div class="sql-preset-desc">Сколько раз каждый индекс использовался для поиска</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" onclick="runPreset(5,`SELECT tablename, indexname, idx_scan as scans, idx_tup_read as rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">▶ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`SELECT tablename, indexname, idx_scan as scans, idx_tup_read as rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">Копировать</button>
-          </div>
-        </div>
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">🧹 Очистить тестовые записи</div>
-            <div class="sql-preset-desc">Удаляет строки где name содержит "test" (без учёта регистра)</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" style="background:#dc2626" onclick="if(confirm('Удалить тестовые записи?'))runPreset(6,`DELETE FROM leaderboard WHERE LOWER(name) LIKE '%25test%25' RETURNING id, name, score`)">⚠ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`DELETE FROM leaderboard WHERE LOWER(name) LIKE '%test%' RETURNING id, name, score`)">Копировать</button>
-          </div>
-        </div>
-        <div class="sql-preset-row">
-          <div class="sql-preset-info">
-            <div class="sql-preset-label">🧽 Запустить cleanup_old_events()</div>
-            <div class="sql-preset-desc">Удаляет события старше 60 дней (обычно запускается автоматически в 3:00 UTC)</div>
-          </div>
-          <div class="sql-preset-btns">
-            <button class="sbtn sbtn-run" onclick="runPreset(7,`SELECT cleanup_old_events() as result`)">▶ Run</button>
-            <button class="sbtn sbtn-copy" onclick="copySql(`SELECT cleanup_old_events()`)">Копировать</button>
-          </div>
-        </div>
-      </div>
+  <!-- Storage -->
+  <div id="tab-storage" class="tab-content">
+    <div class="tab-desc"><b>Storage</b> — файловое хранилище. Сейчас не используется — игра не хранит файлы в Supabase Storage.</div>
+    <div style="padding:12px 14px" id="storContent"><div class="st"><span class="sp"></span></div></div>
+  </div>
 
-      <hr class="sql-divider">
-      <div class="sql-custom">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:.8rem;font-weight:700">Свой SQL запрос</span>
-          <span style="font-size:.65rem;color:var(--muted)">SELECT, INSERT, UPDATE, DELETE — всё через Edge Function admin-sql</span>
-        </div>
-        <textarea class="sql-area" id="sqlInput" placeholder="SELECT * FROM leaderboard ORDER BY score DESC LIMIT 20;"></textarea>
-        <div class="sql-run-row">
-          <button class="sql-run-btn" id="sqlRunBtn" onclick="runCustomSQL()">▶ Выполнить SQL</button>
-          <span class="sql-hint" id="sqlMeta"></span>
-        </div>
-      </div>
-      <div class="sql-result" id="sqlResult"></div>
-    </div>
+  <!-- Auth -->
+  <div id="tab-auth" class="tab-content">
+    <div class="tab-desc"><b>Auth</b> — в этом проекте регистрация не нужна. Игроки анонимны (UUID в localStorage).</div>
+    <div style="padding:12px 14px" id="authContent"><div class="st"><span class="sp"></span></div></div>
+  </div>
 
-    <!-- ── TAB: TABLE EDITOR ── -->
-    <div id="tab-tables" class="tab-content">
-      <div class="tab-desc">
-        <b>Table Editor</b> — просматривай и анализируй данные в таблицах и представлениях базы данных.
-      </div>
-      <div class="tbl-selector">
-        <button class="tbl-btn active" onclick="loadTableEditor('leaderboard')">🏆 leaderboard</button>
-        <button class="tbl-btn" onclick="loadTableEditor('players')">👤 players</button>
-        <button class="tbl-btn" onclick="loadTableEditor('player_events')">📡 player_events</button>
-        <button class="tbl-btn" onclick="loadTableEditor('top_players')">🌟 top_players</button>
-        <button class="tbl-btn" onclick="loadTableEditor('daily_stats')">📅 daily_stats</button>
-      </div>
-      <div class="tbl-search-row">
-        <input type="text" class="tbl-search" id="tblSearch" placeholder="Поиск по первой колонке..." oninput="filterTableData()">
-        <span id="tblMeta" style="font-size:.7rem;color:var(--muted);white-space:nowrap"></span>
-      </div>
-      <div class="tbl-data" id="tblData"><div class="st"><span class="sp"></span>Выбери таблицу выше</div></div>
-      <div class="tbl-pagination">
-        <button id="tblPrev" onclick="tablePageChange(-1)" disabled>← Назад</button>
-        <span id="tblPage">Страница 1</span>
-        <button id="tblNext" onclick="tablePageChange(1)">Вперёд →</button>
-      </div>
-    </div>
-
-    <!-- ── TAB: ADVISORS ── -->
-    <div id="tab-advisors" class="tab-content">
-      <div class="tab-desc">
-        <b>Советники</b> — анализ безопасности и производительности. Загружает данные через Edge Function для проверки состояния базы данных.
-      </div>
-      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
-        <button class="sbtn sbtn-run" onclick="loadAdvisors()">🔍 Обновить советники</button>
-        <button class="sbtn sbtn-copy" onclick="runPreset('adv-tbl',`SELECT relname as table_name, n_live_tup as live_rows, n_dead_tup as dead_rows, pg_size_pretty(pg_relation_size(c.oid)) as size FROM pg_stat_user_tables s JOIN pg_class c ON c.relname=s.relname WHERE s.schemaname='public'`)">📊 Здоровье таблиц</button>
-        <button class="sbtn sbtn-copy" onclick="runPreset('adv-idx',`SELECT tablename, indexname, idx_scan as scans FROM pg_stat_user_indexes WHERE schemaname='public' AND idx_scan=0 ORDER BY tablename`)">📈 Неиспользуемые индексы</button>
-      </div>
-      <div id="advisorsList"><div class="st"><span class="sp"></span>Нажми "Обновить советники"</div></div>
-    </div>
-
-    <!-- ── TAB: STORAGE ── -->
-    <div id="tab-storage" class="tab-content">
-      <div class="tab-desc">
-        <b>Storage</b> — файловое хранилище Supabase. Используется для хранения изображений, аудио, видео и других файлов через REST API.
-      </div>
-      <div class="stor-content" id="storContent"><div class="st"><span class="sp"></span>Загрузка...</div></div>
-    </div>
-
-    <!-- ── TAB: AUTH ── -->
-    <div id="tab-auth" class="tab-content">
-      <div class="tab-desc">
-        <b>Auth</b> — система аутентификации пользователей. В этом проекте Auth не используется для регистрации игроков — только <b>anon key</b> для публичного доступа.
-      </div>
-      <div class="auth-content" id="authContent"><div class="st"><span class="sp"></span>Загрузка...</div></div>
-    </div>
-
-    <!-- ── TAB: ACTION LOG ── -->
-    <div id="tab-actlog" class="tab-content">
-      <div class="tab-desc">
-        <b>Лог действий</b> — все действия администратора в этой сессии. Автоматически записывает SQL запросы, просмотр таблиц и другие операции.
-      </div>
-      <div class="actlog-list" id="actlogList">
-        <div class="actlog-empty">Пока нет действий. Выполни SQL запрос или открой таблицу — всё появится здесь.</div>
-      </div>
-      <div class="actlog-footer">
-        <span class="actlog-count" id="actlogCount">0 действий</span>
-        <button class="actlog-clear" onclick="clearActionLog()">Очистить лог</button>
-      </div>
+  <!-- Log -->
+  <div id="tab-actlog" class="tab-content">
+    <div class="tab-desc"><b>Лог</b> — все действия администратора в этой сессии.</div>
+    <div class="log-list" id="logList"><div class="log-empty">Пока пусто. Выполни SQL или открой таблицу.</div></div>
+    <div class="log-foot">
+      <span class="log-cnt" id="logCnt">0 действий</span>
+      <button class="log-clr" onclick="clearLog()">Очистить</button>
     </div>
   </div>
-  <!-- ═══ END TOOL PANEL ═══ -->
 
-  <!-- Services -->
+  <!-- Leaderboard -->
   <div class="card">
     <div class="card-h">
-      <span class="card-t">⚡ Сервисы</span>
-      <span class="badge bg" id="svcBadge">проверка...</span>
+      <span class="card-t">🏆 Лидерборд (топ-20)</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="badge bq" id="lbBadge">—</span>
+        <a class="ab a2" style="padding:4px 10px;font-size:.7rem" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/database/tables" target="_blank">Все данные ↗</a>
+      </div>
     </div>
-    <div class="svcs">
-      <a class="svc" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr" target="_blank">
-        <span class="svc-ico">🗄️</span>
-        <div><div class="svc-name">Supabase</div><div class="svc-sub">База данных · REST API · Edge Functions</div></div>
-        <div class="svc-r"><span class="svc-ping" id="p0"></span><div class="sdot dchk" id="sd0"></div></div>
-      </a>
-      <a class="svc" href="https://github.com/youngsanifone/snake" target="_blank">
-        <span class="svc-ico">🐙</span>
-        <div><div class="svc-name">GitHub</div><div class="svc-sub">youngsanifone/snake</div></div>
-        <div class="svc-r"><span class="svc-ping" id="p1"></span><div class="sdot dchk" id="sd1"></div></div>
-      </a>
-      <a class="svc" href="https://analytics.google.com" target="_blank">
-        <span class="svc-ico">📊</span>
-        <div><div class="svc-name">Google Analytics</div><div class="svc-sub">gtag.js · трафик игроков</div></div>
-        <div class="svc-r"><div class="sdot don" id="sd2"></div></div>
-      </a>
-      <a class="svc" href="https://youngsanifone.github.io/snake/" target="_blank">
-        <span class="svc-ico">🎮</span>
-        <div><div class="svc-name">Игра (live)</div><div class="svc-sub">GitHub Pages</div></div>
-        <div class="svc-r"><span class="svc-ping" id="p3"></span><div class="sdot dchk" id="sd3"></div></div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Quick actions -->
-  <div class="card">
-    <div class="card-h"><span class="card-t">🚀 Быстрые действия</span></div>
-    <div class="acts">
-      <a class="ab a1" href="https://youngsanifone.github.io/snake/" target="_blank">🎮 Открыть игру</a>
-      <a class="ab a0" href="https://github.com/youngsanifone/snake" target="_blank">🐙 GitHub репо</a>
-      <a class="ab a2" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/editor" target="_blank">🗄️ SQL редактор</a>
-      <a class="ab a3" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/database/tables" target="_blank">📋 Tables</a>
-      <a class="ab a4" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/logs/explorer" target="_blank">📄 Logs</a>
-      <a class="ab a2" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/functions" target="_blank">⚡ Edge Functions</a>
-      <a class="ab a3" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/storage" target="_blank">🗂️ Storage</a>
-      <a class="ab a1" href="https://analytics.google.com" target="_blank">📊 Analytics</a>
-    </div>
+    <div class="lb-wrap" id="lb"><div class="st"><span class="sp"></span></div></div>
   </div>
 
   <!-- Top players -->
@@ -629,33 +471,37 @@ tr:hover td{background:#fafafa}
       <span class="card-t">👥 Топ игроки</span>
       <span class="badge bp" id="playersBadge">—</span>
     </div>
-    <div class="lb-wrap" id="topPlayers">
-      <div class="st"><span class="sp"></span>Загрузка...</div>
-    </div>
+    <div class="lb-wrap" id="topPlayers"><div class="st"><span class="sp"></span></div></div>
   </div>
 
-  <!-- Leaderboard -->
-  <div class="card">
-    <div class="card-h">
-      <span class="card-t">🏆 Лидерборд (топ-20 по очкам)</span>
-      <span class="badge bq" id="lbBadge">—</span>
-    </div>
-    <div class="lb-wrap" id="lb">
-      <div class="st"><span class="sp"></span>Загружаю из Supabase...</div>
-    </div>
-  </div>
-
-  <!-- GitHub Commits -->
+  <!-- Commits -->
   <div class="card">
     <div class="card-h">
       <span class="card-t">🕐 Последние коммиты</span>
-      <span class="badge bq" id="cmtBadge">—</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="badge bq" id="cmtBadge">—</span>
+        <a class="ab a0" style="padding:4px 10px;font-size:.7rem" href="https://github.com/youngsanifone/snake/commits/main" target="_blank">GitHub →</a>
+      </div>
     </div>
-    <div id="commits"><div class="st"><span class="sp"></span>Загружаю с GitHub...</div></div>
+    <div id="commits"><div class="st"><span class="sp"></span></div></div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="card">
+    <div class="card-h"><span class="card-t">🚀 Быстрые действия</span></div>
+    <div class="acts">
+      <a class="ab a1" href="https://youngsanifone.github.io/snake/" target="_blank">🎮 Открыть игру</a>
+      <a class="ab a0" href="https://github.com/youngsanifone/snake" target="_blank">🐙 GitHub репозиторий</a>
+      <a class="ab a2" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/editor" target="_blank">🗄️ SQL редактор</a>
+      <a class="ab a3" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/functions" target="_blank">⚡ Edge Functions</a>
+      <a class="ab a4" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/logs/explorer" target="_blank">📄 Логи Supabase</a>
+      <a class="ab a2" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/storage" target="_blank">🗂️ Storage</a>
+      <a class="ab a1" href="https://analytics.google.com" target="_blank">📊 Google Analytics</a>
+    </div>
   </div>
 
   <div class="footer">
-    Supabase обновляется каждые <b>5 сек</b> · GitHub кеш <b>15 мин</b> · Edge Function <b>admin-sql</b> активен
+    Данные обновляются каждые <b>5 сек</b> · GitHub коммиты кешируются на <b>15 мин</b> · Часовой пояс сервера: <b>UTC (Supabase)</b> · Твоё смещение: <b id="tzOffset">вычисляю...</b>
   </div>
 </div>
 
@@ -668,690 +514,495 @@ const HASH = 'bd19c7167114e3c6317bc65bf1621f0d6eb3cdd42d1a003ced7826818f074057'
 const EF  = SB + '/functions/v1/admin-sql'
 
 // ── State ──────────────────────────────────────────────────────────────────
-let authHash = ''
-let allRows = [], onlineEvents = []
-let currentTable = 'leaderboard', tablePage = 0, tableRows = []
+let authHash = '', allRows = [], onlineEvents = []
+let curTbl = 'leaderboard', tblPage = 0, tblRows = []
 const actionLog = []
+
+// ── Timezone ───────────────────────────────────────────────────────────────
+const tzOff = -new Date().getTimezoneOffset()
+const tzStr = (tzOff >= 0 ? '+' : '') + Math.floor(tzOff/60) + ':' + String(Math.abs(tzOff%60)).padStart(2,'0')
+document.getElementById('tzOffset').textContent = 'UTC' + tzStr
 
 // ── Auth ───────────────────────────────────────────────────────────────────
 async function sha256(s){
-  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))
+  const b = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))
   return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')
 }
 async function doLogin(){
   const v = document.getElementById('pwInput').value.trim()
   if(!v) return
   const h = await sha256(v)
-  if(h === HASH){
-    authHash = h
-    sessionStorage.setItem('auth','1')
-    document.getElementById('loginWrap').style.display = 'none'
-    logAction('🔐 Вход в систему выполнен')
+  if(h===HASH){
+    authHash=h; sessionStorage.setItem('auth','1')
+    document.getElementById('loginWrap').style.display='none'
+    logAction('🔐 Вход выполнен')
     startApp()
   } else {
-    document.getElementById('loginErr').textContent = 'Неверный пароль'
-    const i = document.getElementById('pwInput')
+    document.getElementById('loginErr').textContent='Неверный пароль'
+    const i=document.getElementById('pwInput')
     i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake')
-    i.value = ''; i.focus()
+    i.value=''; i.focus()
   }
 }
-
-// ── Action Log ─────────────────────────────────────────────────────────────
-function logAction(msg){
-  const now = new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
-  actionLog.unshift({ time: now, msg })
-  renderActionLog()
-}
-function renderActionLog(){
-  const el = document.getElementById('actlogList')
-  if(!el) return
-  if(!actionLog.length){
-    el.innerHTML = '<div class="actlog-empty">Нет действий</div>'
-  } else {
-    el.innerHTML = actionLog.slice(0,100).map(e=>`
-      <div class="actlog-entry">
-        <span class="actlog-time">${e.time}</span>
-        <span class="actlog-msg">${escHtml(e.msg)}</span>
-      </div>`).join('')
-  }
-  const cnt = document.getElementById('actlogCount')
-  if(cnt) cnt.textContent = actionLog.length + ' действий'
-}
-function clearActionLog(){ actionLog.length = 0; renderActionLog() }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function ago(d){
   if(!d) return '—'
-  const s = (Date.now()-new Date(d))/1000
-  if(s<60) return Math.floor(s)+'с назад'
-  if(s<3600) return Math.floor(s/60)+'м назад'
-  if(s<86400) return Math.floor(s/3600)+'ч назад'
-  return Math.floor(s/86400)+'д назад'
+  const s=(Date.now()-new Date(d))/1000
+  if(s<60) return Math.floor(s)+'с'
+  if(s<3600) return Math.floor(s/60)+'м'
+  if(s<86400) return Math.floor(s/3600)+'ч'
+  return Math.floor(s/86400)+'д'
 }
-function fmtTime(d){ return d ? new Date(d).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}) : '—' }
-function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+// Convert UTC timestamp to local time string
+function localTime(d){
+  if(!d) return '—'
+  return new Date(d).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})
+}
+function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 function cmtTag(m){
   if(/^feat/i.test(m)) return '<span class="ctag tf">feat</span>'
   if(/^fix/i.test(m))  return '<span class="ctag tx">fix</span>'
-  return '<span class="ctag tc">update</span>'
+  return '<span class="ctag tc">upd</span>'
 }
-function copySql(sql){
-  navigator.clipboard.writeText(sql).then(()=>toast('Скопировано ✓'))
-}
+function copySql(sql){ navigator.clipboard.writeText(sql).then(()=>toast('Скопировано ✓')) }
 function toast(msg){
-  const t = document.getElementById('toast')
-  t.textContent = msg; t.classList.add('show')
-  setTimeout(()=>t.classList.remove('show'), 2000)
+  const t=document.getElementById('toast')
+  t.textContent=msg; t.classList.add('show')
+  setTimeout(()=>t.classList.remove('show'),2000)
 }
-function setDot(id, state, ping){
-  const el = document.getElementById(id)
-  if(el) el.className = 'sdot '+(state==='on'?'don':state==='off'?'doff':'dchk')
-  const p = document.getElementById('p'+id.slice(2))
-  if(p&&ping!=null) p.textContent = ping||''
-  updateSvc()
+function parseDevice(meta){
+  // Try metadata object from player_events
+  if(meta && typeof meta === 'object'){
+    if(meta.device) return meta.device
+    if(meta.platform) return meta.platform
+    if(meta.ua || meta.userAgent){
+      const ua = meta.ua || meta.userAgent
+      if(/iPhone|iPad/i.test(ua)) return '📱 iOS'
+      if(/Android/i.test(ua)) return '📱 Android'
+      if(/Windows/i.test(ua)) return '💻 Windows'
+      if(/Macintosh|Mac OS/i.test(ua)) return '💻 Mac'
+      if(/Linux/i.test(ua)) return '💻 Linux'
+    }
+  }
+  return null
 }
-function updateSvc(){
-  const ok = ['sd0','sd1','sd2','sd3'].filter(id=>{const d=document.getElementById(id);return d&&d.classList.contains('don')}).length
-  const b = document.getElementById('svcBadge')
-  b.textContent = ok+' из 4 онлайн'
-  b.className = 'badge '+(ok===4?'bg':ok>=2?'by':'br')
+function deviceBadge(meta){
+  const d = parseDevice(meta)
+  if(!d) return ''
+  const m = /📱/.test(d)
+  return `<span class="dev-badge ${m?'dev-mobile':'dev-desktop'}">${d}</span>`
 }
 
-// ── Tab system ─────────────────────────────────────────────────────────────
+// ── Services ───────────────────────────────────────────────────────────────
+function setDot(id, state, ms){
+  const el=document.getElementById('sd-'+id)
+  if(el) el.className='sdot '+(state==='on'?'don':state==='off'?'doff':'dwarn')
+  const mel=document.getElementById('ms-'+id)
+  if(mel&&ms!=null) mel.textContent=ms?ms+'ms':''
+  updateSvcSummary()
+}
+function updateSvcSummary(){
+  const ids=['sd-sb','sd-ef','sd-gh','sd-gm']
+  const ok=ids.filter(id=>{const d=document.getElementById(id);return d&&d.classList.contains('don')}).length
+  const el=document.getElementById('svc-summary')
+  if(el) el.textContent=ok+' из 4 в сети'
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
 function openTab(name){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'))
   document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'))
-  const content = document.getElementById('tab-'+name)
-  const btn     = document.getElementById('tbn-'+name)
-  if(content) content.classList.add('active')
-  if(btn)     btn.classList.add('active')
+  document.getElementById('tab-'+name)?.classList.add('active')
+  document.getElementById('tbn-'+name)?.classList.add('active')
   logAction('📂 Открыт раздел: '+name)
   if(name==='storage')  loadStorage()
-  if(name==='auth')     loadAuthSection()
+  if(name==='auth')     loadAuth()
   if(name==='advisors') loadAdvisors()
-  if(name==='tables')   loadTableEditor(currentTable)
+  if(name==='tables')   loadTbl(curTbl)
 }
 
-// ── Edge Function call ─────────────────────────────────────────────────────
+// ── Edge Function ──────────────────────────────────────────────────────────
 async function execSQL(query){
-  const t0 = Date.now()
-  try {
-    const r = await fetch(EF, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': KEY },
-      body: JSON.stringify({ query: query.trim(), auth: authHash })
-    })
-    const ms = Date.now()-t0
-    const json = await r.json()
-    if(!r.ok) return { error: json.error||'HTTP '+r.status, ms }
-    // data could be array or {error:...}
-    if(json.data && json.data.error) return { error: json.data.error+' ('+json.data.code+')', ms }
-    return { data: json.data, ms }
+  const t0=Date.now()
+  try{
+    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:query.trim(),auth:authHash})})
+    const ms=Date.now()-t0
+    const json=await r.json()
+    if(!r.ok) return {error:json.error||'HTTP '+r.status,ms}
+    if(json.data&&json.data.error) return {error:json.data.error+(json.data.code?' ('+json.data.code+')':''),ms}
+    return {data:json.data,ms}
   } catch(e){
-    return { error: e.message, ms: Date.now()-t0 }
+    return {error:e.message,ms:Date.now()-t0}
   }
 }
 
 // ── SQL result renderer ────────────────────────────────────────────────────
-function renderSQLResult(result, targetId='sqlResult'){
-  const box = document.getElementById(targetId)
+function renderSQL(result,targetId='sqlResult'){
+  const box=document.getElementById(targetId)
   if(!box) return
-  const { data, error, ms } = result
+  const {data,error,ms}=result
   if(error){
-    box.innerHTML = `<div class="res-meta err">❌ ${escHtml(error)} <span style="color:var(--muted);font-weight:400">${ms}мс</span></div>`
+    box.innerHTML=`<div class="res-meta err">❌ ${escH(error)} <span style="font-weight:400;color:var(--mut)">${ms}мс</span></div>`
     return
   }
-  const rows = Array.isArray(data) ? data : (data ? [data] : [])
+  const rows=Array.isArray(data)?data:(data?[data]:[])
   if(!rows.length){
-    box.innerHTML = `<div class="res-meta">✓ ${ms}мс · 0 строк</div><div class="res-empty">Запрос выполнен, результат пуст</div>`
+    box.innerHTML=`<div class="res-meta">✓ ${ms}мс · 0 строк</div><div class="res-empty">Запрос выполнен, результат пуст</div>`
     return
   }
-  const cols = Object.keys(rows[0])
-  const showing = Math.min(rows.length, 500)
-  box.innerHTML = `
-    <div class="res-meta">✓ ${ms}мс · ${rows.length} строк · ${cols.length} колонок${rows.length>showing?` (показано ${showing})`:''}
-      <button onclick="exportCSV()" style="margin-left:auto;font-size:.65rem;padding:2px 8px;border:1px solid var(--border);border-radius:5px;cursor:pointer;background:var(--card)">↓ CSV</button>
-    </div>
-    <div class="res-scroll">
-      <table class="res-table">
-        <thead><tr>${cols.map(c=>`<th>${escHtml(c)}</th>`).join('')}</tr></thead>
-        <tbody>${rows.slice(0,showing).map(r=>
-          `<tr>${cols.map(c=>`<td title="${escHtml(String(r[c]??''))}">${escHtml(String(r[c]??'null'))}</td>`).join('')}</tr>`
-        ).join('')}</tbody>
-      </table>
-    </div>`
-  window._lastSQLResult = { cols, rows }
+  const cols=Object.keys(rows[0])
+  const show=Math.min(rows.length,500)
+  box.innerHTML=`<div class="res-meta">✓ ${ms}мс · ${rows.length} строк · ${cols.length} кол${rows.length>show?` (первые ${show})`:''}
+    </div><div class="res-scroll"><table>
+    <thead><tr>${cols.map(c=>`<th>${escH(c)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.slice(0,show).map(r=>`<tr>${cols.map(c=>`<td title="${escH(String(r[c]??''))}">${escH(String(r[c]??'null'))}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`
+  window._lastSQL={cols,rows}
 }
 
-let lastPresetResult = null
-async function runPreset(idx, query){
-  // Highlight active preset run btn briefly
-  const btns = document.querySelectorAll('#sqlPresets .sbtn-run')
-  const btn = typeof idx === 'number' ? btns[idx] : null
-  if(btn){ btn.disabled = true; btn.textContent = '⏳' }
-  logAction(`💻 SQL: ${query.substring(0,70)}${query.length>70?'…':''}`)
-  const result = await execSQL(query)
-  if(btn){ btn.disabled = false; btn.textContent = '▶ Run' }
-  renderSQLResult(result)
-  document.getElementById('tab-sql').scrollIntoView({behavior:'smooth',block:'end'})
-  // Also switch to SQL tab if not already
+async function runPreset(btn, query){
+  if(btn){btn.disabled=true;btn.textContent='⏳'}
   if(!document.getElementById('tab-sql').classList.contains('active')) openTab('sql')
+  logAction(`💻 SQL: ${query.substring(0,60)}${query.length>60?'…':''}`)
+  const result=await execSQL(query)
+  if(btn){btn.disabled=false;btn.textContent='▶ Run'}
+  renderSQL(result)
 }
 
 async function runCustomSQL(){
-  const q = document.getElementById('sqlInput').value.trim()
-  if(!q){ toast('Введи SQL запрос'); return }
-  const btn = document.getElementById('sqlRunBtn')
-  btn.disabled = true; btn.textContent = '⏳ Выполняю...'
-  document.getElementById('sqlMeta').textContent = ''
-  logAction(`💻 Custom SQL: ${q.substring(0,70)}${q.length>70?'…':''}`)
-  const result = await execSQL(q)
-  btn.disabled = false; btn.textContent = '▶ Выполнить SQL'
-  if(result.error){
-    document.getElementById('sqlMeta').textContent = '❌ '+result.error
-  } else {
-    const rows = Array.isArray(result.data)?result.data.length:0
-    document.getElementById('sqlMeta').textContent = `✓ ${result.ms}мс · ${rows} строк`
-  }
-  renderSQLResult(result)
+  const q=document.getElementById('sqlInput').value.trim()
+  if(!q){toast('Введи SQL');return}
+  const btn=document.getElementById('sqlRunBtn')
+  btn.disabled=true;btn.textContent='⏳ Выполняю...'
+  document.getElementById('sqlMeta').textContent=''
+  logAction(`💻 Custom SQL: ${q.substring(0,60)}${q.length>60?'…':''}`)
+  const result=await execSQL(q)
+  btn.disabled=false;btn.textContent='▶ Выполнить SQL'
+  document.getElementById('sqlMeta').textContent=result.error?'❌ '+result.error:`✓ ${result.ms}мс · ${Array.isArray(result.data)?result.data.length:0} строк`
+  renderSQL(result)
 }
 
 function exportCSV(){
-  const d = window._lastSQLResult
-  if(!d) return
-  const csv = [d.cols.join(','), ...d.rows.map(r=>d.cols.map(c=>JSON.stringify(r[c]??'')).join(','))].join('\n')
-  const a = document.createElement('a')
-  a.href = 'data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv)
-  a.download = 'export_'+Date.now()+'.csv'
-  a.click()
+  const d=window._lastSQL; if(!d) return
+  const csv=[d.cols.join(','),...d.rows.map(r=>d.cols.map(c=>JSON.stringify(r[c]??'')).join(','))].join('\n')
+  const a=document.createElement('a')
+  a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv)
+  a.download='export_'+Date.now()+'.csv'; a.click()
   logAction('📥 Экспорт CSV')
 }
 
-// ── Table Editor ───────────────────────────────────────────────────────────
-const TABLE_PAGE_SIZE = 50
-
-async function loadTableEditor(name, page=0){
-  currentTable = name
-  tablePage = page
-  // Highlight active table btn
-  document.querySelectorAll('.tbl-btn').forEach(b=>{
-    b.classList.toggle('active', b.textContent.includes(name))
-  })
-  document.getElementById('tblData').innerHTML = '<div class="st"><span class="sp"></span>Загрузка...</div>'
-  document.getElementById('tblMeta').textContent = ''
-  const offset = page * TABLE_PAGE_SIZE
-  const url = SB+`/rest/v1/${name}?limit=${TABLE_PAGE_SIZE}&offset=${offset}`
+// ── Table editor ───────────────────────────────────────────────────────────
+const TBL_SIZE=50
+async function loadTbl(name, btn){
+  curTbl=name
+  if(btn){
+    document.querySelectorAll('.tbl-b').forEach(b=>b.classList.remove('active'))
+    btn.classList.add('active')
+    tblPage=0
+  }
+  document.getElementById('tblData').innerHTML='<div class="st"><span class="sp"></span></div>'
+  document.getElementById('tblMeta').textContent=''
+  const off=tblPage*TBL_SIZE
   try{
-    const r = await fetch(url, { headers:{...H,'Prefer':'count=exact'} })
-    const total = parseInt(r.headers.get('content-range')?.split('/')[1]||'0')
-    tableRows = await r.json()
-    renderTableData(tableRows, total)
-    document.getElementById('tblMeta').textContent = `${total} строк · страница ${page+1}/${Math.ceil(total/TABLE_PAGE_SIZE)||1}`
-    document.getElementById('tblPrev').disabled = page<=0
-    document.getElementById('tblNext').disabled = (page+1)*TABLE_PAGE_SIZE >= total
-    document.getElementById('tblPage').textContent = `Страница ${page+1}`
-    logAction(`📋 Таблица "${name}" (стр.${page+1}, ${tableRows.length} строк)`)
-  } catch(e){
-    document.getElementById('tblData').innerHTML = `<div class="eb">❌ ${e.message}</div>`
-  }
+    const r=await fetch(`${SB}/rest/v1/${name}?limit=${TBL_SIZE}&offset=${off}`,{headers:{...H,'Prefer':'count=exact'}})
+    const total=parseInt(r.headers.get('content-range')?.split('/')[1]||'0')
+    tblRows=await r.json()
+    renderTblData(tblRows)
+    document.getElementById('tblMeta').textContent=`${total} строк · стр.${tblPage+1}/${Math.ceil(total/TBL_SIZE)||1}`
+    document.getElementById('tblPrev').disabled=tblPage<=0
+    document.getElementById('tblNext').disabled=(tblPage+1)*TBL_SIZE>=total
+    document.getElementById('tblPage').textContent=`Стр. ${tblPage+1}`
+    logAction(`📋 Таблица "${name}" (стр.${tblPage+1}, ${tblRows.length} строк)`)
+  } catch(e){ document.getElementById('tblData').innerHTML=`<div class="eb">❌ ${e.message}</div>` }
 }
-
-function renderTableData(rows){
-  const box = document.getElementById('tblData')
-  const search = (document.getElementById('tblSearch')?.value||'').toLowerCase()
-  const filtered = search ? rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(search))) : rows
-  if(!filtered.length){
-    box.innerHTML = '<div class="st">Данные не найдены</div>'
-    return
-  }
-  const cols = Object.keys(filtered[0])
-  box.innerHTML = `<table>
-    <thead><tr>${cols.map(c=>`<th>${escHtml(c)}</th>`).join('')}</tr></thead>
-    <tbody>${filtered.map(r=>
-      `<tr>${cols.map(c=>`<td title="${escHtml(String(r[c]??''))}">${escHtml(String(r[c]??'null'))}</td>`).join('')}</tr>`
-    ).join('')}</tbody>
-  </table>`
+function renderTblData(rows){
+  const box=document.getElementById('tblData')
+  const s=(document.getElementById('tblSearch')?.value||'').toLowerCase()
+  const f=s?rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(s))):rows
+  if(!f.length){box.innerHTML='<div class="st">Ничего не найдено</div>';return}
+  const cols=Object.keys(f[0])
+  box.innerHTML=`<table><thead><tr>${cols.map(c=>`<th>${escH(c)}</th>`).join('')}</tr></thead><tbody>${f.map(r=>`<tr>${cols.map(c=>`<td title="${escH(String(r[c]??''))}">${escH(String(r[c]??'null'))}</td>`).join('')}</tr>`).join('')}</tbody></table>`
 }
-
-function filterTableData(){
-  renderTableData(tableRows)
-}
-function tablePageChange(dir){
-  loadTableEditor(currentTable, Math.max(0, tablePage+dir))
-}
+function filterTbl(){ renderTblData(tblRows) }
+function tblPageChange(dir){ tblPage=Math.max(0,tblPage+dir); loadTbl(curTbl) }
 
 // ── Advisors ───────────────────────────────────────────────────────────────
 async function loadAdvisors(){
-  document.getElementById('advisorsList').innerHTML = '<div class="st"><span class="sp"></span>Анализирую базу данных...</div>'
-  logAction('🔍 Запуск анализа советников')
-  const [tblR, idxR] = await Promise.all([
-    execSQL(`SELECT relname as name, n_live_tup as live_rows, n_dead_tup as dead_rows, pg_size_pretty(pg_relation_size(c.oid)) as size FROM pg_stat_user_tables s JOIN pg_class c ON c.relname=s.relname WHERE s.schemaname='public' ORDER BY n_live_tup DESC`),
-    execSQL(`SELECT tablename, indexname, idx_scan as scans FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)
+  document.getElementById('advisorsList').innerHTML='<div class="st"><span class="sp"></span>Анализирую...</div>'
+  logAction('🔍 Советники: запуск анализа')
+  // NOTE: use relid directly - no pg_class JOIN needed
+  const [tblR,idxR]=await Promise.all([
+    execSQL(`SELECT relname table_name,n_live_tup live_rows,n_dead_tup dead_rows,pg_size_pretty(pg_relation_size(relid)) size FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`),
+    execSQL(`SELECT tablename,indexname,idx_scan scans FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)
   ])
-  renderAdvisors(tblR, idxR)
-}
-
-function renderAdvisors(tblR, idxR){
-  const el = document.getElementById('advisorsList')
-  let html = '<div class="adv-section-title">🔒 Безопасность</div><div class="adv-list">'
-
-  // Static known security advisors
-  html += `<div class="adv-item adv-warn"><span class="adv-ico">⚠️</span><div class="adv-body">
-    <div class="adv-title">RLS INSERT WITH CHECK (true) — 3 таблицы</div>
-    <div class="adv-detail">leaderboard, player_events, players допускают любые INSERT. Это <b>намеренно</b> — публичная игра без авторизации. Защита через rate-limit триггеры (макс 5 вставок/мин на leaderboard, 60 событий/мин на player_events).</div>
-  </div></div>`
-  html += `<div class="adv-item adv-warn"><span class="adv-ico">⚠️</span><div class="adv-body">
-    <div class="adv-title">players UPDATE USING (true)</div>
-    <div class="adv-detail">Любой аноним может обновить чужой профиль если знает player_id (UUID). Полная защита невозможна без Supabase Auth. Риск низкий — player_id хранится только в localStorage каждого игрока.</div>
-  </div></div>`
-  html += `<div class="adv-item adv-ok"><span class="adv-ico">✅</span><div class="adv-body">
-    <div class="adv-title">Все функции: SECURITY INVOKER + search_path=public</div>
-    <div class="adv-detail">rls_auto_enable (SECURITY DEFINER) закрыт от PUBLIC/anon/authenticated. admin_execute только для service_role.</div>
-  </div></div>`
-  html += `<div class="adv-item adv-ok"><span class="adv-ico">✅</span><div class="adv-body">
-    <div class="adv-title">Timeouts настроены для anon/authenticated</div>
-    <div class="adv-detail">statement_timeout=30s, idle_in_transaction_session_timeout=30s, lock_timeout=10s</div>
-  </div></div>`
-  html += '</div>'
-
-  // Performance section
-  html += '<div class="adv-section-title">⚡ Производительность</div><div class="adv-list">'
-
-  if(tblR.data && Array.isArray(tblR.data)){
+  let html='<div class="adv-section">🔒 Безопасность</div><div class="adv-list">'
+  html+=`<div class="adv-item adv-warn"><span class="adv-ico">⚠️</span><div class="adv-body"><div class="adv-title">INSERT WITH CHECK(true) — 3 таблицы</div><div class="adv-detail">leaderboard, player_events, players — любой аноним может вставлять строки. Это <b>намеренно</b> для публичной игры. Защита: rate-limit триггеры (макс 5 вставок/мин на leaderboard).</div></div></div>`
+  html+=`<div class="adv-item adv-ok"><span class="adv-ico">✅</span><div class="adv-body"><div class="adv-title">admin_execute — только service_role</div><div class="adv-detail">Функция выполнения SQL закрыта от anon/authenticated. Доступна только через Edge Function с проверкой пароля.</div></div></div>`
+  html+=`<div class="adv-item adv-ok"><span class="adv-ico">✅</span><div class="adv-body"><div class="adv-title">Таймауты настроены</div><div class="adv-detail">statement_timeout=30s, idle_in_transaction_session_timeout=30s, lock_timeout=10s для anon/authenticated.</div></div></div>`
+  html+='</div><div class="adv-section">⚡ Производительность</div><div class="adv-list">'
+  if(tblR.data&&Array.isArray(tblR.data)){
     tblR.data.forEach(t=>{
-      const deadRatio = t.live_rows>0 ? Math.round(t.dead_rows/t.live_rows*100) : 0
-      const level = deadRatio>20 ? 'adv-warn' : 'adv-ok'
-      const ico = deadRatio>20 ? '⚠️' : '✅'
-      html += `<div class="adv-item ${level}"><span class="adv-ico">${ico}</span><div class="adv-body">
-        <div class="adv-title">${escHtml(t.name)}</div>
-        <div class="adv-detail">${t.live_rows} живых строк · ${t.dead_rows} мёртвых · Размер: ${escHtml(t.size)}${deadRatio>20?` · <b>Рекомендуется VACUUM</b>`:''}</div>
-      </div></div>`
+      const dr=t.live_rows>0?Math.round(t.dead_rows/t.live_rows*100):0
+      const level=dr>20?'adv-warn':'adv-ok', ico=dr>20?'⚠️':'✅'
+      html+=`<div class="adv-item ${level}"><span class="adv-ico">${ico}</span><div class="adv-body"><div class="adv-title">${escH(t.table_name)}</div><div class="adv-detail">${t.live_rows} живых · ${t.dead_rows} мёртвых · Размер: ${escH(t.size)}${dr>20?' · <b>Рекомендуется VACUUM</b>':''}</div></div></div>`
     })
-  } else if(tblR.error){
-    html += `<div class="adv-item adv-err"><span class="adv-ico">❌</span><div class="adv-body"><div class="adv-title">Ошибка загрузки таблиц</div><div class="adv-detail">${escHtml(tblR.error)}</div></div></div>`
+  } else {
+    html+=`<div class="adv-item adv-err"><span class="adv-ico">❌</span><div class="adv-body"><div class="adv-title">Ошибка загрузки данных таблиц</div><div class="adv-detail">${escH(tblR.error||'Нет данных')}</div></div></div>`
   }
-
-  html += `<div class="adv-item adv-info"><span class="adv-ico">ℹ️</span><div class="adv-body">
-    <div class="adv-title">pg_cron: авто-очистка запущена</div>
-    <div class="adv-detail">Задание <code>daily-cleanup-player-events</code> удаляет события старше 60 дней каждую ночь в 3:00 UTC.</div>
-  </div></div>`
-
-  // Index section
-  if(idxR.data && Array.isArray(idxR.data)){
-    const unused = idxR.data.filter(i=>i.scans===0||i.scans==='0')
+  html+=`<div class="adv-item adv-info"><span class="adv-ico">🕐</span><div class="adv-body"><div class="adv-title">pg_cron активен</div><div class="adv-detail">daily-cleanup-player-events — каждую ночь в 3:00 UTC удаляет события старше 60 дней.</div></div></div>`
+  if(idxR.data&&Array.isArray(idxR.data)){
+    const unused=idxR.data.filter(i=>Number(i.scans)===0)
     if(unused.length){
-      html += `<div class="adv-item adv-warn"><span class="adv-ico">📊</span><div class="adv-body">
-        <div class="adv-title">Неиспользуемые индексы (${unused.length})</div>
-        <div class="adv-detail">${unused.map(i=>escHtml(i.tablename+'.'+i.indexname)).join(', ')} — пока 0 запросов с начала статистики. При малом объёме данных планировщик использует seqscan. Оставить для роста БД.</div>
-      </div></div>`
+      html+=`<div class="adv-item adv-warn"><span class="adv-ico">📊</span><div class="adv-body"><div class="adv-title">Неиспользуемые индексы (${unused.length})</div><div class="adv-detail">${unused.map(i=>escH(i.tablename+'.'+i.indexname)).join(', ')} — 0 обращений. При малом объёме данных планировщик использует seq scan. Оставить для роста БД.</div></div></div>`
     } else {
-      html += `<div class="adv-item adv-ok"><span class="adv-ico">✅</span><div class="adv-body">
-        <div class="adv-title">Все индексы используются</div>
-        <div class="adv-detail">Нет неиспользуемых индексов</div>
-      </div></div>`
+      html+=`<div class="adv-item adv-ok"><span class="adv-ico">✅</span><div class="adv-body"><div class="adv-title">Все индексы используются</div></div></div>`
     }
   }
-  html += '</div>'
-
-  el.innerHTML = html
+  html+='</div>'
+  document.getElementById('advisorsList').innerHTML=html
 }
 
 // ── Storage ────────────────────────────────────────────────────────────────
 async function loadStorage(){
-  const el = document.getElementById('storContent')
+  const el=document.getElementById('storContent')
   if(el.dataset.loaded) return
-  logAction('🗂️ Storage: загрузка бакетов')
+  logAction('🗂️ Storage: загрузка')
   try{
-    const r = await fetch(SB+'/storage/v1/bucket', { headers: H })
-    const buckets = r.ok ? await r.json() : []
-    let html = ''
-    if(!Array.isArray(buckets) || !buckets.length){
-      html = `<div class="stor-empty">
-        <div class="stor-empty-ico">🗂️</div>
-        <div class="stor-empty-title">Нет созданных бакетов</div>
-        <div class="stor-empty-desc">Storage используется для хранения файлов: изображения скинов, аудио, фоновые текстуры. Пока не нужен — игра работает без файлов.</div>
+    const r=await fetch(SB+'/storage/v1/bucket',{headers:H})
+    const bkts=r.ok?await r.json():[]
+    let html=''
+    if(!Array.isArray(bkts)||!bkts.length){
+      html=`<div style="text-align:center;padding:20px">
+        <div style="font-size:2rem;margin-bottom:8px">🗂️</div>
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:6px">Нет бакетов</div>
+        <div style="font-size:.74rem;color:var(--mut);max-width:360px;margin:0 auto;line-height:1.5">Supabase Storage не используется. Рекомендация: перенести <b>Only Today.mp3</b> (13 МБ) из репозитория сюда — это ускорит загрузку игры.</div>
       </div>`
     } else {
-      html = buckets.map(b=>`<div class="stor-bucket">
-        <span style="font-size:1.4rem">🗂️</span>
-        <div><div class="stor-bname">${escHtml(b.name)}</div>
-        <div class="stor-bmeta">${b.public?'Публичный':'Приватный'} · ID: ${b.id}</div></div>
-      </div>`).join('')
+      html=bkts.map(b=>`<div class="stor-bucket"><span style="font-size:1.3rem">🗂️</span><div><div class="stor-bname">${escH(b.name)}</div><div class="stor-bmeta">${b.public?'Публичный':'Приватный'} · ID: ${b.id}</div></div></div>`).join('')
     }
-    html += `<div class="stor-info-grid">
-      <div class="stor-info-card">
-        <div class="stor-info-title">Для чего использовать</div>
-        <div class="stor-info-text">
-          • Изображения скинов и персонажей<br>
-          • Фоновая музыка (сейчас в репо: 13МБ!)<br>
-          • Аватарки игроков<br>
-          • Скриншоты рекордов
-        </div>
-      </div>
-      <div class="stor-info-card">
-        <div class="stor-info-title">Рекомендация</div>
-        <div class="stor-info-text">
-          Перенести <b>Only Today.mp3</b> (13МБ) в Storage или CDN — сейчас он замедляет загрузку игры. В Фазе 4 добавить аватарки через Storage.
-        </div>
-      </div>
+    html+=`<div class="info-grid">
+      <div class="info-card"><div class="info-title">Для чего нужен</div><div class="info-text">• Скины и иконки персонажей<br>• Фоновая музыка (сейчас 13МБ в репо!)<br>• Аватарки игроков (Фаза 4)<br>• Скриншоты рекордов</div></div>
+      <div class="info-card"><div class="info-title">Рекомендация</div><div class="info-text">Перенести <b>Only Today.mp3</b> в Storage или CDN (например Cloudflare R2). Это уменьшит размер репозитория и ускорит первую загрузку игры.</div></div>
     </div>`
-    el.innerHTML = html
-    el.dataset.loaded = '1'
-  } catch(e){
-    el.innerHTML = `<div class="eb">❌ ${e.message}</div>`
-  }
+    el.innerHTML=html; el.dataset.loaded='1'
+  } catch(e){ el.innerHTML=`<div class="eb">❌ ${e.message}</div>` }
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────────
-async function loadAuthSection(){
-  const el = document.getElementById('authContent')
+async function loadAuth(){
+  const el=document.getElementById('authContent')
   if(el.dataset.loaded) return
-  logAction('🔐 Auth: проверка статуса')
+  logAction('🔐 Auth: проверка')
   try{
-    const r = await fetch(SB+'/auth/v1/health')
-    const health = r.ok ? await r.json() : {}
-    el.innerHTML = `
-      <div class="auth-status-row">
-        <span style="font-size:1.3rem">🔐</span>
-        <div>
-          <div class="auth-svc-name">GoTrue Auth Service — <span style="color:#16a34a">●&nbsp;активен</span></div>
-          <div class="auth-svc-ver">${health.name||'GoTrue'} v${health.version||'—'} · ${health.description||''}</div>
-        </div>
-      </div>
-      <div class="auth-info-grid">
-        <div class="auth-info-card">
-          <div class="auth-info-title">Текущая конфигурация</div>
-          <div class="auth-info-text">
-            В проекте <b>НЕ используется</b> аутентификация игроков. Вместо этого:<br><br>
-            • <b>Anon Key</b> — публичный доступ для всех<br>
-            • <b>player_id</b> — UUID из localStorage игрока<br>
-            • <b>RLS</b> — защищает от массовых изменений<br>
-            • Нет аккаунтов = нет паролей = нет утечек
-          </div>
-        </div>
-        <div class="auth-info-card">
-          <div class="auth-info-title">Активные провайдеры</div>
-          <div class="auth-info-text">
-            <span class="auth-provider auth-prov-on">✓ Anon</span>
-            <span class="auth-provider auth-prov-off">✗ Email</span>
-            <span class="auth-provider auth-prov-off">✗ Google</span>
-            <span class="auth-provider auth-prov-off">✗ GitHub</span>
-            <span class="auth-provider auth-prov-off">✗ Discord</span>
-            <br><br>
-            <small style="color:var(--muted)">В Фазе 4 можно добавить Google OAuth для личных профилей игроков</small>
-          </div>
-        </div>
-        <div class="auth-info-card">
-          <div class="auth-info-title">Настройка JWT</div>
-          <div class="auth-info-text">
-            • JWT expiry: по умолчанию (1 час)<br>
-            • Refresh token: 14 дней<br>
-            • PKCE: включён<br>
-            • Confirm email: отключён (нет email)
-          </div>
-        </div>
-        <div class="auth-info-card">
-          <div class="auth-info-title">Рекомендации</div>
-          <div class="auth-info-text">
-            Для Фазы 3+ можно включить:<br>
-            • Google OAuth → профили с фото<br>
-            • Apple OAuth → для App Store<br>
-            Сейчас это не нужно — игра работает анонимно.
-          </div>
-        </div>
-      </div>
-      <div style="padding:12px 0 0">
-        <a class="ab a2" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/auth/users" target="_blank">👥 Пользователи Auth</a>
-        <a class="ab a3" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/auth/providers" target="_blank" style="margin-left:8px">⚙️ Провайдеры</a>
+    const r=await fetch(SB+'/auth/v1/health')
+    const h=r.ok?await r.json():{}
+    el.innerHTML=`
+      <div class="auth-status-row"><span style="font-size:1.2rem">🔐</span><div>
+        <div class="auth-svc-name">GoTrue Auth — <span style="color:#16a34a">● активен</span></div>
+        <div class="auth-svc-ver">${h.name||'GoTrue'} v${h.version||'—'}</div>
+      </div></div>
+      <div class="info-grid">
+        <div class="info-card"><div class="info-title">Как работает</div><div class="info-text">Игроки анонимны — нет аккаунтов. Идентификация по UUID из localStorage. Нет паролей → нет утечек. Anon key для чтения данных.</div></div>
+        <div class="info-card"><div class="info-title">Провайдеры</div><div class="info-text"><span class="prov prov-on">✓ Anon</span><span class="prov prov-off">✗ Email</span><span class="prov prov-off">✗ Google</span><span class="prov prov-off">✗ Discord</span><br><small style="color:var(--mut);font-size:.66rem">Google OAuth — добавить в Фазе 4</small></div></div>
+        <div class="info-card"><div class="info-title">JWT</div><div class="info-text">Expiry: 1 час · Refresh: 14 дней · PKCE: включён</div></div>
+        <div class="info-card"><div class="info-title">Ссылки</div><div class="info-text"><a href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/auth/users" target="_blank" style="color:#6366f1;font-size:.78rem">👥 Пользователи Auth</a><br><a href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/auth/providers" target="_blank" style="color:#6366f1;font-size:.78rem">⚙️ Провайдеры</a></div></div>
       </div>`
-    el.dataset.loaded = '1'
-  } catch(e){
-    el.innerHTML = `<div class="eb">❌ ${e.message}</div>`
-  }
+    el.dataset.loaded='1'
+  } catch(e){ el.innerHTML=`<div class="eb">❌ ${e.message}</div>` }
 }
+
+// ── Action Log ─────────────────────────────────────────────────────────────
+function logAction(msg){
+  const now=new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+  actionLog.unshift({time:now,msg}); renderLog()
+}
+function renderLog(){
+  const el=document.getElementById('logList'); if(!el) return
+  el.innerHTML=actionLog.length?actionLog.slice(0,100).map(e=>`<div class="log-entry"><span class="log-time">${e.time}</span><span class="log-msg">${escH(e.msg)}</span></div>`).join(''):'<div class="log-empty">Пусто</div>'
+  const cnt=document.getElementById('logCnt'); if(cnt) cnt.textContent=actionLog.length+' действий'
+}
+function clearLog(){ actionLog.length=0; renderLog() }
 
 // ── Charts ─────────────────────────────────────────────────────────────────
-let chartLine=null, chartMode=null
+let cLine=null, cMode=null
 function initCharts(){
-  const ctxL = document.getElementById('chartLine').getContext('2d')
-  chartLine = new Chart(ctxL, {
-    type:'line',
-    data:{labels:[],datasets:[{label:'Счёт',data:[],borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.1)',tension:.4,pointRadius:3,fill:true}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:true,ticks:{font:{size:9},maxTicksLimit:6,color:'#94a3b8'},grid:{display:false}},y:{display:true,ticks:{font:{size:9},color:'#94a3b8'},grid:{color:'#f1f5f9'}}}}
-  })
-  const ctxM = document.getElementById('chartMode').getContext('2d')
-  chartMode = new Chart(ctxM, {
-    type:'doughnut',
-    data:{labels:[],datasets:[{data:[],backgroundColor:['#6366f1','#22d3ee','#4ade80','#f59e0b','#f87171'],borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}}
-  })
+  cLine=new Chart(document.getElementById('chartLine').getContext('2d'),{type:'line',data:{labels:[],datasets:[{label:'Счёт',data:[],borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.1)',tension:.4,pointRadius:2,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:true,ticks:{font:{size:9},maxTicksLimit:5,color:'#94a3b8'},grid:{display:false}},y:{display:true,ticks:{font:{size:9},color:'#94a3b8'},grid:{color:'#f1f5f9'}}}}})
+  cMode=new Chart(document.getElementById('chartMode').getContext('2d'),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:['#6366f1','#22d3ee','#4ade80','#f59e0b','#f87171'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:11}}}}})
 }
 function updateCharts(rows){
-  const recent = [...rows].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).slice(-20)
-  chartLine.data.labels = recent.map(r=>fmtTime(r.created_at))
-  chartLine.data.datasets[0].data = recent.map(r=>r.score)
-  chartLine.update('none')
-  const modeCount = {}
-  rows.forEach(r=>{const m=r.mode||'classic';modeCount[m]=(modeCount[m]||0)+1})
-  chartMode.data.labels = Object.keys(modeCount)
-  chartMode.data.datasets[0].data = Object.values(modeCount)
-  chartMode.update('none')
+  const r20=[...rows].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).slice(-20)
+  cLine.data.labels=r20.map(r=>localTime(r.created_at))
+  cLine.data.datasets[0].data=r20.map(r=>r.score)
+  cLine.update('none')
+  const mc={}; rows.forEach(r=>{const m=r.mode||'classic';mc[m]=(mc[m]||0)+1})
+  cMode.data.labels=Object.keys(mc); cMode.data.datasets[0].data=Object.values(mc); cMode.update('none')
+  document.getElementById('modesBadge').textContent=Object.keys(mc).join(', ')
+  document.getElementById('chartBadge').textContent='последние '+Math.min(r20.length,20)
 }
 
-// ── Main data load ──────────────────────────────────────────────────────────
+// ── Main data ──────────────────────────────────────────────────────────────
 async function loadData(){
-  const t0 = Date.now()
+  const t0=Date.now()
+  const since30=new Date(Date.now()-30*60*1000).toISOString()
   try{
-    const since = new Date(Date.now()-30*60*1000).toISOString()
-    const [r, re] = await Promise.all([
-      fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=200',{headers:H}),
-      fetch(SB+`/rest/v1/player_events?select=player_id,event,created_at&event=eq.visit&created_at=gte.${since}&order=created_at.desc`,{headers:H})
+    const [rLB,rEv]=await Promise.all([
+      fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H}),
+      fetch(SB+`/rest/v1/player_events?select=player_id,event,metadata,created_at&event=eq.visit&created_at=gte.${since30}&order=created_at.desc`,{headers:H})
     ])
-    if(!r.ok) throw new Error('HTTP '+r.status)
-    allRows = await r.json()
-    onlineEvents = re.ok ? await re.json() : []
-    const ms = (Date.now()-t0)+'ms'
-    setDot('sd0','on',ms)
-    const ovDot = document.getElementById('ov-dot-sb')
-    if(ovDot){ ovDot.style.background='#4ade80'; const m=document.getElementById('ov-ms-sb');if(m)m.textContent=ms }
-    document.getElementById('ov-lb-rows').textContent = allRows.length+' строк'
-    Promise.all([
-      fetch(SB+'/rest/v1/players?select=player_id',{headers:{...H,'Prefer':'count=exact','Range':'0-0'}}),
-      fetch(SB+'/rest/v1/player_events?select=id',{headers:{...H,'Prefer':'count=exact','Range':'0-0'}})
-    ]).then(([rp,rev])=>{
-      const tot = s=>{const m=s.headers.get('content-range')||'';const n=m.match(/\/(\d+)/);return n?n[1]+' строк':'—'}
-      document.getElementById('ov-pl-rows').textContent = tot(rp)
-      document.getElementById('ov-ev-rows').textContent = tot(rev)
-    }).catch(()=>{})
-    renderAll(allRows)
+    if(!rLB.ok) throw new Error('HTTP '+rLB.status)
+    allRows=await rLB.json()
+    onlineEvents=rEv.ok?await rEv.json():[]
+    const ms=Date.now()-t0
+    setDot('sb','on',ms)
+    renderAll()
   } catch(e){
-    setDot('sd0','off','')
-    document.getElementById('lb').innerHTML = `<div class="eb">⚠️ Supabase: ${e.message}<button onclick="loadData()">Повторить</button></div>`
-    document.getElementById('onlineList').innerHTML = '<div class="st">Нет данных</div>'
+    setDot('sb','off',null)
+    document.getElementById('lb').innerHTML=`<div class="eb">⚠️ ${e.message}<button onclick="loadData()">Повторить</button></div>`
   }
 }
 
-function renderAll(rows){
-  if(!rows.length){
-    const empty = '<div class="st">Пока пусто</div>'
-    ;['lb','onlineList','recentList','topPlayers'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML=empty})
-    return
-  }
-  const todayStart = new Date(); todayStart.setHours(0,0,0,0)
-  const byScore = [...rows].sort((a,b)=>b.score-a.score)
-  const uniquePlayers = [...new Set(rows.map(r=>r.name).filter(Boolean))]
-  const onlineIds = [...new Set(onlineEvents.map(e=>e.player_id))]
-  const todayRows = rows.filter(r=>r.created_at&&new Date(r.created_at)>=todayStart)
-  const modes = [...new Set(rows.map(r=>r.mode).filter(Boolean))]
+function renderAll(){
+  const rows=allRows
+  if(!rows.length) return
 
-  document.getElementById('s-total').textContent = rows.length
-  document.getElementById('s-total-d').textContent = 'всего записей в БД'
-  document.getElementById('s-players').textContent = uniquePlayers.length
-  document.getElementById('s-online').textContent = onlineIds.length
-  document.getElementById('s-today').textContent = todayRows.length
-  document.getElementById('s-top').textContent = byScore[0]?.score??'—'
-  document.getElementById('s-top-d').textContent = byScore[0]?.name??'—'
-  document.getElementById('s-avg').textContent = Math.round(rows.reduce((a,x)=>a+Number(x.score),0)/rows.length)
-  document.getElementById('s-modes').textContent = modes.length
-  document.getElementById('s-modes-d').textContent = modes.join(', ')
-  document.getElementById('s-maxlvl').textContent = Math.max(...rows.map(r=>Number(r.level)||1))
+  const today=new Date(); today.setHours(0,0,0,0)
+  const byScore=[...rows].sort((a,b)=>b.score-a.score)
+  const uniqueNames=[...new Set(rows.map(r=>r.name).filter(Boolean))]
+  const onlineIds=[...new Set(onlineEvents.map(e=>e.player_id))]
+  const todayRows=rows.filter(r=>r.created_at&&new Date(r.created_at)>=today)
+
+  // Stats
+  document.getElementById('s-online').textContent=onlineIds.length
+  document.getElementById('s-today').textContent=todayRows.length
+  document.getElementById('s-top').textContent=byScore[0]?.score??'—'
+  document.getElementById('s-top-d').textContent=byScore[0]?.name??'—'
+  document.getElementById('s-total').textContent=rows.length
+  document.getElementById('s-total-d').textContent=uniqueNames.length+' игроков'
 
   updateCharts(rows)
 
   // Online
-  const ob = document.getElementById('onlineBadge')
-  ob.textContent = onlineIds.length+' игроков'
-  ob.className = 'badge '+(onlineIds.length>0?'bg':'bq')
+  const ob=document.getElementById('onlineBadge')
+  ob.textContent=onlineIds.length+' онлайн'
+  ob.className='badge '+(onlineIds.length>0?'bg':'bq')
   if(onlineEvents.length){
-    const latest = {}
-    onlineEvents.forEach(e=>{if(!latest[e.player_id])latest[e.player_id]=e})
-    document.getElementById('onlineList').innerHTML = Object.values(latest).slice(0,8).map(e=>`
-      <div class="game-item">
-        <span class="online-dot"></span>
-        <span class="gi-name">${e.player_id.substring(0,8)}…</span>
-        <span class="gi-meta">активен</span>
-        <span class="gi-time">${ago(e.created_at)}</span>
-      </div>`).join('')
+    const latest={}
+    onlineEvents.forEach(e=>{
+      if(!latest[e.player_id]||new Date(e.created_at)>new Date(latest[e.player_id].created_at)) latest[e.player_id]=e
+    })
+    document.getElementById('onlineList').innerHTML=Object.values(latest).slice(0,8).map(e=>{
+      const dev=deviceBadge(e.metadata)
+      return `<div class="gi">
+        <span class="odot"></span>
+        <span class="gi-name">${e.player_id.substring(0,10)}…</span>
+        <span class="gi-meta">${dev||'<span class="dev-badge dev-unknown">?</span>'}</span>
+        <span class="gi-time">${ago(e.created_at)} назад</span>
+      </div>`
+    }).join('')
   } else {
-    document.getElementById('onlineList').innerHTML = '<div class="st">Никого за последние 30 мин</div>'
+    document.getElementById('onlineList').innerHTML='<div class="st">Никого за последние 30 мин</div>'
   }
 
-  // Recent
-  document.getElementById('recentBadge').textContent = 'последние 10'
-  document.getElementById('recentList').innerHTML = rows.slice(0,10).map(r=>`
-    <div class="game-item">
+  // Recent games (local time)
+  document.getElementById('recentList').innerHTML=rows.slice(0,10).map(r=>`
+    <div class="gi">
       <span class="gi-name">${(r.name||'Аноним').substring(0,14)}</span>
       <span class="gi-score">${r.score}</span>
-      <span class="gi-meta"><span class="ttg">${r.mode||'classic'}</span> · ур.${r.level||1}</span>
-      <span class="gi-time">${ago(r.created_at)}</span>
+      <span class="gi-meta"><span class="ttg">${r.mode||'classic'}</span> ур.${r.level||1}</span>
+      <span class="gi-time">${ago(r.created_at)} назад</span>
     </div>`).join('')
 
   // Top players
-  const pm = {}
+  const pm={}
   rows.forEach(r=>{const n=r.name||'Аноним';if(!pm[n])pm[n]={name:n,games:0,best:0,total:0};pm[n].games++;pm[n].total+=Number(r.score);if(Number(r.score)>pm[n].best)pm[n].best=Number(r.score)})
-  const players = Object.values(pm).sort((a,b)=>b.best-a.best).slice(0,10)
-  document.getElementById('playersBadge').textContent = uniquePlayers.length+' уникальных'
-  document.getElementById('topPlayers').innerHTML = `<table>
-    <thead><tr><th>#</th><th>Игрок</th><th>Лучший счёт</th><th>Игр</th><th>Среднее</th></tr></thead>
-    <tbody>${players.map((p,i)=>`<tr>
-      <td style="color:#cbd5e1;font-size:.75rem">${i+1}</td>
-      <td class="tnm">${p.name.substring(0,20)}</td>
-      <td><span class="tsc">${p.best}</span></td>
-      <td>${p.games}</td>
-      <td>${Math.round(p.total/p.games)}</td>
-    </tr>`).join('')}</tbody>
-  </table>`
+  const pl=Object.values(pm).sort((a,b)=>b.best-a.best).slice(0,10)
+  document.getElementById('playersBadge').textContent=uniqueNames.length+' уникальных'
+  document.getElementById('topPlayers').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Лучший</th><th>Игр</th><th>Среднее</th></tr></thead><tbody>${pl.map((p,i)=>`<tr><td style="color:#cbd5e1;font-size:.73rem">${i+1}</td><td style="font-weight:600">${p.name.substring(0,18)}</td><td><span class="tsc">${p.best}</span></td><td>${p.games}</td><td>${Math.round(p.total/p.games)}</td></tr>`).join('')}</tbody></table>`
 
   // Leaderboard
-  const medals = ['🥇','🥈','🥉']
-  document.getElementById('lbBadge').textContent = rows.length+' записей'
-  document.getElementById('lbBadge').className = 'badge bg'
-  document.getElementById('lb').innerHTML = `<table>
-    <thead><tr><th>#</th><th>Игрок</th><th>Очки</th><th>Уровень</th><th>Режим</th><th>Когда</th></tr></thead>
-    <tbody>${byScore.slice(0,20).map((r,i)=>`<tr>
-      <td>${medals[i]??`<span style="color:#ddd;font-size:.75rem">${i+1}</span>`}</td>
-      <td class="tnm">${(r.name||'Аноним').substring(0,20)}</td>
-      <td><span class="tsc">${r.score}</span></td>
-      <td>${r.level||1}</td>
-      <td><span class="ttg">${r.mode||'classic'}</span></td>
-      <td class="ttm">${ago(r.created_at)}</td>
-    </tr>`).join('')}</tbody>
-  </table>`
+  const m=['🥇','🥈','🥉']
+  document.getElementById('lbBadge').textContent=rows.length+' записей'
+  document.getElementById('lb').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Счёт</th><th>Уровень</th><th>Режим</th><th>Когда (местн.)</th></tr></thead><tbody>${byScore.slice(0,20).map((r,i)=>`<tr><td>${m[i]??`<span style="color:#ddd;font-size:.73rem">${i+1}</span>`}</td><td style="font-weight:600">${(r.name||'—').substring(0,18)}</td><td><span class="tsc">${r.score}</span></td><td>${r.level||1}</td><td><span class="ttg">${r.mode||'classic'}</span></td><td style="font-size:.72rem;color:var(--mut)">${ago(r.created_at)} назад</td></tr>`).join('')}</tbody></table>`
 }
 
-// ── GitHub commits ─────────────────────────────────────────────────────────
+// ── GitHub ─────────────────────────────────────────────────────────────────
 async function loadCommits(){
-  const el = document.getElementById('commits')
-  const CK = 'gh_commits_cache', CT = 'gh_commits_ts'
-  const cached = sessionStorage.getItem(CK)
-  const age = Date.now()-Number(sessionStorage.getItem(CT)||0)
-  if(cached) renderCommits(JSON.parse(cached), el, age)
-  if(age < 15*60*1000 && cached) return
+  const el=document.getElementById('commits')
+  const CK='ghc', CT='ght'
+  const cached=sessionStorage.getItem(CK), age=Date.now()-Number(sessionStorage.getItem(CT)||0)
+  if(cached&&age<15*60*1000){renderCmts(JSON.parse(cached),el,age); setDot('gh','on'); return}
   try{
-    const r = await fetch('https://api.github.com/repos/youngsanifone/snake/commits?per_page=10',
-      {headers:{Accept:'application/vnd.github.v3+json','User-Agent':'snake-admin-panel'}})
-    if(r.status===403||r.status===429){ if(cached){setDot('sd1','warn','limit');return} return }
-    if(!r.ok) throw new Error('GitHub '+r.status)
-    const data = await r.json()
-    sessionStorage.setItem(CK, JSON.stringify(data))
-    sessionStorage.setItem(CT, Date.now())
-    setDot('sd1','on','')
-    document.getElementById('cmtBadge').textContent = data.length+' коммитов'
-    document.getElementById('cmtBadge').className = 'badge bg'
-    renderCommits(data, el, 0)
-    if(data.length>0){
-      const lc = data[0].commit.message.split('\n')[0]
-      document.getElementById('ov-last-commit').textContent = lc.substring(0,42)+(lc.length>42?'…':'')
-      const ghDot = document.getElementById('ov-dot-gh')
-      if(ghDot) ghDot.style.background = '#4ade80'
+    const r=await fetch('https://api.github.com/repos/youngsanifone/snake/commits?per_page=10',{headers:{Accept:'application/vnd.github.v3+json','User-Agent':'snake-panel'}})
+    if(r.status===403||r.status===429){
+      setDot('gh','warn'); document.getElementById('ms-gh').textContent='rate limit'
+      if(cached){renderCmts(JSON.parse(cached),el,age);return}
+      el.innerHTML='<div class="st" style="color:#f59e0b">⚠️ GitHub API rate limit. Данные закешированы.</div>'; return
     }
-  } catch(e){ setDot('sd1','off',''); if(!cached) el.innerHTML=`<div class="eb">⚠️ GitHub: ${e.message}</div>` }
-}
-function renderCommits(data, el, ageMs){
-  document.getElementById('cmtBadge').textContent = data.length+' коммитов'
-  document.getElementById('cmtBadge').className = 'badge bg'
-  el.innerHTML = data.map(c=>{
-    const msg = c.commit.message.split('\n')[0]
-    return `<a class="cmt" href="${c.html_url}" target="_blank">
-      <span class="chash">${c.sha.substring(0,7)}</span>
-      <span class="cmsg">${cmtTag(msg)}${escHtml(msg)}</span>
-      <span class="cdate">${ago(c.commit.author.date)}</span>
-    </a>`
-  }).join('')+(ageMs>60000?`<div style="font-size:.62rem;color:#94a3b8;padding:6px 12px">Кеш: обновлено ${Math.round(ageMs/60000)} мин назад</div>`:'')
-}
-
-// ── Game check ─────────────────────────────────────────────────────────────
-async function checkGame(){
-  try{ await fetch('https://youngsanifone.github.io/snake/',{mode:'no-cors'});setDot('sd3','on','') }
-  catch(e){ setDot('sd3','off','') }
-}
-
-// ── Check Edge Function status ─────────────────────────────────────────────
-async function checkEdgeFunction(){
-  const t0 = Date.now()
-  try{
-    const r = await fetch(EF, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':KEY},
-      body: JSON.stringify({query:'SELECT 1 as ok', auth: authHash})
-    })
-    const ms = (Date.now()-t0)+'ms'
-    const ok = r.ok || r.status === 400 // 400 = function ran but query issue, still alive
-    const ovDot = document.getElementById('ov-dot-ef')
-    if(ovDot){ ovDot.style.background = r.ok?'#4ade80':'#f87171' }
-    const ovMs = document.getElementById('ov-ms-ef')
-    if(ovMs) ovMs.textContent = ms
+    if(!r.ok) throw new Error('GitHub '+r.status)
+    const data=await r.json()
+    sessionStorage.setItem(CK,JSON.stringify(data)); sessionStorage.setItem(CT,Date.now())
+    setDot('gh','on'); document.getElementById('ms-gh').textContent=''
+    renderCmts(data,el,0)
   } catch(e){
-    const ovDot = document.getElementById('ov-dot-ef')
-    if(ovDot) ovDot.style.background = '#f87171'
+    setDot('gh','off'); if(!cached) el.innerHTML=`<div class="eb">⚠️ GitHub: ${e.message}</div>`
+    else renderCmts(JSON.parse(cached),el,age)
   }
 }
+function renderCmts(data,el,ageMs){
+  document.getElementById('cmtBadge').textContent=data.length+' коммитов'
+  el.innerHTML=data.map(c=>{
+    const msg=c.commit.message.split('\n')[0]
+    return `<a class="cmt" href="${c.html_url}" target="_blank">
+      <span class="chash">${c.sha.substring(0,7)}</span>
+      <span class="cmsg">${cmtTag(msg)}${escH(msg)}</span>
+      <span class="cdate">${ago(c.commit.author.date)} назад</span>
+    </a>`
+  }).join('')+(ageMs>300000?`<div style="font-size:.61rem;color:#94a3b8;padding:5px 12px">Кеш: ${Math.round(ageMs/60000)}м назад</div>`:'')
+}
 
-// ── Clock + countdown ───────────────────────────────────────────────────────
-setInterval(()=>{
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
-},1000)
+// ── Edge function + game ping ──────────────────────────────────────────────
+async function pingEF(){
+  const t0=Date.now()
+  try{
+    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:'SELECT 1',auth:authHash})})
+    setDot('ef', r.ok?'on':'warn', Date.now()-t0)
+  } catch(e){ setDot('ef','off') }
+}
+async function pingGame(){
+  try{
+    await fetch('https://youngsanifone.github.io/snake/',{mode:'no-cors'})
+    setDot('gm','on')
+  } catch(e){ setDot('gm','off') }
+}
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function tickClock(){
+  const now=new Date()
+  document.getElementById('clock').textContent=now.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+  // UTC time
+  const hUTC=String(now.getUTCHours()).padStart(2,'0'), mUTC=String(now.getUTCMinutes()).padStart(2,'0')
+  document.getElementById('clockUTC').textContent=`UTC ${hUTC}:${mUTC} (${tzStr})`
+}
+setInterval(tickClock,1000); tickClock()
+
 let cd=5
 function tick(){ cd--; if(cd<=0){cd=5;loadData()} document.getElementById('cd').textContent=cd }
-function refresh(){ cd=5; loadData(); loadCommits(); checkGame(); logAction('🔄 Ручное обновление') }
+function refresh(){ cd=5; loadData(); loadCommits(); pingGame(); pingEF(); logAction('🔄 Ручное обновление') }
 
-// ── Start ───────────────────────────────────────────────────────────────────
+// ── Start ──────────────────────────────────────────────────────────────────
 function startApp(){
   initCharts()
-  loadData()
-  loadCommits()
-  checkGame()
-  checkEdgeFunction()
+  loadData(); loadCommits(); pingGame(); pingEF()
   setInterval(tick,1000)
   setInterval(loadCommits,600000)
-  setInterval(checkGame,60000)
+  setInterval(pingGame,60000)
+  setInterval(pingEF,30000)
 }
 
 if(sessionStorage.getItem('auth')==='1'){
-  // Restore hash from session (re-derive from known value since we can't store plaintext)
-  authHash = HASH
-  document.getElementById('loginWrap').style.display = 'none'
+  authHash=HASH
+  document.getElementById('loginWrap').style.display='none'
   logAction('🔐 Автовход (сессия)')
   startApp()
 } else {
