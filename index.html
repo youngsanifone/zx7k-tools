@@ -193,6 +193,75 @@ tr:hover td{background:#fafafa}
 
 <div class="wrap">
 
+
+  <!-- ══ PROJECT OVERVIEW ══ -->
+  <div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:#334155">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:4px 0 12px">
+      <div>
+        <div style="font-size:.65rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Проект</div>
+        <div style="font-size:1.3rem;font-weight:800;color:#fff">🐍 snake-game</div>
+        <div style="font-size:.72rem;color:#64748b;margin-top:2px">Supabase · West EU (Ireland) · FREE plan · NANO compute</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr" target="_blank"
+           style="background:#1a1a2e;border:1px solid #334155;color:#94a3b8;padding:7px 14px;border-radius:8px;font-size:.73rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px">
+          🗄️ Supabase Dashboard
+        </a>
+        <a href="https://github.com/youngsanifone/snake" target="_blank"
+           style="background:#1a1a2e;border:1px solid #334155;color:#94a3b8;padding:7px 14px;border-radius:8px;font-size:.73rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px">
+          🐙 GitHub Repo
+        </a>
+        <a href="https://youngsanifone.github.io/snake/" target="_blank"
+           style="background:#6366f1;border:1px solid #6366f1;color:#fff;padding:7px 14px;border-radius:8px;font-size:.73rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px">
+          🎮 Открыть игру
+        </a>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;padding-top:12px;border-top:1px solid #1e293b">
+      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
+        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">База данных</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between;font-size:.72rem"><span style="color:#94a3b8">leaderboard</span><span id="ov-lb-rows" style="color:#22d3ee;font-weight:700">—</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.72rem"><span style="color:#94a3b8">players</span><span id="ov-pl-rows" style="color:#22d3ee;font-weight:700">—</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.72rem"><span style="color:#94a3b8">player_events</span><span id="ov-ev-rows" style="color:#22d3ee;font-weight:700">—</span></div>
+        </div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
+        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Статус сервисов</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:7px;font-size:.72rem;color:#94a3b8">
+            <span id="ov-dot-sb" style="width:7px;height:7px;border-radius:50%;background:#64748b;display:inline-block;flex-shrink:0"></span>Supabase API
+            <span id="ov-ms-sb" style="margin-left:auto;color:#64748b;font-size:.65rem"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:.72rem;color:#94a3b8">
+            <span id="ov-dot-gh" style="width:7px;height:7px;border-radius:50%;background:#64748b;display:inline-block;flex-shrink:0"></span>GitHub Pages
+            <span id="ov-ms-gh" style="margin-left:auto;color:#64748b;font-size:.65rem"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:.72rem;color:#94a3b8">
+            <span id="ov-dot-gm" style="width:7px;height:7px;border-radius:50%;background:#64748b;display:inline-block;flex-shrink:0"></span>Игра (live)
+          </div>
+        </div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
+        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Последние действия</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="font-size:.7rem;color:#94a3b8">🔀 <span id="ov-last-commit" style="color:#e2e8f0">загрузка...</span></div>
+          <div style="font-size:.7rem;color:#94a3b8">🗄️ Миграция: <span style="color:#a78bfa">full_optimization_pass</span></div>
+          <div style="font-size:.7rem;color:#94a3b8">🔒 RLS: <span style="color:#4ade80">включён на всех таблицах</span></div>
+        </div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:10px 14px">
+        <div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Фазы проекта</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#4ade80">✅</span><span style="color:#94a3b8">Фаза 1–2: Игра готова</span></div>
+          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#60a5fa">🔵</span><span style="color:#94a3b8">Фаза 3: Online / Supabase</span></div>
+          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#64748b">⏳</span><span style="color:#64748b">Фаза 4: Capacitor mobile</span></div>
+          <div style="font-size:.7rem;display:flex;align-items:center;gap:6px"><span style="color:#64748b">⏳</span><span style="color:#64748b">Фаза 5: App Store / Play</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Stats row -->
   <div class="row row4" style="margin-bottom:12px">
     <div class="stat"><div class="stat-n" id="s-total">—</div><div class="stat-l">Всего игр</div><div class="stat-d" id="s-total-d">загрузка...</div></div>
@@ -504,6 +573,25 @@ async function loadData(){
     allRows=await r.json();
     onlineEvents=re.ok ? await re.json() : [];
     setDot('sd0','on',(Date.now()-t0)+'ms');
+    // Overview: кол-во строк
+    const ms=(Date.now()-t0)+'ms';
+    const setOvDot=(id,on,ping)=>{
+      const el=document.getElementById(id);
+      if(el){el.style.background=on?'#4ade80':'#f87171';if(ping){const p=document.getElementById(id.replace('dot','ms'));if(p)p.textContent=ping;}}
+    };
+    setOvDot('ov-dot-sb',true,ms);
+    document.getElementById('ov-lb-rows').textContent=allRows.length+' строк';
+    // Fetch players + events count for overview
+    Promise.all([
+      fetch(SB+'/rest/v1/players?select=player_id',{headers:{...H,'Prefer':'count=exact','Range':'0-0'}}),
+      fetch(SB+'/rest/v1/player_events?select=id',{headers:{...H,'Prefer':'count=exact','Range':'0-0'}})
+    ]).then(([rp,rev])=>{
+      const pc=rp.headers.get('content-range')||'';
+      const ec=rev.headers.get('content-range')||'';
+      const tot=s=>{ const m=s.match(/\/(\d+)/); return m?m[1]+'строк':'—'; };
+      document.getElementById('ov-pl-rows').textContent=tot(pc);
+      document.getElementById('ov-ev-rows').textContent=tot(ec);
+    }).catch(()=>{});
     renderAll(allRows);
   }catch(e){
     setDot('sd0','off','');
@@ -631,6 +719,16 @@ async function loadCommits(){
     document.getElementById('cmtBadge').textContent=data.length+' коммитов';
     document.getElementById('cmtBadge').className='badge bg';
     cmtOk=true;
+    // Overview: последний коммит + статус GitHub
+    if(data.length>0){
+      const lc=data[0].commit.message.split('\n')[0];
+      document.getElementById('ov-last-commit').textContent=lc.substring(0,42)+(lc.length>42?'…':'');
+    }
+    const ghDot=document.getElementById('ov-dot-gh');
+    if(ghDot) ghDot.style.background='#4ade80';
+    // Статус игры
+    try{await fetch('https://youngsanifone.github.io/snake/',{mode:'no-cors'});
+      const gd=document.getElementById('ov-dot-gm');if(gd)gd.style.background='#4ade80';}catch(e){}
     el.innerHTML=data.map(c=>{
       const msg=c.commit.message.split('\n')[0];
       return `<a class="cmt" href="${c.html_url}" target="_blank">
