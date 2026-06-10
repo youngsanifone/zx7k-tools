@@ -624,7 +624,7 @@ async function loadCommits(){
   const t0=Date.now();
   try{
     const r=await fetch('https://api.github.com/repos/youngsanifone/snake/commits?per_page=10',
-      {headers:{Accept:'application/vnd.github.v3+json'}});
+      {headers:{Accept:'application/vnd.github.v3+json','User-Agent':'snake-admin-panel'}});
     if(!r.ok) throw new Error('GitHub '+r.status);
     const data=await r.json();
     setDot('sd1','on',(Date.now()-t0)+'ms');
@@ -667,7 +667,7 @@ function startApp(){
   loadCommits();
   checkGame();
   setInterval(tick,1000);
-  setInterval(loadCommits,30000);
+  setInterval(loadCommits,600000);
   setInterval(checkGame,60000);
 }
 
