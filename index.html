@@ -892,26 +892,27 @@ function updCharts(rows){
   document.getElementById('chBadge').textContent='последние '+Math.min(r20.length,20)
 }
 
-// ── Main data load ─────────────────────────────────────────────────────────
+// ── Online events (slow, separate from main 5s loop) ──────────────────────
+async function loadOnline(){
+  const r=await execSQL(`SELECT pe.player_id, pe.created_at,
+    COALESCE(p.name,'Аноним') AS player_name
+    FROM player_events pe
+    LEFT JOIN players p ON p.player_id=pe.player_id
+    WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes'
+    ORDER BY pe.created_at DESC LIMIT 100`)
+  if(Array.isArray(r.data)) onlineEvts=r.data
+  if(allRows.length) renderAll()
+}
+
+// ── Main data load — only fast REST calls every 5s ─────────────────────────
 async function loadData(){
   const t0=Date.now()
   try{
-    // Leaderboard via REST; player_events via execSQL (bypasses RLS — anon key can't SELECT all)
-    const [rLB, evResult]=await Promise.all([
-      fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H}),
-      execSQL(`SELECT pe.player_id, pe.event, pe.created_at,
-        COALESCE(p.name, 'Аноним') AS player_name
-        FROM player_events pe
-        LEFT JOIN players p ON p.player_id = pe.player_id
-        WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes'
-        ORDER BY pe.created_at DESC LIMIT 100`)
-    ])
+    const rLB=await fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H})
     if(!rLB.ok) throw new Error('HTTP '+rLB.status)
     allRows=await rLB.json()
-    onlineEvts=Array.isArray(evResult.data)?evResult.data:[]
     setDot('sb','on',Date.now()-t0)
     renderAll()
-    // Auto-refresh table if visible
     if(document.getElementById('tab-tables').classList.contains('active')) loadTbl(curTbl)
   } catch(e){
     setDot('sb','off',null)
@@ -1078,8 +1079,12 @@ function refresh(){cd=5;loadData();loadCommits();pingGame();pingEF();log('🔄 �
 
 // ── Start ──────────────────────────────────────────────────────────────────
 function startApp(){
-  initCharts(); loadData(); loadCommits(); pingGame(); pingEF()
-  setInterval(tick,1000); setInterval(loadCommits,600000); setInterval(pingGame,60000); setInterval(pingEF,30000)
+  initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline()
+  setInterval(tick,1000)
+  setInterval(loadOnline,60000)   // player_events каждые 60с (Edge Function — не грузим каждые 5с)
+  setInterval(loadCommits,600000)
+  setInterval(pingGame,60000)
+  setInterval(pingEF,30000)
 }
 
 if(sessionStorage.getItem('auth')==='1'){
