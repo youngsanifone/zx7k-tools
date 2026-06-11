@@ -949,14 +949,8 @@ function renderAll(){
   const names=[...new Set(rows.map(r=>r.name).filter(Boolean))]
   const oIds=[...new Set(onlineEvts.map(e=>e.player_id))]
   const weekRows=rows.filter(r=>r.created_at&&new Date(utc(r.created_at))>=weekAgo)
-  // Fallback online: leaderboard entries in last 10 min
-  const since10=new Date(Date.now()-10*60*1000)
-  const recent10=rows.filter(r=>r.created_at&&new Date(utc(r.created_at))>=since10)
-  const recentNames=[...new Set(recent10.map(r=>r.name).filter(Boolean))]
-  const displayOnline=oIds.length>0?oIds.length:recentNames.length
-
   // Stats
-  document.getElementById('s-online').textContent=displayOnline
+  document.getElementById('s-online').textContent=oIds.length
   document.getElementById('s-top').textContent=byScore[0]?.score??'—'
   document.getElementById('s-top-d').textContent=byScore[0]?.name??'—'
   document.getElementById('s-week').textContent=weekRows.length
@@ -964,15 +958,13 @@ function renderAll(){
 
   updCharts(rows)
 
-  // Online — primary: player_events; fallback: recent leaderboard (last 10 min)
+  // Online — only real heartbeat data (player_events visit, last 30 min)
   const ob=document.getElementById('onlineBadge')
-  if(onlineEvts.length){
+  if(oIds.length){
     ob.textContent=oIds.length+' онлайн'; ob.className='badge bg'
     const latest={}
     onlineEvts.forEach(e=>{if(!latest[e.player_id]||new Date(utc(e.created_at))>new Date(utc(latest[e.player_id].created_at)))latest[e.player_id]=e})
     document.getElementById('onlineList').innerHTML=Object.values(latest).slice(0,8).map(e=>{
-      const dev=parseDevice(e.metadata)
-      const dCls=dev?(dev.includes('📱')?'dev-m':'dev-d'):'dev-u'
       const nm=e.player_name&&e.player_name!=='Аноним'?e.player_name:(e.player_id?e.player_id.substring(0,8)+'…':'Аноним')
       return `<div class="gi">
         <span class="odot"></span>
@@ -980,22 +972,10 @@ function renderAll(){
         <span class="gi-tm">${ago(e.created_at)} назад</span>
       </div>`
     }).join('')
-  } else if(recent10.length){
-    ob.textContent=recentNames.length+' недавно'; ob.className='badge bb'
-    document.getElementById('onlineList').innerHTML=`
-      <div style="padding:4px 14px 2px;font-size:.62rem;color:#1d4ed8;font-weight:600;background:#eff6ff;border-bottom:1px solid #dbeafe">
-        Данные из лидерборда (игры за последние 10 мин)
-      </div>`+
-      recent10.slice(0,8).map(r=>`<div class="gi">
-        <span class="odot" style="background:#60a5fa"></span>
-        <span class="gi-nm">${escH((r.name||'Аноним').substring(0,14))}</span>
-        <span class="gi-sc">${r.score}</span>
-        <span class="gi-mt"><span class="gi-tg">${r.mode||'classic'}</span></span>
-        <span class="gi-tm">${ago(r.created_at)} назад</span>
-      </div>`).join('')
   } else {
     ob.textContent='0 онлайн'; ob.className='badge bq'
-    document.getElementById('onlineList').innerHTML='<div class="empty" style="padding:14px">Никого за последние 30 мин<br><span style="font-size:.65rem;color:#94a3b8">Игра не отправляет heartbeat-события</span></div>'
+    document.getElementById('onlineList').innerHTML='<div class="empty" style="padding:14px">Никого за последние 30 мин</div>'
+  }
   }
 
   // Recent
