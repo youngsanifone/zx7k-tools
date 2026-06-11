@@ -900,6 +900,7 @@ function initCharts(){
   cM=new Chart(document.getElementById('chartMode').getContext('2d'),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:['#6366f1','#22d3ee','#4ade80','#f59e0b','#f87171'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:11}}}}})
 }
 function updCharts(rows){
+  if(!cL||!cM) return
   const r20=[...rows].sort((a,b)=>new Date(utc(a.created_at))-new Date(utc(b.created_at))).slice(-20)
   cL.data.labels=r20.map(r=>fmtTime(r.created_at))
   cL.data.datasets[0].data=r20.map(r=>r.score); cL.update('none')
@@ -977,7 +978,7 @@ function renderAll(){
   }
 
   // Recent
-  setHTML(document.getElementById('recentList'),rows.slice(0,10).map(r=>`
+  document.getElementById('recentList').innerHTML=rows.slice(0,10).map(r=>`
     <div class="gi">
       <span class="gi-nm">${escH((r.name||'Аноним').substring(0,14))}</span>
       <span class="gi-sc">${r.score}</span>
@@ -988,7 +989,7 @@ function renderAll(){
   // Leaderboard
   const m=['🥇','🥈','🥉']
   document.getElementById('lbBadge').textContent=rows.length+' записей'
-  setHTML(document.getElementById('lb'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Счёт</th><th>Ур.</th><th>Режим</th><th>Когда</th></tr></thead><tbody>${byScore.slice(0,20).map((r,i)=>`<tr>
+  document.getElementById('lb').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Счёт</th><th>Ур.</th><th>Режим</th><th>Когда</th></tr></thead><tbody>${byScore.slice(0,20).map((r,i)=>`<tr>
     <td>${m[i]??`<span style="color:#ddd;font-size:.72rem">${i+1}</span>`}</td>
     <td style="font-weight:600">${escH((r.name||'—').substring(0,16))}</td>
     <td><span class="tsc">${r.score}</span></td>
@@ -1002,7 +1003,7 @@ function renderAll(){
   rows.forEach(r=>{const n=r.name||'Аноним';if(!pm[n])pm[n]={name:n,games:0,best:0,total:0};pm[n].games++;pm[n].total+=Number(r.score);if(Number(r.score)>pm[n].best)pm[n].best=Number(r.score)})
   const pl=Object.values(pm).sort((a,b)=>b.best-a.best).slice(0,10)
   document.getElementById('plBadge').textContent=names.length+' уникальных'
-  setHTML(document.getElementById('topPlayers'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Лучший</th><th>Игр</th><th>Среднее</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
+  document.getElementById('topPlayers').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Лучший</th><th>Игр</th><th>Среднее</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
     <td style="color:#cbd5e1;font-size:.71rem">${i+1}</td>
     <td style="font-weight:600">${escH(p.name.substring(0,16))}</td>
     <td><span class="tsc">${p.best}</span></td>
