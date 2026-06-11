@@ -238,7 +238,6 @@ tr:hover td{background:#fafafa}
       <span class="t-local" id="clock">--:--:--</span>
       <span class="t-utc" id="clockUTC">UTC --:--</span>
     </div>
-    <span class="ticker">↺ <span id="cd">5</span>с</span>
     <span class="ticker" style="margin-left:6px;color:#64748b">обн: <span id="lastRefresh">—</span></span>
     <button class="hbtn" onclick="refresh()">↻ Обновить</button>
   </div>
@@ -1072,18 +1071,12 @@ function tickClock(){
 }
 setInterval(tickClock,1000); tickClock()
 
-let cd=30
-function tick(){cd--;if(cd<=0){cd=30;loadData()}document.getElementById('cd').textContent=cd}
-function refresh(){cd=30;loadData();loadCommits();pingGame();pingEF();log('🔄 Ручное обновление')}
+function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log('🔄 Ручное обновление')}
 
 // ── Start ──────────────────────────────────────────────────────────────────
 function startApp(){
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline()
-  setInterval(tick,1000)
-  setInterval(loadOnline,60000)   // player_events каждые 60с (Edge Function — не грузим каждые 5с)
-  setInterval(loadCommits,600000)
-  setInterval(pingGame,60000)
-  setInterval(pingEF,30000)
+  // No auto-refresh — manual only via Обновить button
 }
 
 if(sessionStorage.getItem('auth')==='1'){
