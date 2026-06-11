@@ -984,7 +984,7 @@ function renderAll(){
       <span class="gi-sc">${r.score}</span>
       <span class="gi-mt"><span class="gi-tg">${r.mode||'classic'}</span> ур.${r.level||1}</span>
       <span class="gi-tm">${ago(r.created_at)} назад</span>
-    </div>`).join(''))
+    </div>`).join('')
 
   // Leaderboard
   const m=['🥇','🥈','🥉']
@@ -996,7 +996,7 @@ function renderAll(){
     <td>${r.level||1}</td>
     <td><span class="ttg">${r.mode||'classic'}</span></td>
     <td class="dt-cell" style="font-size:.69rem">${fmtDate(r.created_at)}</td>
-  </tr>`).join('')}</tbody></table>`)
+  </tr>`).join('')}</tbody></table>`
 
   // Top players
   const pm={}
@@ -1009,7 +1009,7 @@ function renderAll(){
     <td><span class="tsc">${p.best}</span></td>
     <td>${p.games}</td>
     <td>${Math.round(p.total/p.games)}</td>
-  </tr>`).join('')}</tbody></table>`)
+  </tr>`).join('')}</tbody></table>`
 }
 
 // ── GitHub ─────────────────────────────────────────────────────────────────
