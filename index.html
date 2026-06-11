@@ -239,6 +239,7 @@ tr:hover td{background:#fafafa}
       <span class="t-utc" id="clockUTC">UTC --:--</span>
     </div>
     <span class="ticker">↺ <span id="cd">5</span>с</span>
+    <span class="ticker" style="margin-left:6px;color:#64748b">обн: <span id="lastRefresh">—</span></span>
     <button class="hbtn" onclick="refresh()">↻ Обновить</button>
   </div>
 </div>
@@ -924,15 +925,19 @@ async function loadOnline(){
 async function loadData(){
   const t0=Date.now()
   try{
-    const rLB=await fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H})
+    const rLB=await fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300&_t='+Date.now(),{headers:{...H,'Cache-Control':'no-cache'},cache:'no-store'})
     if(!rLB.ok) throw new Error('HTTP '+rLB.status)
     allRows=await rLB.json()
     setDot('sb','on',Date.now()-t0)
     renderAll()
+    const lr=document.getElementById('lastRefresh'); if(lr) lr.textContent=new Date().toLocaleTimeString('ru',{timeZone:TZ})
     if(document.getElementById('tab-tables').classList.contains('active')) loadTbl(curTbl)
   } catch(e){
     setDot('sb','off',null)
-    document.getElementById('lb').innerHTML=`<div class="err-box">⚠️ ${e.message}<button onclick="loadData()">Повторить</button></div>`
+    const errHtml=`<div class="err-box">⚠️ ${e.message}<button onclick="loadData()">Повторить</button></div>`
+    document.getElementById('lb').innerHTML=errHtml
+    document.getElementById('recentList').innerHTML=errHtml
+    const el=document.getElementById('lastRefresh'); if(el) el.textContent='Ошибка: '+e.message
   }
 }
 
