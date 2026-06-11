@@ -931,7 +931,6 @@ async function loadData(){
     setDot('sb','on',Date.now()-t0)
     renderAll()
     const lr=document.getElementById('lastRefresh'); if(lr) lr.textContent=new Date().toLocaleTimeString('ru',{timeZone:TZ})
-    if(document.getElementById('tab-tables').classList.contains('active')) loadTbl(curTbl)
   } catch(e){
     setDot('sb','off',null)
     const errHtml=`<div class="err-box">⚠️ ${e.message}<button onclick="loadData()">Повторить</button></div>`
@@ -1073,9 +1072,9 @@ function tickClock(){
 }
 setInterval(tickClock,1000); tickClock()
 
-let cd=5
-function tick(){cd--;if(cd<=0){cd=5;loadData()}document.getElementById('cd').textContent=cd}
-function refresh(){cd=5;loadData();loadCommits();pingGame();pingEF();log('🔄 Ручное обновление')}
+let cd=30
+function tick(){cd--;if(cd<=0){cd=30;loadData()}document.getElementById('cd').textContent=cd}
+function refresh(){cd=30;loadData();loadCommits();pingGame();pingEF();log('🔄 Ручное обновление')}
 
 // ── Start ──────────────────────────────────────────────────────────────────
 function startApp(){
