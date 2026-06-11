@@ -380,8 +380,8 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps2"></span>
         <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с heartbeat за 30 мин + устройство из metadata</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(2,`SELECT player_id,metadata,MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '30 minutes' GROUP BY player_id,metadata ORDER BY last_seen DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT player_id,metadata,MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '30 minutes' GROUP BY player_id,metadata ORDER BY last_seen DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(2,`SELECT pe.player_id, COALESCE(p.name,'Аноним') AS player_name, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.name ORDER BY last_seen DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT pe.player_id, COALESCE(p.name,'Аноним') AS player_name, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.name ORDER BY last_seen DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -404,8 +404,8 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps5"></span>
         <div class="preset-info"><div class="preset-lbl">📈 Использование индексов</div><div class="preset-desc">Сколько раз каждый индекс использовался</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(5,`SELECT tablename,indexname,idx_scan AS scans,idx_tup_read AS rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT tablename,indexname,idx_scan AS scans,idx_tup_read AS rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(5,`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans, idx_tup_read AS rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans, idx_tup_read AS rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -712,6 +712,20 @@ function exportCSV(){
 
 // ── Table Editor ───────────────────────────────────────────────────────────
 const TBL_SZ=50
+
+// Tables that need name JOIN — use execSQL instead of REST API
+const TBL_SQL={
+  player_events: (off)=>`SELECT pe.id, COALESCE(p.name, 'Аноним') AS player_name,
+    pe.player_id, pe.event, pe.created_at
+    FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id
+    ORDER BY pe.id DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+  players: (off)=>`SELECT p.id, p.name, p.player_id, p.created_at,
+    COUNT(lb.id) AS total_games, MAX(lb.score) AS best_score
+    FROM players p LEFT JOIN leaderboard lb ON lb.name=p.name
+    GROUP BY p.id,p.name,p.player_id,p.created_at
+    ORDER BY p.id DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+}
+
 async function loadTbl(name, btn){
   curTbl=name
   if(btn){document.querySelectorAll('.ttb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');tblPageN=0}
@@ -719,15 +733,33 @@ async function loadTbl(name, btn){
   document.getElementById('tblCnt').textContent=''
   try{
     const off=tblPageN*TBL_SZ
-    const r=await fetch(`${SB}/rest/v1/${name}?limit=${TBL_SZ}&offset=${off}&order=id.desc`,{headers:{...H,'Prefer':'count=exact'}})
-    const total=parseInt(r.headers.get('content-range')?.split('/')[1]||'0')
-    tblRows=await r.json()
-    renderTbl(tblRows)
-    document.getElementById('tblMeta').textContent=`${total} строк`
-    document.getElementById('tblCnt').textContent=`стр. ${tblPageN+1} / ${Math.ceil(total/TBL_SZ)||1}`
-    document.getElementById('tblPrev').disabled=tblPageN<=0
-    document.getElementById('tblNext').disabled=(tblPageN+1)*TBL_SZ>=total
-    document.getElementById('tblPageLbl').textContent='Стр. '+(tblPageN+1)
+    // Special tables: use execSQL (JOIN + bypasses RLS)
+    if(TBL_SQL[name]){
+      const [res, cntRes]=await Promise.all([
+        execSQL(TBL_SQL[name](off)),
+        execSQL(`SELECT COUNT(*) AS total FROM ${name}`)
+      ])
+      if(res.error) throw new Error(res.error)
+      tblRows=Array.isArray(res.data)?res.data:[]
+      const total=cntRes.data?.[0]?.total||0
+      renderTbl(tblRows)
+      document.getElementById('tblMeta').textContent=`${total} строк`
+      document.getElementById('tblCnt').textContent=`стр. ${tblPageN+1} / ${Math.ceil(total/TBL_SZ)||1}`
+      document.getElementById('tblPrev').disabled=tblPageN<=0
+      document.getElementById('tblNext').disabled=(tblPageN+1)*TBL_SZ>=Number(total)
+      document.getElementById('tblPageLbl').textContent='Стр. '+(tblPageN+1)
+    } else {
+      // Regular tables via REST API
+      const r=await fetch(`${SB}/rest/v1/${name}?limit=${TBL_SZ}&offset=${off}&order=id.desc`,{headers:{...H,'Prefer':'count=exact'}})
+      const total=parseInt(r.headers.get('content-range')?.split('/')[1]||'0')
+      tblRows=await r.json()
+      renderTbl(tblRows)
+      document.getElementById('tblMeta').textContent=`${total} строк`
+      document.getElementById('tblCnt').textContent=`стр. ${tblPageN+1} / ${Math.ceil(total/TBL_SZ)||1}`
+      document.getElementById('tblPrev').disabled=tblPageN<=0
+      document.getElementById('tblNext').disabled=(tblPageN+1)*TBL_SZ>=total
+      document.getElementById('tblPageLbl').textContent='Стр. '+(tblPageN+1)
+    }
     log('📋 Таблица "'+name+'" ('+tblRows.length+' строк)')
   } catch(e){document.getElementById('tblData').innerHTML=`<div class="err-box">❌ ${e.message}<button onclick="loadTbl(curTbl)">Повторить</button></div>`}
 }
@@ -756,7 +788,7 @@ async function loadAdv(){
   log('🔍 Советники')
   const [tblR,idxR]=await Promise.all([
     execSQL(`SELECT relname AS tname,n_live_tup AS live,n_dead_tup AS dead,pg_size_pretty(pg_relation_size(relid)) AS sz FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`),
-    execSQL(`SELECT tablename,indexname,idx_scan AS scans FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)
+    execSQL(`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)
   ])
   let html='<div class="adv-sec">БЕЗОПАСНОСТЬ</div><div class="adv-list">'
   html+=adv('w','!','RLS INSERT без ограничений (leaderboard, player_events, players)','Намеренно для публичной игры без аккаунтов. Защита: rate-limit триггеры (макс 5/мин на leaderboard).')
@@ -864,14 +896,20 @@ function updCharts(rows){
 // ── Main data load ─────────────────────────────────────────────────────────
 async function loadData(){
   const t0=Date.now()
-  const since=new Date(Date.now()-30*60*1000).toISOString()
   try{
-    const [rLB,rEv]=await Promise.all([
+    // Leaderboard via REST; player_events via execSQL (bypasses RLS — anon key can't SELECT all)
+    const [rLB, evResult]=await Promise.all([
       fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H}),
-      fetch(SB+`/rest/v1/player_events?select=player_id,event,metadata,created_at&event=eq.visit&created_at=gte.${since}&order=created_at.desc`,{headers:H})
+      execSQL(`SELECT pe.player_id, pe.event, pe.created_at,
+        COALESCE(p.name, 'Аноним') AS player_name
+        FROM player_events pe
+        LEFT JOIN players p ON p.player_id = pe.player_id
+        WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes'
+        ORDER BY pe.created_at DESC LIMIT 100`)
     ])
     if(!rLB.ok) throw new Error('HTTP '+rLB.status)
-    allRows=await rLB.json(); onlineEvts=rEv.ok?await rEv.json():[]
+    allRows=await rLB.json()
+    onlineEvts=Array.isArray(evResult.data)?evResult.data:[]
     setDot('sb','on',Date.now()-t0)
     renderAll()
     // Auto-refresh table if visible
@@ -914,10 +952,10 @@ function renderAll(){
     document.getElementById('onlineList').innerHTML=Object.values(latest).slice(0,8).map(e=>{
       const dev=parseDevice(e.metadata)
       const dCls=dev?(dev.includes('📱')?'dev-m':'dev-d'):'dev-u'
+      const nm=e.player_name&&e.player_name!=='Аноним'?e.player_name:(e.player_id?e.player_id.substring(0,8)+'…':'Аноним')
       return `<div class="gi">
         <span class="odot"></span>
-        <span class="gi-nm">${escH(e.player_id.substring(0,10))}…</span>
-        <span class="gi-mt"><span class="dev ${dCls}">${dev||'?'}</span></span>
+        <span class="gi-nm" title="${escH(e.player_id||'')}">${escH(nm)}</span>
         <span class="gi-tm">${ago(e.created_at)} назад</span>
       </div>`
     }).join('')
