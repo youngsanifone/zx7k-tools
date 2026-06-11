@@ -643,7 +643,7 @@ function openTab(n){
 async function execSQL(q){
   const t0=Date.now()
   try{
-    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:q.trim(),auth:authHash})})
+    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:q.trim().replace(/;+\s*$/,''),auth:authHash})})
     const ms=Date.now()-t0, json=await r.json()
     if(!r.ok) return {error:json.error||'HTTP '+r.status,ms}
     if(json.data&&json.data.error) return {error:json.data.error+(json.data.code?' ['+json.data.code+']':''),ms}
