@@ -238,6 +238,7 @@ tr:hover td{background:#fafafa}
       <span class="t-local" id="clock">--:--:--</span>
       <span class="t-utc" id="clockUTC">UTC --:--</span>
     </div>
+    <span class="ticker">↺ <span id="cd">5</span>с</span>
     <span class="ticker" style="margin-left:6px;color:#64748b">обн: <span id="lastRefresh">—</span></span>
     <button class="hbtn" onclick="refresh()">↻ Обновить</button>
   </div>
@@ -962,52 +963,52 @@ function renderAll(){
     ob.textContent=oIds.length+' онлайн'; ob.className='badge bg'
     const latest={}
     onlineEvts.forEach(e=>{if(!latest[e.player_id]||new Date(utc(e.created_at))>new Date(utc(latest[e.player_id].created_at)))latest[e.player_id]=e})
-    document.getElementById('onlineList').innerHTML=Object.values(latest).slice(0,8).map(e=>{
+    setHTML(document.getElementById('onlineList'),Object.values(latest).slice(0,8).map(e=>{
       const nm=e.player_name&&e.player_name!=='Аноним'?e.player_name:(e.player_id?e.player_id.substring(0,8)+'…':'Аноним')
       return `<div class="gi">
         <span class="odot"></span>
         <span class="gi-nm" title="${escH(e.player_id||'')}">${escH(nm)}</span>
         <span class="gi-tm">${ago(e.created_at)} назад</span>
       </div>`
-    }).join('')
+    }).join(''))
   } else {
     ob.textContent='0 онлайн'; ob.className='badge bq'
-    document.getElementById('onlineList').innerHTML='<div class="empty" style="padding:14px">Никого за последние 30 мин</div>'
+    setHTML(document.getElementById('onlineList'),'<div class="empty" style="padding:14px">Никого за последние 30 мин</div>')
   }
 
   // Recent
-  document.getElementById('recentList').innerHTML=rows.slice(0,10).map(r=>`
+  setHTML(document.getElementById('recentList'),rows.slice(0,10).map(r=>`
     <div class="gi">
       <span class="gi-nm">${escH((r.name||'Аноним').substring(0,14))}</span>
       <span class="gi-sc">${r.score}</span>
       <span class="gi-mt"><span class="gi-tg">${r.mode||'classic'}</span> ур.${r.level||1}</span>
       <span class="gi-tm">${ago(r.created_at)} назад</span>
-    </div>`).join('')
+    </div>`).join(''))
 
   // Leaderboard
   const m=['🥇','🥈','🥉']
   document.getElementById('lbBadge').textContent=rows.length+' записей'
-  document.getElementById('lb').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Счёт</th><th>Ур.</th><th>Режим</th><th>Когда</th></tr></thead><tbody>${byScore.slice(0,20).map((r,i)=>`<tr>
+  setHTML(document.getElementById('lb'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Счёт</th><th>Ур.</th><th>Режим</th><th>Когда</th></tr></thead><tbody>${byScore.slice(0,20).map((r,i)=>`<tr>
     <td>${m[i]??`<span style="color:#ddd;font-size:.72rem">${i+1}</span>`}</td>
     <td style="font-weight:600">${escH((r.name||'—').substring(0,16))}</td>
     <td><span class="tsc">${r.score}</span></td>
     <td>${r.level||1}</td>
     <td><span class="ttg">${r.mode||'classic'}</span></td>
     <td class="dt-cell" style="font-size:.69rem">${fmtDate(r.created_at)}</td>
-  </tr>`).join('')}</tbody></table>`
+  </tr>`).join('')}</tbody></table>`)
 
   // Top players
   const pm={}
   rows.forEach(r=>{const n=r.name||'Аноним';if(!pm[n])pm[n]={name:n,games:0,best:0,total:0};pm[n].games++;pm[n].total+=Number(r.score);if(Number(r.score)>pm[n].best)pm[n].best=Number(r.score)})
   const pl=Object.values(pm).sort((a,b)=>b.best-a.best).slice(0,10)
   document.getElementById('plBadge').textContent=names.length+' уникальных'
-  document.getElementById('topPlayers').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Лучший</th><th>Игр</th><th>Среднее</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
+  setHTML(document.getElementById('topPlayers'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Лучший</th><th>Игр</th><th>Среднее</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
     <td style="color:#cbd5e1;font-size:.71rem">${i+1}</td>
     <td style="font-weight:600">${escH(p.name.substring(0,16))}</td>
     <td><span class="tsc">${p.best}</span></td>
     <td>${p.games}</td>
     <td>${Math.round(p.total/p.games)}</td>
-  </tr>`).join('')}</tbody></table>`
+  </tr>`).join('')}</tbody></table>`)
 }
 
 // ── GitHub ─────────────────────────────────────────────────────────────────
@@ -1063,6 +1064,14 @@ function renderLog(){
 }
 function clearLog(){actLog.length=0;renderLog()}
 
+// ── Anti-flicker helper — only updates DOM if content changed ─────────────
+function setHTML(el,html){if(el&&el.innerHTML!==html)el.innerHTML=html}
+
+// ── Tick / countdown ───────────────────────────────────────────────────────
+let cd=5
+function tick(){cd--;document.getElementById('cd').textContent=cd;if(cd<=0){cd=5;loadData()}}
+setInterval(tick,1000)
+
 // ── Clock ──────────────────────────────────────────────────────────────────
 function tickClock(){
   const n=new Date()
@@ -1076,7 +1085,11 @@ function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log
 // ── Start ──────────────────────────────────────────────────────────────────
 function startApp(){
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline()
-  // No auto-refresh — manual only via Обновить button
+  setInterval(loadData,5000)
+  setInterval(loadOnline,15000)
+  setInterval(pingGame,30000)
+  setInterval(pingEF,30000)
+  setInterval(loadCommits,300000)
 }
 
 if(sessionStorage.getItem('auth')==='1'){
