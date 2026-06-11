@@ -925,7 +925,7 @@ async function loadOnline(){
 async function loadData(){
   const t0=Date.now()
   try{
-    const rLB=await fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300&_t='+Date.now(),{headers:{...H,'Cache-Control':'no-cache'},cache:'no-store'})
+    const rLB=await fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H,cache:'no-store'})
     if(!rLB.ok) throw new Error('HTTP '+rLB.status)
     allRows=await rLB.json()
     setDot('sb','on',Date.now()-t0)
