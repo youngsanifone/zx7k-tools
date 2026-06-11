@@ -361,16 +361,16 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps0"></span>
         <div class="preset-info"><div class="preset-lbl">📊 Статистика по режимам</div><div class="preset-desc">Игры, средний и максимальный счёт по каждому режиму</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(0,`SELECT mode,COUNT(*) AS games,ROUND(AVG(score)) AS avg_score,MAX(score) AS top_score FROM leaderboard GROUP BY mode ORDER BY games DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT mode,COUNT(*) AS games,ROUND(AVG(score)) AS avg_score,MAX(score) AS top_score FROM leaderboard GROUP BY mode ORDER BY games DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(0,`SELECT mode,COUNT(*) AS games,ROUND(AVG(score)) AS avg_score,MAX(score) AS top_score FROM game_results GROUP BY mode ORDER BY games DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT mode,COUNT(*) AS games,ROUND(AVG(score)) AS avg_score,MAX(score) AS top_score FROM game_results GROUP BY mode ORDER BY games DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
         <span class="preset-status" id="ps1"></span>
         <div class="preset-info"><div class="preset-lbl">📅 Активность за 7 дней</div><div class="preset-desc">Игры и лучший счёт по дням за неделю</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(1,`SELECT DATE(created_at AT TIME ZONE 'Europe/Bratislava') AS day,COUNT(*) AS games,MAX(score) AS best FROM leaderboard WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT DATE(created_at AT TIME ZONE 'Europe/Bratislava') AS day,COUNT(*) AS games,MAX(score) AS best FROM leaderboard WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(1,`SELECT DATE(created_at AT TIME ZONE 'Europe/Bratislava') AS day,COUNT(*) AS games,MAX(score) AS best FROM game_results WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT DATE(created_at AT TIME ZONE 'Europe/Bratislava') AS day,COUNT(*) AS games,MAX(score) AS best FROM game_results WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -385,8 +385,8 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps3"></span>
         <div class="preset-info"><div class="preset-lbl">🏆 Топ-10 по лучшему счёту</div><div class="preset-desc">Лучший результат каждого игрока</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(3,`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM leaderboard lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM leaderboard lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(3,`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM game_results lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM game_results lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -434,7 +434,7 @@ tr:hover td{background:#fafafa}
         <div class="preset-info"><div class="preset-lbl" style="color:#92400e">⚠ Удалить тестовые записи</div><div class="preset-desc">Удаляет строки где name содержит "test" — с подтверждением</div></div>
         <div class="preset-btns">
           <button class="pbtn pbtn-red" onclick="confirmDel()">⚠ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`DELETE FROM leaderboard WHERE LOWER(name) LIKE '%test%' RETURNING id,name,score`)">Копировать</button>
+          <button class="pbtn pbtn-c" onclick="copy(`DELETE FROM game_results WHERE LOWER(name) LIKE '%test%' RETURNING id,name,score`)">Копировать</button>
         </div>
       </div>
     </div>
@@ -444,7 +444,7 @@ tr:hover td{background:#fafafa}
         <span style="font-size:.77rem;font-weight:700">Свой SQL запрос</span>
         <button onclick="exportCSV()" style="font-size:.65rem;padding:2px 8px;border:1px solid var(--brd);border-radius:5px;cursor:pointer;background:var(--card)">↓ CSV</button>
       </div>
-      <textarea class="sq-area" id="sqlInput" placeholder="SELECT * FROM leaderboard ORDER BY score DESC LIMIT 20;"></textarea>
+      <textarea class="sq-area" id="sqlInput" placeholder="SELECT * FROM game_results ORDER BY score DESC LIMIT 20;"></textarea>
       <div class="sq-row">
         <button class="sq-run" id="sqlRunBtn" onclick="runCustom()">▶ Выполнить</button>
         <span class="sq-hint" id="sqlMeta"></span>
@@ -460,7 +460,7 @@ tr:hover td{background:#fafafa}
   <div id="tab-tables" class="tb-body">
     <div class="tb-desc"><b>Table Editor</b> — просмотр данных, пагинация 50 строк, поиск. Обновляется вместе с остальными данными. Даты показаны в твоём часовом поясе (Братислава).</div>
     <div class="tbl-tabs">
-      <button class="ttb active" onclick="loadTbl('leaderboard',this)">🏆 leaderboard</button>
+      <button class="ttb active" onclick="loadTbl('game_results',this)">🏆 game_results</button>
       <button class="ttb" onclick="loadTbl('players',this)">👤 players</button>
       <button class="ttb" onclick="loadTbl('player_events',this)">📡 player_events</button>
       <button class="ttb" onclick="loadTbl('top_players',this)">🌟 top_players</button>
@@ -547,7 +547,7 @@ const TZ   = 'Europe/Bratislava'
 
 // ── State ──────────────────────────────────────────────────────────────────
 let authHash='', allRows=[], onlineEvts=[]
-let curTbl='leaderboard', tblPageN=0, tblRows=[]
+let curTbl='game_results', tblPageN=0, tblRows=[]
 const actLog=[]
 
 // ── Timezone display ───────────────────────────────────────────────────────
@@ -703,7 +703,7 @@ async function runP(idx,query){
 function confirmDel(){
   if(!confirm('⚠️ Удалить все записи где name содержит "test"?\nЭто нельзя отменить!')) return
   // Use proper LIKE without URL encoding
-  runP(7, "DELETE FROM leaderboard WHERE LOWER(name) LIKE '%' || 'test' || '%' RETURNING id,name,score")
+  runP(7, "DELETE FROM game_results WHERE LOWER(name) LIKE '%' || 'test' || '%' RETURNING id,name,score")
 }
 
 async function runCustom(){
@@ -807,7 +807,7 @@ async function loadAdv(){
     execSQL(`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)
   ])
   let html='<div class="adv-sec">БЕЗОПАСНОСТЬ</div><div class="adv-list">'
-  html+=adv('w','!','RLS INSERT без ограничений (leaderboard, player_events, players)','Намеренно для публичной игры без аккаунтов. Защита: rate-limit триггеры (макс 5/мин на leaderboard).')
+  html+=adv('w','!','RLS INSERT без ограничений (game_results, player_events, players)','Намеренно для публичной игры без аккаунтов. Защита: rate-limit триггеры (макс 5/мин на game_results).')
   html+=adv('o','OK','admin_execute — только service_role','Функция SQL закрыта от anon/authenticated. Доступ только через Edge Function с проверкой пароля.')
   html+=adv('o','OK','Таймауты настроены','statement_timeout=30s, idle_in_transaction=30s, lock_timeout=10s для anon/authenticated.')
   html+='</div><div class="adv-sec">ПРОИЗВОДИТЕЛЬНОСТЬ</div><div class="adv-list">'
@@ -925,7 +925,7 @@ async function loadOnline(){
 async function loadData(){
   const t0=Date.now()
   try{
-    const rLB=await fetch(SB+'/rest/v1/leaderboard?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H,cache:'no-store'})
+    const rLB=await fetch(SB+'/rest/v1/game_results?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H,cache:'no-store'})
     if(!rLB.ok) throw new Error('HTTP '+rLB.status)
     allRows=await rLB.json()
     setDot('sb','on',Date.now()-t0)
