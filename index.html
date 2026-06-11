@@ -353,11 +353,7 @@ tr:hover td{background:#fafafa}
 
   <!-- TAB: SQL -->
   <div id="tab-sql" class="tb-body active">
-    <div class="tb-desc">Нажми <b>▶ Run</b> — результат появится сразу <b>вверху этой секции</b>. Без copy-paste.</div>
-    <!-- RESULT AREA — top, always visible -->
-    <div class="sql-result-area" id="sqlResult">
-      <div class="sql-ra-empty">⬆ Результат запроса будет здесь</div>
-    </div>
+    <div class="tb-desc">Нажми <b>▶ Run</b> — результат появится внизу этой секции. Без copy-paste.</div>
     <!-- PRESETS -->
     <div class="preset-list" id="presetList">
       <div class="preset-row">
@@ -436,6 +432,10 @@ tr:hover td{background:#fafafa}
         <button class="sq-run" id="sqlRunBtn" onclick="runCustom()">▶ Выполнить</button>
         <span class="sq-hint" id="sqlMeta"></span>
       </div>
+    </div>
+    <!-- RESULT AREA — bottom, after run button -->
+    <div class="sql-result-area" id="sqlResult" style="display:none">
+      <div class="sql-ra-empty">Результат появится здесь</div>
     </div>
   </div>
 
@@ -635,9 +635,10 @@ async function execSQL(q){
   } catch(e){ return {error:e.message,ms:Date.now()-t0} }
 }
 
-// ── Render SQL result at TOP of SQL tab ────────────────────────────────────
+// ── Render SQL result (at bottom of SQL tab) ───────────────────────────────
 function renderResult(result){
   const box=document.getElementById('sqlResult')
+  box.style.display='block'
   const {data,error,ms}=result
   if(error){
     box.innerHTML=`<div class="sql-ra-meta err">❌ Ошибка · ${ms}мс</div><div style="padding:9px 14px;font-size:.76rem;color:var(--red);background:#fff8f8;font-family:monospace">${escH(error)}</div>`
@@ -663,15 +664,13 @@ function renderResult(result){
     }).join('')}</tr>`).join('')}</tbody>
   </table></div>`
   window._lastSQL={cols,rows}
+  setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'nearest'}),50)
 }
 
 // Run preset
 const pBtns={}
 async function runP(idx,query){
-  // Switch to SQL tab first so user sees result
   if(!document.getElementById('tab-sql').classList.contains('active')) openTab('sql')
-  // Scroll to top of SQL tab result
-  document.getElementById('sqlResult').scrollIntoView({behavior:'smooth',block:'start'})
   const btn=idx!==null?document.querySelectorAll('.preset-row .pbtn-r')[idx]:null
   const status=idx!==null?document.getElementById('ps'+idx):null
   if(btn){btn.disabled=true;btn.textContent='⏳'}
