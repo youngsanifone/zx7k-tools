@@ -376,16 +376,16 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps2"></span>
         <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с heartbeat за 30 мин + устройство из metadata</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(2,`SELECT pe.player_id, COALESCE(p.name,'Аноним') AS player_name, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.name ORDER BY last_seen DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT pe.player_id, COALESCE(p.name,'Аноним') AS player_name, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.name ORDER BY last_seen DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(2,`SELECT pe.player_id, COALESCE(p.nick,'Аноним') AS nick, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.nick ORDER BY last_seen DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT pe.player_id, COALESCE(p.nick,'Аноним') AS nick, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.nick ORDER BY last_seen DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
         <span class="preset-status" id="ps3"></span>
         <div class="preset-info"><div class="preset-lbl">🏆 Топ-10 по лучшему счёту</div><div class="preset-desc">Лучший результат каждого игрока</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(3,`SELECT name,MAX(score) AS best_score,COUNT(*) AS games,MAX(level) AS max_level FROM leaderboard GROUP BY name ORDER BY best_score DESC LIMIT 10`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT name,MAX(score) AS best_score,COUNT(*) AS games,MAX(level) AS max_level FROM leaderboard GROUP BY name ORDER BY best_score DESC LIMIT 10`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(3,`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM leaderboard lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM leaderboard lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -410,6 +410,22 @@ tr:hover td{background:#fafafa}
         <div class="preset-btns">
           <button class="pbtn pbtn-r" onclick="runP(6,`SELECT jobid,jobname,schedule,active FROM cron.job ORDER BY jobid`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT jobid,jobname,schedule,active FROM cron.job ORDER BY jobid`)">Копировать</button>
+        </div>
+      </div>
+      <div class="preset-row">
+        <span class="preset-status" id="ps8"></span>
+        <div class="preset-info"><div class="preset-lbl">👤 Профили игроков (players)</div><div class="preset-desc">nick, монеты, лучший счёт, игр сыграно, уровень, скин, тема</div></div>
+        <div class="preset-btns">
+          <button class="pbtn pbtn-r" onclick="runP(8,`SELECT nick, coins, best, best_level, games_played, skin_idx, difficulty, theme, updated_at FROM players ORDER BY best DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT nick, coins, best, best_level, games_played, skin_idx, difficulty, theme, updated_at FROM players ORDER BY best DESC`)">Копировать</button>
+        </div>
+      </div>
+      <div class="preset-row">
+        <span class="preset-status" id="ps9"></span>
+        <div class="preset-info"><div class="preset-lbl">🎮 События game_over (последние 50)</div><div class="preset-desc">Результаты игр с nick игрока, очками и режимом</div></div>
+        <div class="preset-btns">
+          <button class="pbtn pbtn-r" onclick="runP(9,`SELECT pe.created_at, COALESCE(p.nick,'Аноним') AS nick, pe.score, pe.mode FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='game_over' ORDER BY pe.created_at DESC LIMIT 50`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT pe.created_at, COALESCE(p.nick,'Аноним') AS nick, pe.score, pe.mode FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='game_over' ORDER BY pe.created_at DESC LIMIT 50`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row" style="background:#fffbeb">
@@ -714,15 +730,15 @@ const TBL_SZ=50
 
 // Tables that need name JOIN — use execSQL instead of REST API
 const TBL_SQL={
-  player_events: (off)=>`SELECT pe.id, COALESCE(p.name, 'Аноним') AS player_name,
-    pe.player_id, pe.event, pe.created_at
+  // player_events: cols = id,player_id,event,score,mode,created_at (NO metadata!)
+  player_events: (off)=>`SELECT pe.id, COALESCE(p.nick,'Аноним') AS nick,
+    pe.player_id, pe.event, pe.score, pe.mode, pe.created_at
     FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id
-    ORDER BY pe.id DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
-  players: (off)=>`SELECT p.id, p.name, p.player_id, p.created_at,
-    COUNT(lb.id) AS total_games, MAX(lb.score) AS best_score
-    FROM players p LEFT JOIN leaderboard lb ON lb.name=p.name
-    GROUP BY p.id,p.name,p.player_id,p.created_at
-    ORDER BY p.id DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+    ORDER BY pe.created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+  // players: cols = player_id,nick,coins,best,best_level,games_played,skin_idx,bought_skins,achievements,quests,difficulty,music_on,sfx_on,theme,updated_at
+  players: (off)=>`SELECT player_id, nick, coins, best, best_level, games_played,
+    skin_idx, difficulty, theme, updated_at
+    FROM players ORDER BY updated_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
 }
 
 async function loadTbl(name, btn){
@@ -895,7 +911,7 @@ function updCharts(rows){
 // ── Online events (slow, separate from main 5s loop) ──────────────────────
 async function loadOnline(){
   const r=await execSQL(`SELECT pe.player_id, pe.created_at,
-    COALESCE(p.name,'Аноним') AS player_name
+    COALESCE(p.nick,'Аноним') AS player_name
     FROM player_events pe
     LEFT JOIN players p ON p.player_id=pe.player_id
     WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes'
