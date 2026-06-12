@@ -949,7 +949,7 @@ function renderAll(){
   const weekAgo=new Date(Date.now()-7*86400*1000)
   const byScore=[...rows].sort((a,b)=>b.score-a.score)
   const names=[...new Set(rows.map(r=>r.name).filter(Boolean))]
-  const oIds=[...new Set(onlineEvts.map(e=>e.player_id))]
+  const oIds=[...new Set(onlineEvts.map(e=>(e.player_name&&e.player_name!=='Аноним')?'n:'+e.player_name:'p:'+e.player_id))]
   const weekRows=rows.filter(r=>r.created_at&&new Date(utc(r.created_at))>=weekAgo)
   // Stats
   document.getElementById('s-online').textContent=oIds.length
@@ -965,7 +965,9 @@ function renderAll(){
   if(oIds.length){
     ob.textContent=oIds.length+' онлайн'; ob.className='badge bg'
     const latest={}
-    onlineEvts.forEach(e=>{if(!latest[e.player_id]||new Date(utc(e.created_at))>new Date(utc(latest[e.player_id].created_at)))latest[e.player_id]=e})
+    // Группируем по нику (один человек с двух устройств = одна строка); анонимы — по id
+    const oKey=e=>(e.player_name&&e.player_name!=='Аноним')?'n:'+e.player_name:'p:'+e.player_id
+    onlineEvts.forEach(e=>{const k=oKey(e);if(!latest[k]||new Date(utc(e.created_at))>new Date(utc(latest[k].created_at)))latest[k]=e})
     setHTML(document.getElementById('onlineList'),Object.values(latest).slice(0,20).map(e=>{
       const anon=!e.player_name||e.player_name==='Аноним'
       const nm=anon?'Аноним · '+(e.player_id?e.player_id.substring(0,8):'?'):e.player_name
