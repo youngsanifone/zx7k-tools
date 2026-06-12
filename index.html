@@ -375,10 +375,10 @@ tr:hover td{background:#fafafa}
       </div>
       <div class="preset-row">
         <span class="preset-status" id="ps2"></span>
-        <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с heartbeat за 30 мин + устройство из metadata</div></div>
+        <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с heartbeat за последние 2 минуты (реалтайм)</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(2,`SELECT pe.player_id, COALESCE(p.nick,'Аноним') AS nick, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.nick ORDER BY last_seen DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT pe.player_id, COALESCE(p.nick,'Аноним') AS nick, MAX(pe.created_at) AS last_seen FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes' GROUP BY pe.player_id,p.nick ORDER BY last_seen DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(2,`SELECT COALESCE(nick,'Аноним') AS nick, MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes' GROUP BY nick, player_id ORDER BY last_seen DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT COALESCE(nick,'Аноним') AS nick, MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes' GROUP BY nick, player_id ORDER BY last_seen DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -425,8 +425,8 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps9"></span>
         <div class="preset-info"><div class="preset-lbl">🎮 События game_over (последние 50)</div><div class="preset-desc">Результаты игр с nick игрока, очками и режимом</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(9,`SELECT pe.created_at, COALESCE(p.nick,'Аноним') AS nick, pe.score, pe.mode FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='game_over' ORDER BY pe.created_at DESC LIMIT 50`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT pe.created_at, COALESCE(p.nick,'Аноним') AS nick, pe.score, pe.mode FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id WHERE pe.event='game_over' ORDER BY pe.created_at DESC LIMIT 50`)">Копировать</button>
+          <button class="pbtn pbtn-r" onclick="runP(9,`SELECT created_at, COALESCE(nick,'Аноним') AS nick, score, mode FROM player_events WHERE event='game_over' ORDER BY created_at DESC LIMIT 50`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT created_at, COALESCE(nick,'Аноним') AS nick, score, mode FROM player_events WHERE event='game_over' ORDER BY created_at DESC LIMIT 50`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row" style="background:#fffbeb">
@@ -730,24 +730,24 @@ function exportCSV(){
 // ── Table Editor ───────────────────────────────────────────────────────────
 const TBL_SZ=50
 
-// Tables that need name JOIN — use execSQL instead of REST API
+// Кастомный SQL для таблиц: ник первой колонкой, удобный порядок, свежие сверху
 const TBL_SQL={
-  // player_events: cols = id,player_id,event,score,mode,created_at (NO metadata!)
-  player_events: (off)=>`SELECT pe.id, COALESCE(p.nick,'Аноним') AS nick,
-    pe.player_id, pe.event, pe.score, pe.mode, pe.created_at
-    FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id
-    ORDER BY pe.created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
-  // players: cols = player_id,nick,coins,best,best_level,games_played,skin_idx,bought_skins,achievements,quests,difficulty,music_on,sfx_on,theme,updated_at
-  players: (off)=>`SELECT player_id, nick, coins, best, best_level, games_played,
-    skin_idx, difficulty, theme, updated_at
+  player_events: (off)=>`SELECT COALESCE(nick,'—') AS nick, event, score, mode, created_at, player_id
+    FROM player_events ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+  players: (off)=>`SELECT nick, coins, best, best_level, games_played, saved_level,
+    difficulty, theme, updated_at, player_id
     FROM players ORDER BY updated_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+  game_results: (off)=>`SELECT name, score, level, mode, created_at
+    FROM game_results ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
 }
 
-async function loadTbl(name, btn){
+async function loadTbl(name, btn, silent){
   curTbl=name
   if(btn){document.querySelectorAll('.ttb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');tblPageN=0}
-  document.getElementById('tblData').innerHTML='<div class="empty"><span class="sp"></span></div>'
-  document.getElementById('tblCnt').textContent=''
+  if(!silent){
+    document.getElementById('tblData').innerHTML='<div class="empty"><span class="sp"></span></div>'
+    document.getElementById('tblCnt').textContent=''
+  }
   try{
     const off=tblPageN*TBL_SZ
     // Special tables: use execSQL (JOIN + bypasses RLS)
@@ -760,7 +760,7 @@ async function loadTbl(name, btn){
       tblRows=Array.isArray(res.data)?res.data:[]
       const total=cntRes.data?.[0]?.total||0
       renderTbl(tblRows)
-      document.getElementById('tblMeta').textContent=`${total} строк`
+      document.getElementById('tblMeta').textContent=`${total} строк · обн. ${new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:TZ})}`
       document.getElementById('tblCnt').textContent=`стр. ${tblPageN+1} / ${Math.ceil(total/TBL_SZ)||1}`
       document.getElementById('tblPrev').disabled=tblPageN<=0
       document.getElementById('tblNext').disabled=(tblPageN+1)*TBL_SZ>=Number(total)
@@ -785,9 +785,9 @@ function renderTbl(rows){
   const box=document.getElementById('tblData')
   const s=(document.getElementById('tblSearch')?.value||'').toLowerCase()
   const f=s?rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(s))):rows
-  if(!f.length){box.innerHTML='<div class="empty">Ничего не найдено</div>';return}
+  if(!f.length){setHTML(box,'<div class="empty">Ничего не найдено</div>');return}
   const cols=Object.keys(f[0])
-  box.innerHTML=`<table>
+  setHTML(box,`<table>
     <thead><tr>${cols.map(c=>`<th>${escH(c)}</th>`).join('')}</tr></thead>
     <tbody>${f.map(r=>`<tr>${cols.map(c=>{
       const v=r[c]??'null', vs=String(v)
@@ -795,7 +795,7 @@ function renderTbl(rows){
       const disp=isDate?fmtDate(vs):escH(vs.substring(0,60)+(vs.length>60?'…':''))
       return `<td class="${isDate?'dt-cell':''}" title="${escH(vs)}">${disp}</td>`
     }).join('')}</tr>`).join('')}</tbody>
-  </table>`
+  </table>`)
 }
 function filterTbl(){renderTbl(tblRows)}
 function tblPage(dir){tblPageN=Math.max(0,tblPageN+dir);loadTbl(curTbl)}
@@ -1096,6 +1096,10 @@ function startApp(){
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline()
   setInterval(loadData,5000)
   setInterval(loadOnline,10000)
+  // Вкладка «Таблицы» обновляется сама, пока открыта (тихо, без мерцания)
+  setInterval(()=>{
+    if(document.getElementById('tab-tables')?.classList.contains('active')) loadTbl(curTbl,null,true)
+  },5000)
   setInterval(pingGame,30000)
   setInterval(pingEF,30000)
   setInterval(loadCommits,300000)
