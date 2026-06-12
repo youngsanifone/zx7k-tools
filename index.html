@@ -282,7 +282,7 @@ tr:hover td{background:#fafafa}
   <div class="g4" style="margin-bottom:12px">
     <div class="stat online">
       <div class="st-ico">🟢</div>
-      <div><div class="st-n" id="s-online">—</div><div class="st-l">Онлайн</div><div class="st-d">за 30 мин</div></div>
+      <div><div class="st-n" id="s-online">—</div><div class="st-l">Онлайн</div><div class="st-d">сейчас · окно 2 мин</div></div>
     </div>
     <div class="stat">
       <div class="st-ico">🏆</div>
@@ -918,7 +918,7 @@ async function loadOnline(){
     COALESCE(p.games_played,0) AS games, COALESCE(p.coins,0) AS coins
     FROM player_events pe
     LEFT JOIN players p ON p.player_id=pe.player_id
-    WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes'
+    WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '2 minutes'
     ORDER BY pe.created_at DESC LIMIT 100`)
   if(Array.isArray(r.data)) onlineEvts=r.data
   if(allRows.length) renderAll()
@@ -978,7 +978,7 @@ function renderAll(){
     }).join(''))
   } else {
     ob.textContent='0 онлайн'; ob.className='badge bq'
-    setHTML(document.getElementById('onlineList'),'<div class="empty" style="padding:14px">Никого за последние 30 мин</div>')
+    setHTML(document.getElementById('onlineList'),'<div class="empty" style="padding:14px">Сейчас никого в игре</div>')
   }
 
   // Recent
@@ -1091,7 +1091,7 @@ function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log
 function startApp(){
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline()
   setInterval(loadData,5000)
-  setInterval(loadOnline,15000)
+  setInterval(loadOnline,10000)
   setInterval(pingGame,30000)
   setInterval(pingEF,30000)
   setInterval(loadCommits,300000)
