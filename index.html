@@ -913,7 +913,9 @@ function updCharts(rows){
 // ── Online events (slow, separate from main 5s loop) ──────────────────────
 async function loadOnline(){
   const r=await execSQL(`SELECT pe.player_id, pe.created_at,
-    COALESCE(p.nick,'Аноним') AS player_name
+    COALESCE(p.nick,'Аноним') AS player_name,
+    COALESCE(p.best,0) AS best, COALESCE(p.best_level,1) AS best_level,
+    COALESCE(p.games_played,0) AS games, COALESCE(p.coins,0) AS coins
     FROM player_events pe
     LEFT JOIN players p ON p.player_id=pe.player_id
     WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '30 minutes'
@@ -964,11 +966,13 @@ function renderAll(){
     ob.textContent=oIds.length+' онлайн'; ob.className='badge bg'
     const latest={}
     onlineEvts.forEach(e=>{if(!latest[e.player_id]||new Date(utc(e.created_at))>new Date(utc(latest[e.player_id].created_at)))latest[e.player_id]=e})
-    setHTML(document.getElementById('onlineList'),Object.values(latest).slice(0,8).map(e=>{
-      const nm=e.player_name&&e.player_name!=='Аноним'?e.player_name:(e.player_id?e.player_id.substring(0,8)+'…':'Аноним')
+    setHTML(document.getElementById('onlineList'),Object.values(latest).slice(0,20).map(e=>{
+      const anon=!e.player_name||e.player_name==='Аноним'
+      const nm=anon?'Аноним · '+(e.player_id?e.player_id.substring(0,8):'?'):e.player_name
       return `<div class="gi">
         <span class="odot"></span>
-        <span class="gi-nm" title="${escH(e.player_id||'')}">${escH(nm)}</span>
+        <span class="gi-nm" title="id: ${escH(e.player_id||'')}">${escH(nm)}</span>
+        <span class="gi-mt">🏆 ${e.best||0} · ур.${e.best_level||1} · 🎮 ${e.games||0} · 🪙 ${e.coins||0}</span>
         <span class="gi-tm">${ago(e.created_at)} назад</span>
       </div>`
     }).join(''))
