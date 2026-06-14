@@ -78,6 +78,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .gi{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid #f8fafc;font-size:.79rem}
 .gi:last-child{border:none}
 .gi:hover{background:#fafafa}
+
+.pt td,.pt th{padding:5px 8px;font-size:.72rem;border-bottom:1px solid var(--brd)}
+.pt th{color:var(--mut);font-weight:600;white-space:nowrap}
+.pt td:first-child{color:#94a3b8;font-size:.68rem}
+.pid{font-size:.62rem;color:#94a3b8;font-family:monospace}
+.coin{color:#f59e0b;font-weight:700}
+.ach-cnt{color:#8b5cf6;font-weight:600}
+.sk-badge{display:inline-block;background:#e0e7ff;color:#4338ca;border-radius:4px;padding:1px 5px;font-size:.63rem;font-weight:600}
+
 .gi-nm{font-weight:600;min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gi-sc{font-weight:800;color:var(--green);min-width:30px;font-size:.84rem}
 .gi-tg{font-size:.59rem;background:#ede9fe;color:#7c3aed;padding:1px 6px;border-radius:9px;font-weight:700;white-space:nowrap}
@@ -529,6 +538,20 @@ tr:hover td{background:#fafafa}
       </div>
       <div class="lb" id="topPlayers"><div class="empty"><span class="sp"></span></div></div>
     </div>
+  </div>
+
+  <div style="height:12px"></div>
+
+  <!-- PLAYERS PROFILES -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">👤 Профили игроков</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="badge bp" id="profBadge">—</span>
+        <button class="qb" style="padding:3px 9px;font-size:.68rem" onclick="loadPlayers()">🔄 Обновить</button>
+      </div>
+    </div>
+    <div id="playerProfiles"><div class="empty"><span class="sp"></span></div></div>
   </div>
   <div style="height:12px"></div>
 
@@ -1092,8 +1115,46 @@ setInterval(tickClock,1000); tickClock()
 function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log('🔄 Ручное обновление')}
 
 // ── Start ──────────────────────────────────────────────────────────────────
+
+// ── Player Profiles ────────────────────────────────────────────────────────
+async function loadPlayers(){
+  const el=document.getElementById('playerProfiles')
+  el.innerHTML='<div class="empty"><span class="sp"></span></div>'
+  const r=await execSQL(`
+    SELECT player_id, nick, coins, best, best_level, games_played,
+           skin_idx, difficulty, updated_at,
+           jsonb_array_length(COALESCE(achievements,'[]'::jsonb)) AS ach_count,
+           jsonb_array_length(COALESCE(bought_skins,'[]'::jsonb)) AS skins_count
+    FROM players
+    ORDER BY best DESC NULLS LAST`)
+  if(!Array.isArray(r.data)||!r.data.length){
+    el.innerHTML='<div class="empty">Нет данных</div>'; return
+  }
+  const rows=r.data
+  document.getElementById('profBadge').textContent=rows.length+' игроков'
+  const skinName=['🐍 Дефолт','🟢 Классик','⚡ Неон','👾 Ретро','🌊 Вода','🔥 Огонь','❄️ Лёд','🌿 Природа','👑 Золото','🎮 Пиксель']
+  el.innerHTML=`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
+    <thead><tr>
+      <th>#</th><th>Игрок</th><th>ID</th><th>🪙 Монеты</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Был</th>
+    </tr></thead>
+    <tbody>${rows.map((p,i)=>`<tr>
+      <td style="color:#94a3b8">${i+1}</td>
+      <td style="font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(p.player_id)}">${escH((p.nick||'Аноним').substring(0,16))}</td>
+      <td class="pid">${escH((p.player_id||'').substring(0,8))}…</td>
+      <td class="coin">${p.coins??0}</td>
+      <td><span class="tsc">${p.best??0}</span></td>
+      <td style="color:#64748b">${p.best_level??1}</td>
+      <td>${p.games_played??0}</td>
+      <td class="ach-cnt">${p.ach_count??0}</td>
+      <td><span class="sk-badge">${skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
+      <td style="font-size:.67rem;color:#94a3b8">${ago(p.updated_at)} назад</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`
+  log('👤 Профили: '+rows.length+' игроков')
+}
+
 function startApp(){
-  initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline()
+  initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers()
   setInterval(loadData,5000)
   setInterval(loadOnline,10000)
   // Вкладка «Таблицы» обновляется сама, пока открыта (тихо, без мерцания)
