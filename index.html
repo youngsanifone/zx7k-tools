@@ -1120,13 +1120,24 @@ function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log
 async function loadPlayers(){
   const el=document.getElementById('playerProfiles')
   el.innerHTML='<div class="empty"><span class="sp"></span></div>'
+  // JOIN game_results + players по нику — как в пресете №4
   const r=await execSQL(`
-    SELECT player_id, nick, coins, best, best_level, games_played,
-           skin_idx, difficulty, updated_at,
-           jsonb_array_length(COALESCE(achievements,'[]'::jsonb)) AS ach_count,
-           jsonb_array_length(COALESCE(bought_skins,'[]'::jsonb)) AS skins_count
-    FROM players
-    ORDER BY best DESC NULLS LAST`)
+    SELECT
+      gr.name,
+      p.player_id,
+      COALESCE(p.coins, 0)          AS coins,
+      COALESCE(p.skin_idx, 0)       AS skin_idx,
+      p.updated_at,
+      jsonb_array_length(COALESCE(p.achievements,'[]'::jsonb))  AS ach_count,
+      jsonb_array_length(COALESCE(p.bought_skins,'[]'::jsonb))  AS skins_count,
+      MAX(gr.score)  AS best_score,
+      COUNT(*)       AS games,
+      MAX(gr.level)  AS max_level
+    FROM game_results gr
+    LEFT JOIN players p ON p.nick = gr.name
+    GROUP BY gr.name, p.player_id, p.coins, p.skin_idx, p.updated_at, p.achievements, p.bought_skins
+    ORDER BY best_score DESC
+    LIMIT 50`)
   if(!Array.isArray(r.data)||!r.data.length){
     el.innerHTML='<div class="empty">Нет данных</div>'; return
   }
@@ -1135,19 +1146,18 @@ async function loadPlayers(){
   const skinName=['🐍 Дефолт','🟢 Классик','⚡ Неон','👾 Ретро','🌊 Вода','🔥 Огонь','❄️ Лёд','🌿 Природа','👑 Золото','🎮 Пиксель']
   el.innerHTML=`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
     <thead><tr>
-      <th>#</th><th>Игрок</th><th>ID</th><th>🪙 Монеты</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Был</th>
+      <th>#</th><th>Игрок</th><th>🪙 Монеты</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Был</th>
     </tr></thead>
     <tbody>${rows.map((p,i)=>`<tr>
       <td style="color:#94a3b8">${i+1}</td>
-      <td style="font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(p.player_id)}">${escH((p.nick||'Аноним').substring(0,16))}</td>
-      <td class="pid">${escH((p.player_id||'').substring(0,8))}…</td>
+      <td style="font-weight:700" title="${escH(p.player_id||'—')}">${escH((p.name||'Аноним').substring(0,16))}${p.player_id?'':' <span style="font-size:.6rem;color:#f59e0b">?профиль</span>'}</td>
       <td class="coin">${p.coins??0}</td>
-      <td><span class="tsc">${p.best??0}</span></td>
-      <td style="color:#64748b">${p.best_level??1}</td>
-      <td>${p.games_played??0}</td>
+      <td><span class="tsc">${p.best_score??0}</span></td>
+      <td style="color:#64748b">${p.max_level??1}</td>
+      <td>${p.games??0}</td>
       <td class="ach-cnt">${p.ach_count??0}</td>
       <td><span class="sk-badge">${skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
-      <td style="font-size:.67rem;color:#94a3b8">${ago(p.updated_at)} назад</td>
+      <td style="font-size:.67rem;color:#94a3b8">${p.updated_at?ago(p.updated_at)+' назад':'—'}</td>
     </tr>`).join('')}</tbody>
   </table></div>`
   log('👤 Профили: '+rows.length+' игроков')
