@@ -1172,7 +1172,8 @@ function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log
 // ── Player Profiles ────────────────────────────────────────────────────────
 async function loadPlayers(){
   const el=document.getElementById('playerProfiles')
-  el.innerHTML='<div class="empty"><span class="sp"></span></div>'
+  // Show spinner only on first load (no table yet — avoids flicker on refresh)
+  if(!el.querySelector('table')) el.innerHTML='<div class="empty"><span class="sp"></span></div>'
   // JOIN game_results + players по нику, GROUP BY gr.name — Аноним схлопывается в одну строку
   const r=await execSQL(`
     SELECT
@@ -1193,7 +1194,7 @@ async function loadPlayers(){
     ORDER BY MAX(gr.created_at) DESC NULLS LAST
     LIMIT 50`)
   if(!Array.isArray(r.data)||!r.data.length){
-    el.innerHTML='<div class="empty">Нет данных</div>'; return
+    setHTML(el,'<div class="empty">Нет данных</div>'); return
   }
   const rows=r.data
   // Фильтруем Аноним — показываем только именованных игроков
@@ -1202,7 +1203,7 @@ async function loadPlayers(){
   const display=anonRow?[...named,{...anonRow,name:'Аноним ('+anonRow.games+' игр)'}]:named
   document.getElementById('profBadge').textContent=named.length+' игроков'
   const skinName=['🐍 Дефолт','🟢 Классик','⚡ Неон','👾 Ретро','🌊 Вода','🔥 Огонь','❄️ Лёд','🌿 Природа','👑 Золото','🎮 Пиксель']
-  el.innerHTML=`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
+  setHTML(el,`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
     <thead><tr>
       <th>#</th><th>Игрок</th><th>🪙 Монеты</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Был</th>
     </tr></thead>
@@ -1217,7 +1218,7 @@ async function loadPlayers(){
       <td><span class="sk-badge">${skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
       <td style="font-size:.67rem;color:#94a3b8">${p.updated_at?ago(p.updated_at)+' назад':'—'}</td>
     </tr>`).join('')}</tbody>
-  </table></div>`
+  </table></div>`)
   log('👤 Профили: '+named.length+' игроков')
 }
 
@@ -1229,7 +1230,7 @@ function startApp(){
   setInterval(()=>{
     if(document.getElementById('tab-tables')?.classList.contains('active')) loadTbl(curTbl,null,true)
   },5000)
-  setInterval(loadPlayers,30000)
+  setInterval(loadPlayers,10000)
   setInterval(pingGame,30000)
   setInterval(pingEF,30000)
   setInterval(loadCommits,300000)
