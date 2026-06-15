@@ -1229,6 +1229,7 @@ function startApp(){
   setInterval(()=>{
     if(document.getElementById('tab-tables')?.classList.contains('active')) loadTbl(curTbl,null,true)
   },5000)
+  setInterval(loadPlayers,30000)
   setInterval(pingGame,30000)
   setInterval(pingEF,30000)
   setInterval(loadCommits,300000)
