@@ -1120,37 +1120,42 @@ function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log
 async function loadPlayers(){
   const el=document.getElementById('playerProfiles')
   el.innerHTML='<div class="empty"><span class="sp"></span></div>'
-  // JOIN game_results + players по нику — как в пресете №4
+  // JOIN game_results + players по нику, GROUP BY gr.name — Аноним схлопывается в одну строку
   const r=await execSQL(`
     SELECT
       gr.name,
-      p.player_id,
-      COALESCE(p.coins, 0)          AS coins,
-      COALESCE(p.skin_idx, 0)       AS skin_idx,
-      p.updated_at,
-      jsonb_array_length(COALESCE(p.achievements,'[]'::jsonb))  AS ach_count,
-      jsonb_array_length(COALESCE(p.bought_skins,'[]'::jsonb))  AS skins_count,
-      MAX(gr.score)  AS best_score,
-      COUNT(*)       AS games,
-      MAX(gr.level)  AS max_level
+      MAX(p.player_id)                                                          AS player_id,
+      MAX(COALESCE(p.coins, 0))                                                 AS coins,
+      MAX(COALESCE(p.skin_idx, 0))                                              AS skin_idx,
+      MAX(p.updated_at)                                                         AS updated_at,
+      MAX(jsonb_array_length(COALESCE(p.achievements,'[]'::jsonb)))             AS ach_count,
+      MAX(jsonb_array_length(COALESCE(p.bought_skins,'[]'::jsonb)))             AS skins_count,
+      MAX(gr.score)   AS best_score,
+      COUNT(*)        AS games,
+      MAX(gr.level)   AS max_level
     FROM game_results gr
     LEFT JOIN players p ON p.nick = gr.name
-    GROUP BY gr.name, p.player_id, p.coins, p.skin_idx, p.updated_at, p.achievements, p.bought_skins
+    WHERE gr.name IS NOT NULL AND gr.name != ''
+    GROUP BY gr.name
     ORDER BY best_score DESC
     LIMIT 50`)
   if(!Array.isArray(r.data)||!r.data.length){
     el.innerHTML='<div class="empty">Нет данных</div>'; return
   }
   const rows=r.data
-  document.getElementById('profBadge').textContent=rows.length+' игроков'
+  // Фильтруем Аноним — показываем только именованных игроков
+  const named=rows.filter(p=>p.name&&p.name!=='Аноним')
+  const anonRow=rows.find(p=>p.name==='Аноним')
+  const display=anonRow?[...named,{...anonRow,name:'Аноним ('+anonRow.games+' игр)'}]:named
+  document.getElementById('profBadge').textContent=named.length+' игроков'
   const skinName=['🐍 Дефолт','🟢 Классик','⚡ Неон','👾 Ретро','🌊 Вода','🔥 Огонь','❄️ Лёд','🌿 Природа','👑 Золото','🎮 Пиксель']
   el.innerHTML=`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
     <thead><tr>
       <th>#</th><th>Игрок</th><th>🪙 Монеты</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Был</th>
     </tr></thead>
-    <tbody>${rows.map((p,i)=>`<tr>
-      <td style="color:#94a3b8">${i+1}</td>
-      <td style="font-weight:700" title="${escH(p.player_id||'—')}">${escH((p.name||'Аноним').substring(0,16))}${p.player_id?'':' <span style="font-size:.6rem;color:#f59e0b">?профиль</span>'}</td>
+    <tbody>${display.map((p,i)=>`<tr style="${p.name&&p.name.startsWith('Аноним')?'opacity:.55':''}">
+      <td style="color:#94a3b8">${p.name&&p.name.startsWith('Аноним')?'—':i+1}</td>
+      <td style="font-weight:700" title="${escH(p.player_id||'нет профиля')}">${escH((p.name||'Аноним').substring(0,20))}${!p.player_id&&!p.name.startsWith('Аноним')?' <span style="font-size:.6rem;color:#f59e0b" title="Нет профиля в players">?</span>':''}</td>
       <td class="coin">${p.coins??0}</td>
       <td><span class="tsc">${p.best_score??0}</span></td>
       <td style="color:#64748b">${p.max_level??1}</td>
@@ -1160,7 +1165,7 @@ async function loadPlayers(){
       <td style="font-size:.67rem;color:#94a3b8">${p.updated_at?ago(p.updated_at)+' назад':'—'}</td>
     </tr>`).join('')}</tbody>
   </table></div>`
-  log('👤 Профили: '+rows.length+' игроков')
+  log('👤 Профили: '+named.length+' игроков')
 }
 
 function startApp(){
