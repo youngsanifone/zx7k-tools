@@ -370,7 +370,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps0"></span>
         <div class="preset-info"><div class="preset-lbl">📊 Статистика по режимам</div><div class="preset-desc">Игры, средний и максимальный счёт по каждому режиму</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(0,`SELECT mode,COUNT(*) AS games,ROUND(AVG(score)) AS avg_score,MAX(score) AS top_score FROM game_results GROUP BY mode ORDER BY games DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-0" onclick="runP(0,`SELECT mode,COUNT(*) AS games,ROUND(AVG(score)) AS avg_score,MAX(score) AS top_score FROM game_results GROUP BY mode ORDER BY games DESC`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT mode,COUNT(*) AS games,ROUND(AVG(score)) AS avg_score,MAX(score) AS top_score FROM game_results GROUP BY mode ORDER BY games DESC`)">Копировать</button>
         </div>
       </div>
@@ -378,7 +378,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps1"></span>
         <div class="preset-info"><div class="preset-lbl">📅 Активность за 7 дней</div><div class="preset-desc">Игры и лучший счёт по дням за неделю</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(1,`SELECT DATE(created_at AT TIME ZONE 'Europe/Bratislava') AS day,COUNT(*) AS games,MAX(score) AS best FROM game_results WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-1" onclick="runP(1,`SELECT DATE(created_at AT TIME ZONE 'Europe/Bratislava') AS day,COUNT(*) AS games,MAX(score) AS best FROM game_results WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT DATE(created_at AT TIME ZONE 'Europe/Bratislava') AS day,COUNT(*) AS games,MAX(score) AS best FROM game_results WHERE created_at > NOW()-INTERVAL '7 days' GROUP BY day ORDER BY day DESC`)">Копировать</button>
         </div>
       </div>
@@ -386,7 +386,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps2"></span>
         <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с heartbeat за последние 2 минуты (реалтайм)</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(2,`SELECT COALESCE(nick,'Аноним') AS nick, MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes' GROUP BY nick, player_id ORDER BY last_seen DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-2" onclick="runP(2,`SELECT COALESCE(nick,'Аноним') AS nick, MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes' GROUP BY nick, player_id ORDER BY last_seen DESC`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT COALESCE(nick,'Аноним') AS nick, MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes' GROUP BY nick, player_id ORDER BY last_seen DESC`)">Копировать</button>
         </div>
       </div>
@@ -394,7 +394,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps3"></span>
         <div class="preset-info"><div class="preset-lbl">🏆 Топ-10 по лучшему счёту</div><div class="preset-desc">Лучший результат каждого игрока</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(3,`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM game_results lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-3" onclick="runP(3,`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM game_results lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT lb.name, p.nick, MAX(lb.score) AS best_score, COUNT(*) AS games, MAX(lb.level) AS max_level, p.coins FROM game_results lb LEFT JOIN players p ON p.nick=lb.name GROUP BY lb.name,p.nick,p.coins ORDER BY best_score DESC LIMIT 10`)">Копировать</button>
         </div>
       </div>
@@ -402,7 +402,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps4"></span>
         <div class="preset-info"><div class="preset-lbl">🗄️ Здоровье таблиц (размер, строки)</div><div class="preset-desc">Живые/мёртвые кортежи, размер каждой таблицы</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(4,`SELECT relname AS table_name,n_live_tup AS live_rows,n_dead_tup AS dead_rows,pg_size_pretty(pg_relation_size(relid)) AS size FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-4" onclick="runP(4,`SELECT relname AS table_name,n_live_tup AS live_rows,n_dead_tup AS dead_rows,pg_size_pretty(pg_relation_size(relid)) AS size FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT relname AS table_name,n_live_tup AS live_rows,n_dead_tup AS dead_rows,pg_size_pretty(pg_relation_size(relid)) AS size FROM pg_stat_user_tables WHERE schemaname='public' ORDER BY n_live_tup DESC`)">Копировать</button>
         </div>
       </div>
@@ -410,7 +410,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps5"></span>
         <div class="preset-info"><div class="preset-lbl">📈 Использование индексов</div><div class="preset-desc">Сколько раз каждый индекс использовался</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(5,`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans, idx_tup_read AS rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-5" onclick="runP(5,`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans, idx_tup_read AS rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans, idx_tup_read AS rows_read FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)">Копировать</button>
         </div>
       </div>
@@ -418,7 +418,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps6"></span>
         <div class="preset-info"><div class="preset-lbl">🕐 pg_cron задания</div><div class="preset-desc">Список scheduled заданий (авто-очистка и др.)</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(6,`SELECT jobid,jobname,schedule,active FROM cron.job ORDER BY jobid`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-6" onclick="runP(6,`SELECT jobid,jobname,schedule,active FROM cron.job ORDER BY jobid`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT jobid,jobname,schedule,active FROM cron.job ORDER BY jobid`)">Копировать</button>
         </div>
       </div>
@@ -426,7 +426,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps8"></span>
         <div class="preset-info"><div class="preset-lbl">👤 Профили игроков (players)</div><div class="preset-desc">nick, монеты, лучший счёт, игр сыграно, уровень, скин, тема</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(8,`SELECT nick, coins, best, best_level, games_played, skin_idx, difficulty, theme, updated_at FROM players ORDER BY best DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-8" onclick="runP(8,`SELECT nick, coins, best, best_level, games_played, skin_idx, difficulty, theme, updated_at FROM players ORDER BY best DESC`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT nick, coins, best, best_level, games_played, skin_idx, difficulty, theme, updated_at FROM players ORDER BY best DESC`)">Копировать</button>
         </div>
       </div>
@@ -434,7 +434,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps9"></span>
         <div class="preset-info"><div class="preset-lbl">🎮 События game_over (последние 50)</div><div class="preset-desc">Результаты игр с nick игрока, очками и режимом</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" onclick="runP(9,`SELECT created_at, COALESCE(nick,'Аноним') AS nick, score, mode FROM player_events WHERE event='game_over' ORDER BY created_at DESC LIMIT 50`)">▶ Run</button>
+          <button class="pbtn pbtn-r" id="prun-9" onclick="runP(9,`SELECT created_at, COALESCE(nick,'Аноним') AS nick, score, mode FROM player_events WHERE event='game_over' ORDER BY created_at DESC LIMIT 50`)">▶ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`SELECT created_at, COALESCE(nick,'Аноним') AS nick, score, mode FROM player_events WHERE event='game_over' ORDER BY created_at DESC LIMIT 50`)">Копировать</button>
         </div>
       </div>
@@ -442,7 +442,7 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps7"></span>
         <div class="preset-info"><div class="preset-lbl" style="color:#92400e">⚠ Удалить тестовые записи</div><div class="preset-desc">Удаляет строки где name содержит "test" — с подтверждением</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-red" onclick="confirmDel()">⚠ Run</button>
+          <button class="pbtn pbtn-red" id="prun-7" onclick="confirmDel()">⚠ Run</button>
           <button class="pbtn pbtn-c" onclick="copy(`DELETE FROM game_results WHERE LOWER(name) LIKE '%test%' RETURNING id,name,score`)">Копировать</button>
         </div>
       </div>
@@ -717,13 +717,14 @@ function renderResult(result){
 const pBtns={}
 async function runP(idx,query){
   if(!document.getElementById('tab-sql').classList.contains('active')) openTab('sql')
-  const btn=idx!==null?document.querySelectorAll('.preset-row .pbtn-r')[idx]:null
+  const btn=idx!==null?document.getElementById('prun-'+idx):null
   const status=idx!==null?document.getElementById('ps'+idx):null
+  const origTxt=btn?btn.textContent:''
   if(btn){btn.disabled=true;btn.textContent='⏳'}
   if(status) status.textContent='⏳'
   log('💻 SQL: '+query.substring(0,55)+(query.length>55?'…':''))
   const result=await execSQL(query)
-  if(btn){btn.disabled=false;btn.textContent='▶ Run'}
+  if(btn){btn.disabled=false;btn.textContent=origTxt}
   if(status) status.textContent=result.error?'❌':'✅'
   renderResult(result)
 }
@@ -1059,13 +1060,13 @@ function renderAll(){
   }
 
   // Recent
-  document.getElementById('recentList').innerHTML=rows.slice(0,10).map(r=>`
+  setHTML(document.getElementById('recentList'),rows.slice(0,10).map(r=>`
     <div class="gi">
       <span class="gi-nm">${escH((r.name||'Аноним').substring(0,14))}</span>
       <span class="gi-sc">${r.score}</span>
       <span class="gi-mt"><span class="gi-tg">${r.mode||'classic'}</span> ур.${r.level||1}</span>
       <span class="gi-tm">${ago(r.created_at)} назад</span>
-    </div>`).join('')
+    </div>`).join(''))
 
   // Per-player stats (computed once, reused below)
   const pm={}
@@ -1075,24 +1076,24 @@ function renderAll(){
   const m=['🥇','🥈','🥉']
   const lbUniq=Object.values(pm).sort((a,b)=>b.best-a.best).slice(0,20)
   document.getElementById('lbBadge').textContent=lbUniq.length+' игроков'
-  document.getElementById('lb').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Рекорд</th><th>Ур.</th><th>Игр</th></tr></thead><tbody>${lbUniq.map((p,i)=>`<tr>
+  setHTML(document.getElementById('lb'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Рекорд</th><th>Ур.</th><th>Игр</th></tr></thead><tbody>${lbUniq.map((p,i)=>`<tr>
     <td>${m[i]??`<span style="color:#ddd;font-size:.72rem">${i+1}</span>`}</td>
     <td style="font-weight:600">${escH(p.name.substring(0,16))}</td>
     <td><span class="tsc">${p.best}</span></td>
     <td>${p.bestLevel}</td>
     <td>${p.games}</td>
-  </tr>`).join('')}</tbody></table>`
+  </tr>`).join('')}</tbody></table>`)
 
   // Top players — most active (sorted by games played)
   const pl=Object.values(pm).sort((a,b)=>b.games-a.games).slice(0,10)
   document.getElementById('plBadge').textContent=names.length+' уникальных'
-  document.getElementById('topPlayers').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Игр</th><th>Рекорд</th><th>Ур.</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
+  setHTML(document.getElementById('topPlayers'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Игр</th><th>Рекорд</th><th>Ур.</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
     <td style="color:#cbd5e1;font-size:.71rem">${i+1}</td>
     <td style="font-weight:600">${escH(p.name.substring(0,16))}</td>
     <td>${p.games}</td>
     <td><span class="tsc">${p.best}</span></td>
     <td>${p.bestLevel}</td>
-  </tr>`).join('')}</tbody></table>`
+  </tr>`).join('')}</tbody></table>`)
 }
 
 // ── GitHub ─────────────────────────────────────────────────────────────────
