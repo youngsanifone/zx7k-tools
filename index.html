@@ -533,7 +533,7 @@ tr:hover td{background:#fafafa}
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="ch">
-        <span class="ct">👥 Топ игроки</span>
+        <span class="ct">🎮 Активнее всех</span>
         <span class="badge bp" id="plBadge">—</span>
       </div>
       <div class="lb" id="topPlayers"><div class="empty"><span class="sp"></span></div></div>
@@ -1062,29 +1062,31 @@ function renderAll(){
       <span class="gi-tm">${ago(r.created_at)} назад</span>
     </div>`).join('')
 
-  // Leaderboard
-  const m=['🥇','🥈','🥉']
-  document.getElementById('lbBadge').textContent=rows.length+' записей'
-  document.getElementById('lb').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Счёт</th><th>Ур.</th><th>Режим</th><th>Когда</th></tr></thead><tbody>${byScore.slice(0,20).map((r,i)=>`<tr>
-    <td>${m[i]??`<span style="color:#ddd;font-size:.72rem">${i+1}</span>`}</td>
-    <td style="font-weight:600">${escH((r.name||'—').substring(0,16))}</td>
-    <td><span class="tsc">${r.score}</span></td>
-    <td>${r.level||1}</td>
-    <td><span class="ttg">${r.mode||'classic'}</span></td>
-    <td class="dt-cell" style="font-size:.69rem">${fmtDate(r.created_at)}</td>
-  </tr>`).join('')}</tbody></table>`
-
-  // Top players
+  // Per-player stats (computed once, reused below)
   const pm={}
-  rows.forEach(r=>{const n=r.name||'Аноним';if(!pm[n])pm[n]={name:n,games:0,best:0,total:0};pm[n].games++;pm[n].total+=Number(r.score);if(Number(r.score)>pm[n].best)pm[n].best=Number(r.score)})
-  const pl=Object.values(pm).sort((a,b)=>b.best-a.best).slice(0,10)
-  document.getElementById('plBadge').textContent=names.length+' уникальных'
-  document.getElementById('topPlayers').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Лучший</th><th>Игр</th><th>Среднее</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
-    <td style="color:#cbd5e1;font-size:.71rem">${i+1}</td>
+  rows.forEach(r=>{const n=r.name||'Аноним';if(!pm[n])pm[n]={name:n,games:0,best:0,bestLevel:1,total:0};pm[n].games++;pm[n].total+=Number(r.score);if(Number(r.score)>pm[n].best){pm[n].best=Number(r.score);pm[n].bestLevel=r.level||1}})
+
+  // Leaderboard — best score per unique player (no duplicates)
+  const m=['🥇','🥈','🥉']
+  const lbUniq=Object.values(pm).sort((a,b)=>b.best-a.best).slice(0,20)
+  document.getElementById('lbBadge').textContent=lbUniq.length+' игроков'
+  document.getElementById('lb').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Рекорд</th><th>Ур.</th><th>Игр</th></tr></thead><tbody>${lbUniq.map((p,i)=>`<tr>
+    <td>${m[i]??`<span style="color:#ddd;font-size:.72rem">${i+1}</span>`}</td>
     <td style="font-weight:600">${escH(p.name.substring(0,16))}</td>
     <td><span class="tsc">${p.best}</span></td>
+    <td>${p.bestLevel}</td>
     <td>${p.games}</td>
-    <td>${Math.round(p.total/p.games)}</td>
+  </tr>`).join('')}</tbody></table>`
+
+  // Top players — most active (sorted by games played)
+  const pl=Object.values(pm).sort((a,b)=>b.games-a.games).slice(0,10)
+  document.getElementById('plBadge').textContent=names.length+' уникальных'
+  document.getElementById('topPlayers').innerHTML=`<table><thead><tr><th>#</th><th>Игрок</th><th>Игр</th><th>Рекорд</th><th>Ур.</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
+    <td style="color:#cbd5e1;font-size:.71rem">${i+1}</td>
+    <td style="font-weight:600">${escH(p.name.substring(0,16))}</td>
+    <td>${p.games}</td>
+    <td><span class="tsc">${p.best}</span></td>
+    <td>${p.bestLevel}</td>
   </tr>`).join('')}</tbody></table>`
 }
 
