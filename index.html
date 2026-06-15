@@ -1016,7 +1016,13 @@ function renderAll(){
   const weekAgo=new Date(Date.now()-7*86400*1000)
   const byScore=[...rows].sort((a,b)=>b.score-a.score)
   const names=[...new Set(rows.map(r=>r.name).filter(Boolean))]
-  const oIds=[...new Set(onlineEvts.map(e=>(e.player_name&&e.player_name!=='Аноним')?'n:'+e.player_name:'p:'+e.player_id))]
+  // Build latest-per-key, then deduplicate: if same player_id appears as both Аноним and named, keep named
+  const _latestTmp={}
+  const _oKey=e=>(e.player_name&&e.player_name!=='Аноним')?'n:'+e.player_name:'p:'+e.player_id
+  onlineEvts.forEach(e=>{const k=_oKey(e);if(!_latestTmp[k]||new Date(utc(e.created_at))>new Date(utc(_latestTmp[k].created_at)))_latestTmp[k]=e})
+  const _namedPids=new Set(Object.entries(_latestTmp).filter(([k])=>k.startsWith('n:')).map(([,e])=>e.player_id).filter(Boolean))
+  Object.keys(_latestTmp).forEach(k=>{if(k.startsWith('p:')&&_namedPids.has(_latestTmp[k].player_id))delete _latestTmp[k]})
+  const oIds=Object.keys(_latestTmp)
   const weekRows=rows.filter(r=>r.created_at&&new Date(utc(r.created_at))>=weekAgo)
   // Stats
   document.getElementById('s-online').textContent=oIds.length
@@ -1031,11 +1037,8 @@ function renderAll(){
   const ob=document.getElementById('onlineBadge')
   if(oIds.length){
     ob.textContent=oIds.length+' онлайн'; ob.className='badge bg'
-    const latest={}
-    // Группируем по нику (один человек с двух устройств = одна строка); анонимы — по id
-    const oKey=e=>(e.player_name&&e.player_name!=='Аноним')?'n:'+e.player_name:'p:'+e.player_id
-    onlineEvts.forEach(e=>{const k=oKey(e);if(!latest[k]||new Date(utc(e.created_at))>new Date(utc(latest[k].created_at)))latest[k]=e})
-    setHTML(document.getElementById('onlineList'),Object.values(latest).slice(0,20).map(e=>{
+    // Используем уже дедуплицированный _latestTmp (Аноним + именованный = только именованный)
+    setHTML(document.getElementById('onlineList'),Object.values(_latestTmp).slice(0,20).map(e=>{
       const anon=!e.player_name||e.player_name==='Аноним'
       const nm=anon?'Аноним · '+(e.player_id?e.player_id.substring(0,8):'?'):e.player_name
       return `<div class="gi">
