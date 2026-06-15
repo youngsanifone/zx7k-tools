@@ -755,8 +755,19 @@ const TBL_SZ=50
 
 // Кастомный SQL для таблиц: ник первой колонкой, удобный порядок, свежие сверху
 const TBL_SQL={
-  player_events: (off)=>`SELECT COALESCE(nick,'—') AS nick, event, score, mode, created_at, player_id
-    FROM player_events ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+  player_events: (off)=>`SELECT
+    COALESCE(pe.nick,'—') AS nick,
+    pe.event,
+    pe.score,
+    pe.mode,
+    pe.created_at,
+    COALESCE(p.best, 0) AS player_best,
+    COALESCE(p.games_played, 0) AS total_games,
+    COALESCE(p.coins, 0) AS coins,
+    LEFT(pe.player_id::text, 8) AS pid_short
+    FROM player_events pe
+    LEFT JOIN players p ON p.player_id = pe.player_id
+    ORDER BY pe.created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
   players: (off)=>`SELECT nick, coins, best, best_level, games_played, saved_level,
     difficulty, theme, updated_at, player_id
     FROM players ORDER BY updated_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
@@ -775,10 +786,39 @@ async function loadTbl(name, btn, silent){
     const off=tblPageN*TBL_SZ
     // Special tables: use execSQL (JOIN + bypasses RLS)
     if(TBL_SQL[name]){
-      const [res, cntRes]=await Promise.all([
+      const extra = name==='player_events'
+        ? execSQL(`SELECT
+            COUNT(*) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS today,
+            COUNT(*) FILTER (WHERE event='game_over' AND created_at > NOW()-INTERVAL '24 hours') AS games_today,
+            COUNT(DISTINCT player_id) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS players_today,
+            COUNT(*) FILTER (WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes') AS online_now
+            FROM player_events`)
+        : Promise.resolve(null)
+      const [res, cntRes, extR]=await Promise.all([
         execSQL(TBL_SQL[name](off)),
-        execSQL(`SELECT COUNT(*) AS total FROM ${name}`)
+        execSQL(`SELECT COUNT(*) AS total FROM ${name}`),
+        extra
       ])
+      if(extR&&extR.data&&extR.data[0]){
+        const s=extR.data[0]
+        const box=document.getElementById('tblData')
+        const statsEl=document.getElementById('tblExtraStats')
+        const statsHtml=`<div style="display:flex;gap:10px;flex-wrap:wrap;padding:8px 13px;background:#f8fafc;border-bottom:1px solid var(--brd);font-size:.72rem">
+          <span>🟢 <b>${s.online_now??0}</b> онлайн сейчас</span>
+          <span>📅 <b>${s.today??0}</b> событий за 24ч</span>
+          <span>🎮 <b>${s.games_today??0}</b> игр за 24ч</span>
+          <span>👤 <b>${s.players_today??0}</b> игроков за 24ч</span>
+        </div>`
+        if(statsEl) statsEl.innerHTML=statsHtml
+        else {
+          const d=document.createElement('div'); d.id='tblExtraStats'; d.innerHTML=statsHtml
+          const wrap=document.getElementById('tbl-tables-inner-wrap')
+          if(wrap) wrap.insertBefore(d, wrap.firstChild)
+          else box.insertAdjacentHTML('beforebegin', statsHtml.replace('<div ','<div id="tblExtraStats" '))
+        }
+      } else {
+        const st=document.getElementById('tblExtraStats'); if(st) st.innerHTML=''
+      }
       if(res.error) throw new Error(res.error)
       tblRows=Array.isArray(res.data)?res.data:[]
       const total=cntRes.data?.[0]?.total||0
@@ -842,16 +882,18 @@ async function loadAdv(){
     tblR.data.forEach(t=>{
       const dead=Number(t.dead)||0, live=Number(t.live)||0
       const ratio=live>0?Math.round(dead/live*100):0
-      const needVac=ratio>20
+      // Для маленьких таблиц (<500 строк) мёртвые кортежи — норма, autovacuum справится
+      const needVac=dead>200&&live>500
+      const smallNote=dead>0&&!needVac?' — pg_autovacuum очистит автоматически':''
       html+=adv(needVac?'w':'o',needVac?'!':'OK',
         escH(String(t.tname))+' — '+live+' строк · '+escH(String(t.sz)),
-        'Мёртвых кортежей: '+dead+(needVac?' — рекомендуется VACUUM':''))
+        'Мёртвых кортежей: '+dead+(needVac?' — рекомендуется VACUUM':smallNote))
     })
   }
   html+=adv('i','i','pg_cron — авто-очистка активна','daily-cleanup-player-events: каждую ночь в 3:00 UTC удаляет события старше 60 дней.')
   if(idxR.data&&Array.isArray(idxR.data)){
     const unused=idxR.data.filter(i=>Number(i.scans)===0)
-    if(unused.length) html+=adv('w','!','Неиспользуемых индексов: '+unused.length,unused.map(i=>escH(i.tablename+'.'+i.indexname)).join(', ')+' — 0 обращений (норма при малом объёме данных)')
+    if(unused.length) html+=adv('i','i','Индексов без обращений: '+unused.length,unused.map(i=>escH(i.tablename+'.'+i.indexname)).join(', ')+' — 0 сканирований (норма при малом объёме данных, индексы нужны для роста)')
     else html+=adv('o','OK','Все индексы используются','Нет неиспользуемых индексов')
   }
   html+='</div>'
@@ -1137,7 +1179,7 @@ async function loadPlayers(){
     LEFT JOIN players p ON p.nick = gr.name
     WHERE gr.name IS NOT NULL AND gr.name != ''
     GROUP BY gr.name
-    ORDER BY best_score DESC
+    ORDER BY MAX(gr.created_at) DESC NULLS LAST
     LIMIT 50`)
   if(!Array.isArray(r.data)||!r.data.length){
     el.innerHTML='<div class="empty">Нет данных</div>'; return
