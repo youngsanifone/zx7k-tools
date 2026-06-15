@@ -1087,12 +1087,12 @@ function renderAll(){
   // Top players — most active (sorted by games played)
   const pl=Object.values(pm).sort((a,b)=>b.games-a.games).slice(0,10)
   document.getElementById('plBadge').textContent=names.length+' уникальных'
-  setHTML(document.getElementById('topPlayers'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Игр</th><th>Рекорд</th><th>Ур.</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
+  setHTML(document.getElementById('topPlayers'),`<table><thead><tr><th>#</th><th>Игрок</th><th>Рекорд</th><th>Ур.</th><th>Игр</th></tr></thead><tbody>${pl.map((p,i)=>`<tr>
     <td style="color:#cbd5e1;font-size:.71rem">${i+1}</td>
     <td style="font-weight:600">${escH(p.name.substring(0,16))}</td>
-    <td>${p.games}</td>
     <td><span class="tsc">${p.best}</span></td>
     <td>${p.bestLevel}</td>
+    <td>${p.games}</td>
   </tr>`).join('')}</tbody></table>`)
 }
 
