@@ -759,26 +759,32 @@ function exportCSV(){
 // ── Table Editor ───────────────────────────────────────────────────────────
 const TBL_SZ=50
 
-// Кастомный SQL для таблиц: ник первой колонкой, удобный порядок, свежие сверху
+// Custom SQL for tables — server-side search via WHERE ILIKE
+function _esc(s){return s.replace(/'/g,"''")}  // safe for SQL string literals
 const TBL_SQL={
-  player_events: (off)=>`SELECT
+  player_events:(off,s)=>{
+    const w=s?`WHERE (pe.player_id::text ILIKE '%${_esc(s)}%' OR COALESCE(pe.nick,'') ILIKE '%${_esc(s)}%' OR pe.event ILIKE '%${_esc(s)}%')`:'';
+    return `SELECT
     COALESCE(pe.nick,'—') AS nick,
-    pe.event,
-    pe.score,
-    pe.mode,
-    pe.created_at,
-    COALESCE(p.best, 0) AS player_best,
-    COALESCE(p.games_played, 0) AS total_games,
-    COALESCE(p.coins, 0) AS coins,
-    LEFT(pe.player_id::text, 8) AS pid_short
+    pe.event, pe.score, pe.mode, pe.created_at,
+    COALESCE(p.best,0) AS player_best,
+    COALESCE(p.games_played,0) AS total_games,
+    COALESCE(p.coins,0) AS coins,
+    LEFT(pe.player_id::text,8) AS pid_short
     FROM player_events pe
-    LEFT JOIN players p ON p.player_id = pe.player_id
-    ORDER BY pe.created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
-  players: (off)=>`SELECT nick, coins, best, best_level, games_played, saved_level,
-    difficulty, theme, updated_at, player_id
-    FROM players ORDER BY updated_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
-  game_results: (off)=>`SELECT name, score, level, mode, created_at
-    FROM game_results ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`,
+    LEFT JOIN players p ON p.player_id=pe.player_id
+    ${w} ORDER BY pe.created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`;
+  },
+  players:(off,s)=>{
+    const w=s?`WHERE (nick ILIKE '%${_esc(s)}%' OR player_id::text ILIKE '%${_esc(s)}%')`:'';
+    return `SELECT nick,coins,best,best_level,games_played,saved_level,difficulty,theme,updated_at,player_id
+    FROM players ${w} ORDER BY updated_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`;
+  },
+  game_results:(off,s)=>{
+    const w=s?`WHERE (name ILIKE '%${_esc(s)}%' OR mode ILIKE '%${_esc(s)}%' OR score::text ILIKE '%${_esc(s)}%')`:'';
+    return `SELECT name,score,level,mode,created_at
+    FROM game_results ${w} ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`;
+  },
 }
 
 async function loadTbl(name, btn, silent){
@@ -790,8 +796,15 @@ async function loadTbl(name, btn, silent){
   }
   try{
     const off=tblPageN*TBL_SZ
-    // Special tables: use execSQL (JOIN + bypasses RLS)
+    const srch=(document.getElementById('tblSearch')?.value||'').trim()
+    // Special tables: use execSQL (JOIN + bypasses RLS, supports server-side search)
     if(TBL_SQL[name]){
+      // Count query: include search filter for accurate total
+      const cntWhere={
+        player_events: srch?`WHERE (pe.player_id::text ILIKE '%${_esc(srch)}%' OR COALESCE(pe.nick,'') ILIKE '%${_esc(srch)}%' OR pe.event ILIKE '%${_esc(srch)}%')`:'',
+        players: srch?`WHERE (nick ILIKE '%${_esc(srch)}%' OR player_id::text ILIKE '%${_esc(srch)}%')`:'',
+        game_results: srch?`WHERE (name ILIKE '%${_esc(srch)}%' OR mode ILIKE '%${_esc(srch)}%' OR score::text ILIKE '%${_esc(srch)}%')`:'',
+      }
       const extra = name==='player_events'
         ? execSQL(`SELECT
             COUNT(*) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS today,
@@ -800,9 +813,12 @@ async function loadTbl(name, btn, silent){
             COUNT(DISTINCT player_id) FILTER (WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes') AS online_now
             FROM player_events`)
         : Promise.resolve(null)
+      const cntSql = name==='player_events'
+        ? `SELECT COUNT(*) AS total FROM player_events pe LEFT JOIN players p ON p.player_id=pe.player_id ${cntWhere[name]||''}`
+        : `SELECT COUNT(*) AS total FROM ${name} ${cntWhere[name]||''}`
       const [res, cntRes, extR]=await Promise.all([
-        execSQL(TBL_SQL[name](off)),
-        execSQL(`SELECT COUNT(*) AS total FROM ${name}`),
+        execSQL(TBL_SQL[name](off, srch)),
+        execSQL(cntSql),
         extra
       ])
       if(extR&&extR.data&&extR.data[0]){
@@ -852,13 +868,11 @@ async function loadTbl(name, btn, silent){
 }
 function renderTbl(rows){
   const box=document.getElementById('tblData')
-  const s=(document.getElementById('tblSearch')?.value||'').toLowerCase()
-  const f=s?rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(s))):rows
-  if(!f.length){setHTML(box,'<div class="empty">Ничего не найдено</div>');return}
-  const cols=Object.keys(f[0])
+  if(!rows.length){setHTML(box,'<div class="empty">Ничего не найдено</div>');return}
+  const cols=Object.keys(rows[0])
   setHTML(box,`<table>
     <thead><tr>${cols.map(c=>`<th>${escH(c)}</th>`).join('')}</tr></thead>
-    <tbody>${f.map(r=>`<tr>${cols.map(c=>{
+    <tbody>${rows.map(r=>`<tr>${cols.map(c=>{
       const v=r[c]??'null', vs=String(v)
       const isDate=isDateCol(c)&&vs.length>10&&vs!=='null'
       const disp=isDate?fmtDate(vs):escH(vs.substring(0,60)+(vs.length>60?'…':''))
@@ -866,7 +880,8 @@ function renderTbl(rows){
     }).join('')}</tr>`).join('')}</tbody>
   </table>`)
 }
-function filterTbl(){renderTbl(tblRows)}
+let _srchTimer
+function filterTbl(){clearTimeout(_srchTimer);_srchTimer=setTimeout(()=>{tblPageN=0;loadTbl(curTbl)},350)}
 function tblPage(dir){tblPageN=Math.max(0,tblPageN+dir);loadTbl(curTbl)}
 
 // ── Advisors ───────────────────────────────────────────────────────────────
