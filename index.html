@@ -565,7 +565,6 @@ tr:hover td{background:#fafafa}
 const SB   = 'https://wopvlulqfzecujmfoezr.supabase.co'
 const KEY  = 'sb_publishable_Y-X3KCJrmrS8Wo4ZVhOXjA_L_c37IIH'
 const H    = {'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'}
-const HASH = 'bd19c7167114e3c6317bc65bf1621f0d6eb3cdd42d1a003ced7826818f074057'
 const EF   = SB+'/functions/v1/admin-sql'
 const TZ   = 'Europe/Bratislava'
 
@@ -587,8 +586,11 @@ async function sha256(s){
 async function doLogin(){
   const v=document.getElementById('pwInput').value.trim(); if(!v) return
   const h=await sha256(v)
-  if(h===HASH){
-    authHash=h; sessionStorage.setItem('auth','1')
+  // Verify against server — no hash stored in client code
+  const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:'SELECT 1 AS ok',auth:h})})
+  const d=await r.json()
+  if(r.ok && !d.error){
+    authHash=h; sessionStorage.setItem('authHash',h)
     document.getElementById('loginWrap').style.display='none'
     log('🔐 Вход выполнен'); startApp()
   } else {
@@ -1270,8 +1272,9 @@ function startApp(){
   setInterval(loadCommits,300000)
 }
 
-if(sessionStorage.getItem('auth')==='1'){
-  authHash=HASH
+const _savedHash=sessionStorage.getItem('authHash')
+if(_savedHash){
+  authHash=_savedHash
   document.getElementById('loginWrap').style.display='none'
   log('🔐 Автовход'); startApp()
 } else {
