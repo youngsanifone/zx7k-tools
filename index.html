@@ -866,12 +866,31 @@ async function loadTbl(name, btn, silent){
     log('📋 Таблица "'+name+'" ('+tblRows.length+' строк)')
   } catch(e){document.getElementById('tblData').innerHTML=`<div class="err-box">❌ ${e.message}<button onclick="loadTbl(curTbl)">Повторить</button></div>`}
 }
+const COL_RU={
+  nick:'Ник', coins:'Монеты', best:'Рекорд', best_level:'Ур. рекорда',
+  games_played:'Игр сыграно', saved_level:'Сохр. уровень', difficulty:'Сложность',
+  theme:'Тема', updated_at:'Обновлён', player_id:'ID игрока',
+  event:'Событие', created_at:'Дата', score:'Очки', mode:'Режим', level:'Уровень',
+  name:'Игрок', pid_short:'ID (кратко)', player_name:'Ник игрока',
+  player_best:'Рекорд', total_games:'Игр всего', coins:'Монеты',
+  // health / indexes
+  table_name:'Таблица', live_rows:'Живые строки', dead_rows:'Мёртвые строки', size:'Размер',
+  indexname:'Индекс', tablename:'Таблица', scans:'Обращений',idx_scan:'Обращений',
+  // presets
+  games:'Игр', avg_score:'Сред. очки', top_score:'Макс. очки',
+  day:'День', online_now:'Онлайн', today:'Событий 24ч', games_today:'Игр 24ч', players_today:'Игроков 24ч',
+  total:'Всего', jobid:'ID задания', jobname:'Название', schedule:'Расписание', active:'Активно',
+}
+function colLabel(c){
+  const ru=COL_RU[c.toLowerCase()]
+  return ru ? `${c.toUpperCase()} <span style="font-weight:400;color:#64748b;font-size:.64rem;text-transform:none">${ru}</span>` : escH(c.toUpperCase())
+}
 function renderTbl(rows){
   const box=document.getElementById('tblData')
   if(!rows.length){setHTML(box,'<div class="empty">Ничего не найдено</div>');return}
   const cols=Object.keys(rows[0])
   setHTML(box,`<table>
-    <thead><tr>${cols.map(c=>`<th>${escH(c)}</th>`).join('')}</tr></thead>
+    <thead><tr>${cols.map(c=>`<th>${colLabel(c)}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(r=>`<tr>${cols.map(c=>{
       const v=r[c]??'null', vs=String(v)
       const isDate=isDateCol(c)&&vs.length>10&&vs!=='null'
