@@ -353,8 +353,8 @@ tr:hover td{background:#fafafa}
 
   <!-- TABS -->
   <div class="tb-nav">
-    <button class="tb-btn active" id="tbn-sql"      onclick="openTab('sql')">💻 SQL</button>
-    <button class="tb-btn"        id="tbn-tables"   onclick="openTab('tables')">📋 Таблицы</button>
+    <button class="tb-btn"        id="tbn-sql"      onclick="openTab('sql')">💻 SQL</button>
+    <button class="tb-btn active" id="tbn-tables"   onclick="openTab('tables')">📋 Таблицы</button>
     <button class="tb-btn"        id="tbn-advisors" onclick="openTab('advisors')">🔍 Советники</button>
     <button class="tb-btn"        id="tbn-storage"  onclick="openTab('storage')">🗂️ Storage</button>
     <button class="tb-btn"        id="tbn-auth"     onclick="openTab('auth')">🔐 Auth</button>
@@ -362,7 +362,7 @@ tr:hover td{background:#fafafa}
   </div>
 
   <!-- TAB: SQL -->
-  <div id="tab-sql" class="tb-body active">
+  <div id="tab-sql" class="tb-body">
     <div class="tb-desc">Нажми <b>▶ Run</b> — результат появится внизу этой секции. Без copy-paste.</div>
     <!-- PRESETS -->
     <div class="preset-list" id="presetList">
@@ -426,8 +426,8 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps8"></span>
         <div class="preset-info"><div class="preset-lbl">👤 Профили игроков (players)</div><div class="preset-desc">nick, монеты, лучший счёт, игр сыграно, уровень, скин, тема</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" id="prun-8" onclick="runP(8,`SELECT nick, coins, best, best_level, games_played, skin_idx, difficulty, theme, updated_at FROM players ORDER BY best DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT nick, coins, best, best_level, games_played, skin_idx, difficulty, theme, updated_at FROM players ORDER BY best DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" id="prun-8" onclick="runP(8,`SELECT nick, coins, best, best_level, games_played, total_score, lang, difficulty, last_seen, created_at FROM players ORDER BY last_seen DESC NULLS LAST`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT nick, coins, best, best_level, games_played, total_score, lang, difficulty, last_seen, created_at FROM players ORDER BY last_seen DESC NULLS LAST`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -466,12 +466,12 @@ tr:hover td{background:#fafafa}
   </div>
 
   <!-- TAB: TABLES -->
-  <div id="tab-tables" class="tb-body">
+  <div id="tab-tables" class="tb-body active">
     <div class="tb-desc"><b>Table Editor</b> — просмотр данных, пагинация 50 строк, поиск. Даты в твоём часовом поясе (Братислава). <b>Таблицы</b> хранят данные; <b>view</b> — виртуальная сводка поверх них (не дубликат, места не занимает).</div>
     <div class="tbl-tabs" style="align-items:center">
       <span style="font-size:.64rem;color:var(--mut);font-weight:700;letter-spacing:.5px">ТАБЛИЦЫ:</span>
-      <button class="ttb active" onclick="loadTbl('game_results',this)" title="Каждая сыгранная партия">🏆 game_results — игры</button>
-      <button class="ttb" onclick="loadTbl('players',this)" title="Профили игроков (прогресс, монеты, скины)">👤 players — профили</button>
+      <button class="ttb" onclick="loadTbl('game_results',this)" title="Каждая сыгранная партия">🏆 game_results — игры</button>
+      <button class="ttb active" onclick="loadTbl('players',this)" title="Профили игроков (прогресс, монеты, скины)">👤 players — профили</button>
       <button class="ttb" onclick="loadTbl('player_events',this)" title="Визиты и события (для онлайна)">📡 player_events — события</button>
       <span style="font-size:.64rem;color:var(--mut);font-weight:700;letter-spacing:.5px;margin-left:6px">VIEW:</span>
       <button class="ttb" onclick="loadTbl('leaderboard_best',this)" title="Виртуальная таблица: лучший результат каждого игрока. Её читает игра для онлайн-рекордов">🥇 leaderboard_best — лидерборд</button>
@@ -570,7 +570,7 @@ const TZ   = 'Europe/Bratislava'
 
 // ── State ──────────────────────────────────────────────────────────────────
 let authHash='', allRows=[], onlineEvts=[]
-let curTbl='game_results', tblPageN=0, tblRows=[]
+let curTbl='players', tblPageN=0, tblRows=[]
 const actLog=[]
 
 // ── Timezone display ───────────────────────────────────────────────────────
@@ -767,8 +767,9 @@ const TBL_SQL={
   player_events:(off,s)=>{
     const w=s?`WHERE (pe.player_id::text ILIKE '%${_esc(s)}%' OR COALESCE(pe.nick,'') ILIKE '%${_esc(s)}%' OR pe.event ILIKE '%${_esc(s)}%')`:'';
     return `SELECT
+    pe.created_at,
     COALESCE(pe.nick,'—') AS nick,
-    pe.event, pe.score, pe.mode, pe.created_at,
+    pe.event, pe.score, pe.mode,
     COALESCE(p.best,0) AS player_best,
     COALESCE(p.games_played,0) AS total_games,
     COALESCE(p.coins,0) AS coins,
@@ -779,12 +780,12 @@ const TBL_SQL={
   },
   players:(off,s)=>{
     const w=s?`WHERE (nick ILIKE '%${_esc(s)}%' OR player_id::text ILIKE '%${_esc(s)}%')`:'';
-    return `SELECT nick,coins,best,best_level,games_played,saved_level,difficulty,theme,updated_at,LEFT(player_id::text,8) AS pid_short
-    FROM players ${w} ORDER BY updated_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`;
+    return `SELECT nick,last_seen,created_at,games_played,best,best_level,total_score,coins,lang,difficulty,theme,skin_idx,LEFT(player_id::text,8) AS pid_short
+    FROM players ${w} ORDER BY last_seen DESC NULLS LAST LIMIT ${TBL_SZ} OFFSET ${off}`;
   },
   game_results:(off,s)=>{
     const w=s?`WHERE (name ILIKE '%${_esc(s)}%' OR mode ILIKE '%${_esc(s)}%' OR score::text ILIKE '%${_esc(s)}%')`:'';
-    return `SELECT name,score,level,mode,created_at
+    return `SELECT created_at,name,score,level,mode
     FROM game_results ${w} ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`;
   },
 }
@@ -870,9 +871,9 @@ async function loadTbl(name, btn, silent){
 }
 const COL_RU={
   nick:'Ник', coins:'Монеты', best:'Рекорд', best_level:'Ур. рекорда',
-  games_played:'Игр сыграно', saved_level:'Сохр. уровень', difficulty:'Сложность',
-  theme:'Тема', updated_at:'Обновлён', player_id:'ID игрока',
-  event:'Событие', created_at:'Дата', score:'Очки', mode:'Режим', level:'Уровень',
+  games_played:'Игр сыграно', total_score:'Всего очков', saved_level:'Сохр. уровень', difficulty:'Сложность',
+  theme:'Тема', lang:'Язык', skin_idx:'Скин', updated_at:'Обновлён', player_id:'ID игрока',
+  last_seen:'Последний раз', created_at:'Дата рег.', event:'Событие', score:'Очки', mode:'Режим', level:'Уровень',
   name:'Игрок', pid_short:'ID (кратко)', player_name:'Ник игрока',
   player_best:'Рекорд', total_games:'Игр всего', coins:'Монеты',
   // health / indexes
@@ -1208,58 +1209,59 @@ function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log
 // ── Player Profiles ────────────────────────────────────────────────────────
 async function loadPlayers(){
   const el=document.getElementById('playerProfiles')
-  // Show spinner only on first load (no table yet — avoids flicker on refresh)
   if(!el.querySelector('table')) el.innerHTML='<div class="empty"><span class="sp"></span></div>'
-  // JOIN game_results + players по нику, GROUP BY gr.name — Аноним схлопывается в одну строку
+  // GROUP BY player_id — correct approach, uses new columns
   const r=await execSQL(`
     SELECT
-      gr.name,
-      MAX(p.player_id)                                                          AS player_id,
-      MAX(COALESCE(p.coins, 0))                                                 AS coins,
-      MAX(COALESCE(p.skin_idx, 0))                                              AS skin_idx,
-      MAX(p.updated_at)                                                         AS updated_at,
-      MAX(jsonb_array_length(COALESCE(p.achievements,'[]'::jsonb)))             AS ach_count,
-      MAX(jsonb_array_length(COALESCE(p.bought_skins,'[]'::jsonb)))             AS skins_count,
-      MAX(gr.score)   AS best_score,
-      COUNT(*)        AS games,
-      MAX(gr.level)   AS max_level
-    FROM game_results gr
-    LEFT JOIN players p ON p.nick = gr.name
-    WHERE gr.name IS NOT NULL AND gr.name != ''
-    GROUP BY gr.name
-    ORDER BY MAX(gr.created_at) DESC NULLS LAST
+      p.player_id,
+      p.nick,
+      p.coins,
+      p.best,
+      p.best_level,
+      p.games_played,
+      p.total_score,
+      p.skin_idx,
+      p.lang,
+      p.difficulty,
+      p.theme,
+      p.created_at,
+      p.last_seen,
+      jsonb_array_length(COALESCE(p.achievements,'[]'::jsonb)) AS ach_count,
+      jsonb_array_length(COALESCE(p.bought_skins,'[]'::jsonb)) AS skins_count
+    FROM players p
+    ORDER BY p.last_seen DESC NULLS LAST
     LIMIT 50`)
   if(!Array.isArray(r.data)||!r.data.length){
     setHTML(el,'<div class="empty">Нет данных</div>'); return
   }
   const rows=r.data
-  // Фильтруем Аноним — показываем только именованных игроков
-  const named=rows.filter(p=>p.name&&p.name!=='Аноним')
-  const anonRow=rows.find(p=>p.name==='Аноним')
-  const display=anonRow?[...named,{...anonRow,name:'Аноним ('+anonRow.games+' игр)'}]:named
-  document.getElementById('profBadge').textContent=named.length+' игроков'
+  document.getElementById('profBadge').textContent=rows.length+' игроков'
   const skinName=['🐍 Дефолт','🟢 Классик','⚡ Неон','👾 Ретро','🌊 Вода','🔥 Огонь','❄️ Лёд','🌿 Природа','👑 Золото','🎮 Пиксель']
+  const langFlag={'ru':'🇷🇺','sk':'🇸🇰','en':'🇬🇧'}
   setHTML(el,`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
     <thead><tr>
-      <th>#</th><th>Игрок</th><th>🪙 Монеты</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Был</th>
+      <th>#</th><th>Игрок</th><th>Lang</th><th>🪙</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>Всего очков</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Последний раз</th><th>Регистрация</th>
     </tr></thead>
-    <tbody>${display.map((p,i)=>`<tr style="${p.name&&p.name.startsWith('Аноним')?'opacity:.55':''}">
-      <td style="color:#94a3b8">${p.name&&p.name.startsWith('Аноним')?'—':i+1}</td>
-      <td style="font-weight:700" title="${escH(p.player_id||'нет профиля')}">${escH((p.name||'Аноним').substring(0,20))}${!p.player_id&&!p.name.startsWith('Аноним')?' <span style="font-size:.6rem;color:#f59e0b" title="Нет профиля в players">?</span>':''}</td>
+    <tbody>${rows.map((p,i)=>`<tr>
+      <td style="color:#94a3b8">${i+1}</td>
+      <td style="font-weight:700" title="${escH(p.player_id||'')}">${escH((p.nick||'Аноним').substring(0,20))}</td>
+      <td style="text-align:center">${langFlag[p.lang]||p.lang||'—'}</td>
       <td class="coin">${p.coins??0}</td>
-      <td><span class="tsc">${p.best_score??0}</span></td>
-      <td style="color:#64748b">${p.max_level??1}</td>
-      <td>${p.games??0}</td>
+      <td><span class="tsc">${p.best??0}</span></td>
+      <td style="color:#64748b">${p.best_level??1}</td>
+      <td>${p.games_played??0}</td>
+      <td style="color:#6366f1;font-weight:600">${(p.total_score??0).toLocaleString('ru')}</td>
       <td class="ach-cnt">${p.ach_count??0}</td>
       <td><span class="sk-badge">${skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
-      <td style="font-size:.67rem;color:#94a3b8">${p.updated_at?ago(p.updated_at)+' назад':'—'}</td>
+      <td style="font-size:.67rem;color:#94a3b8">${p.last_seen?ago(p.last_seen)+' назад':'—'}</td>
+      <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(p.created_at).toLocaleDateString('ru'):'—'}</td>
     </tr>`).join('')}</tbody>
   </table></div>`)
-  log('👤 Профили: '+named.length+' игроков')
+  log('👤 Профили: '+rows.length+' игроков')
 }
 
 function startApp(){
-  initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers()
+  initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers(); loadTbl(curTbl)
   setInterval(loadData,5000)
   setInterval(loadOnline,10000)
   // Вкладка «Таблицы» обновляется сама, пока открыта (тихо, без мерцания)
