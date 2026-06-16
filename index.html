@@ -701,7 +701,7 @@ function renderResult(result){
     <button onclick="exportCSV()" style="margin-left:auto;font-size:.63rem;padding:2px 7px;border:1px solid var(--brd);border-radius:4px;cursor:pointer;background:var(--card)">↓ CSV</button>
   </div>
   <div class="sql-ra-scroll"><table>
-    <thead><tr>${cols.map(c=>`<th>${escH(c)}</th>`).join('')}</tr></thead>
+    <thead><tr>${cols.map(c=>`<th>${colLabel(c)}</th>`).join('')}</tr></thead>
     <tbody>${rows.slice(0,show).map(r=>`<tr>${cols.map(c=>{
       const v=r[c]??'null', vs=String(v)
       const isDate=isDateCol(c)&&vs.length>10
