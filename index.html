@@ -1353,8 +1353,8 @@ async function loadTgStats(){
     initTgCharts()
     // 1. All TG players
     const [rTg, rAll] = await Promise.all([
-      fetch(SB+'/rest/v1/players?select=nick,best,games_played,coins,photo_url,created_at&telegram_id=not.is.null&order=best.desc',{headers:H,cache:'no-store'}).then(r=>r.json()),
-      fetch(SB+'/rest/v1/players?select=player_id&telegram_id=is.null',{headers:H,cache:'no-store'}).then(r=>r.json())
+      fetch(SB+'/rest/v1/players?select=nick,best,games_played,coins,photo_url,created_at&telegram_id=not.is.null&order=best.desc&limit=5000',{headers:H,cache:'no-store'}).then(r=>r.json()),
+      fetch(SB+'/rest/v1/players?select=player_id&telegram_id=is.null&limit=5000',{headers:H,cache:'no-store'}).then(r=>r.json())
     ])
     if(!Array.isArray(rTg)||!Array.isArray(rAll)) return
 
