@@ -1281,6 +1281,7 @@ const _savedHash=sessionStorage.getItem('authHash')
 if(_savedHash){
   authHash=_savedHash
   document.getElementById('loginWrap').style.display='none'
+  window.scrollTo(0,0)
   log('🔐 Автовход'); startApp()
 } else {
   setTimeout(()=>document.getElementById('pwInput').focus(),100)
