@@ -305,6 +305,10 @@ tr:hover td{background:#fafafa}
       <div class="st-ico">👥</div>
       <div><div class="st-n" id="s-players">—</div><div class="st-l">Игроков</div><div class="st-d">уникальных</div></div>
     </div>
+    <div class="stat">
+      <div class="st-ico">✈️</div>
+      <div><div class="st-n" id="s-tg">—</div><div class="st-l">Telegram</div><div class="st-d">пользователей</div></div>
+    </div>
   </div>
 
   <!-- ONLINE + RECENT -->
@@ -782,7 +786,7 @@ const TBL_SQL={
   },
   players:(off,s)=>{
     const w=s?`WHERE (nick ILIKE '%${_esc(s)}%' OR player_id::text ILIKE '%${_esc(s)}%')`:'';
-    return `SELECT nick,last_seen,created_at,games_played,best,best_level,total_score,coins,lang,difficulty,theme,skin_idx,LEFT(player_id::text,8) AS pid_short
+    return `SELECT nick,telegram_id,last_seen,created_at,games_played,best,best_level,total_score,coins,lang,difficulty,theme,skin_idx,LEFT(player_id::text,8) AS pid_short
     FROM players ${w} ORDER BY last_seen DESC NULLS LAST LIMIT ${TBL_SZ} OFFSET ${off}`;
   },
   game_results:(off,s)=>{
@@ -1078,6 +1082,9 @@ function renderAll(){
   document.getElementById('s-top-d').textContent=byScore[0]?.name??'—'
   document.getElementById('s-week').textContent=weekRows.length
   document.getElementById('s-players').textContent=names.length
+  // Telegram users count
+  fetch(SB+'/rest/v1/players?select=player_id&telegram_id=not.is.null',{headers:H,cache:'no-store'})
+    .then(r=>r.json()).then(d=>{ const el=document.getElementById('s-tg'); if(el) el.textContent=Array.isArray(d)?d.length:'—'; }).catch(()=>{})
 
   updCharts(rows)
 
