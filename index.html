@@ -719,7 +719,7 @@ function openTab(n){
   if(n==='auth')     loadAuth()
   if(n==='advisors') loadAdv()
   if(n==='tables')   loadTbl(curTbl)
-  if(n==='telegram') loadTgStats()
+  if(n==='telegram') setTimeout(loadTgStats, 50)
 }
 
 // ── Edge Function / SQL ────────────────────────────────────────────────────
@@ -1349,8 +1349,8 @@ function initTgCharts(){
 }
 
 async function loadTgStats(){
-  initTgCharts()
   try {
+    initTgCharts()
     // 1. All TG players
     const [rTg, rAll] = await Promise.all([
       fetch(SB+'/rest/v1/players?select=nick,best,games_played,coins,photo_url,created_at&telegram_id=not.is.null&order=best.desc',{headers:H,cache:'no-store'}).then(r=>r.json()),
