@@ -561,6 +561,8 @@ tr:hover td{background:#fafafa}
 </div>
 
 <script>
+// Disable browser scroll restoration — always start at top on refresh
+if('scrollRestoration' in history) history.scrollRestoration='manual';
 // ── Constants ──────────────────────────────────────────────────────────────
 const SB   = 'https://wopvlulqfzecujmfoezr.supabase.co'
 const KEY  = 'sb_publishable_Y-X3KCJrmrS8Wo4ZVhOXjA_L_c37IIH'
