@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Snake — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{--bg:#f0f4f8;--card:#fff;--brd:#e2e8f0;--txt:#0f172a;--sub:#64748b;--mut:#94a3b8;--acc:#6366f1;--acc2:#4f46e5;--green:#16a34a;--red:#dc2626}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -389,10 +390,10 @@ tr:hover td{background:#fafafa}
       </div>
       <div class="preset-row">
         <span class="preset-status" id="ps2"></span>
-        <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с heartbeat за последние 2 минуты (реалтайм)</div></div>
+        <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с is_online=true (real-time флаг)</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" id="prun-2" onclick="runP(2,`SELECT COALESCE(nick,'Аноним') AS nick, last_seen FROM players WHERE last_seen > NOW()-INTERVAL '3 minutes' ORDER BY last_seen DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT COALESCE(nick,'Аноним') AS nick, last_seen FROM players WHERE last_seen > NOW()-INTERVAL '3 minutes' ORDER BY last_seen DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" id="prun-2" onclick="runP(2,`SELECT COALESCE(nick,'Аноним') AS nick, is_online, last_seen FROM players WHERE is_online = true ORDER BY last_seen DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT COALESCE(nick,'Аноним') AS nick, is_online, last_seen FROM players WHERE is_online = true ORDER BY last_seen DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -872,7 +873,7 @@ async function loadTbl(name, btn, silent){
             COUNT(*) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS today,
             COUNT(*) FILTER (WHERE event='game_over' AND created_at > NOW()-INTERVAL '24 hours') AS games_today,
             COUNT(DISTINCT player_id) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS players_today,
-            (SELECT COUNT(*) FROM players WHERE last_seen > NOW()-INTERVAL '3 minutes') AS online_now
+            (SELECT COUNT(*) FROM players WHERE is_online = true) AS online_now
             FROM player_events`)
         : Promise.resolve(null)
       const cntSql = name==='player_events'
@@ -1079,14 +1080,15 @@ function updCharts(rows){
   document.getElementById('chBadge').textContent='последние '+Math.min(r20.length,20)
 }
 
-// ── Online events — reads players.last_seen (heartbeat updates it every 90s) ──
+// ── Online presence — is_online=true + last_seen fallback (5min) ──
 async function loadOnline(){
-  // Use REST API (no admin auth needed) — players last_seen within 3 minutes = online
   try {
-    const r=await fetch(`${SB}/rest/v1/players?select=player_id,nick,best,best_level,games_played,coins,last_seen&last_seen=gte.${new Date(Date.now()-3*60*1000).toISOString()}&order=last_seen.desc&limit=100`,{headers:H,cache:'no-store'})
+    // Primary: is_online flag (set by game heartbeat/pagehide)
+    // Fallback: last_seen within 5 minutes (catches crashes/old clients)
+    const since=new Date(Date.now()-5*60*1000).toISOString()
+    const r=await fetch(`${SB}/rest/v1/players?select=player_id,nick,best,best_level,games_played,coins,last_seen,is_online&or=(is_online.eq.true,last_seen.gte.${since})&order=last_seen.desc&limit=100`,{headers:H,cache:'no-store'})
     if(r.ok){
       const data=await r.json()
-      // Map to same format as before for renderAll compatibility
       onlineEvts=(Array.isArray(data)?data:[]).map(p=>({
         player_id: p.player_id,
         created_at: p.last_seen,
@@ -1423,8 +1425,23 @@ async function loadTgStats(){
 
 function startApp(){
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers(); loadTbl(curTbl)
-  setInterval(()=>{loadData();loadOnline()},5000) // online + data every 5s
-  setInterval(()=>{}, 1) // placeholder — was loadOnline every 10s
+  setInterval(()=>{loadData()},5000)          // leaderboard / recent every 5s
+  setInterval(loadOnline,10000)               // online fallback poll every 10s
+  // Realtime subscription — instant online presence updates
+  try {
+    const supa=window.supabase.createClient(SB,KEY)
+    let _rtTmr=null
+    supa.channel('admin-presence')
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'players'},(payload)=>{
+        // Debounce 200ms to batch rapid updates
+        clearTimeout(_rtTmr)
+        _rtTmr=setTimeout(loadOnline,200)
+      })
+      .subscribe((status)=>{
+        if(status==='SUBSCRIBED') log('⚡ Realtime подключён — онлайн в реальном времени')
+        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') log('⚠️ Realtime: ошибка соединения, используем поллинг')
+      })
+  } catch(e){ log('⚠️ Realtime недоступен: '+e.message) }
   // Вкладка «Таблицы» обновляется сама, пока открыта (тихо, без мерцания)
   setInterval(()=>{
     if(document.getElementById('tab-tables')?.classList.contains('active')) loadTbl(curTbl,null,true)
