@@ -292,7 +292,7 @@ tr:hover td{background:#fafafa}
   <div class="g4" style="margin-bottom:12px">
     <div class="stat online">
       <div class="st-ico">🟢</div>
-      <div><div class="st-n" id="s-online">—</div><div class="st-l">Онлайн</div><div class="st-d">сейчас (±90с)</div></div>
+      <div><div class="st-n" id="s-online">—</div><div class="st-l">Онлайн</div><div class="st-d">сейчас (±30с)</div></div>
     </div>
     <div class="stat">
       <div class="st-ico">🏆</div>
@@ -610,7 +610,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные + онлайн обновляются каждые <b>5 сек</b> · Online = heartbeat ±90с · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
+    Данные + онлайн обновляются каждые <b>5 сек</b> · Online = is_online flag (heartbeat ±30с) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
   </div>
 </div>
 
@@ -1080,13 +1080,10 @@ function updCharts(rows){
   document.getElementById('chBadge').textContent='последние '+Math.min(r20.length,20)
 }
 
-// ── Online presence — is_online=true + last_seen fallback (5min) ──
+// ── Online presence — is_online=true only (set by game heartbeat/pagehide) ──
 async function loadOnline(){
   try {
-    // Primary: is_online flag (set by game heartbeat/pagehide)
-    // Fallback: last_seen within 5 minutes (catches crashes/old clients)
-    const since=new Date(Date.now()-5*60*1000).toISOString()
-    const r=await fetch(`${SB}/rest/v1/players?select=player_id,nick,best,best_level,games_played,coins,last_seen,is_online&or=(is_online.eq.true,last_seen.gte.${since})&order=last_seen.desc&limit=100`,{headers:H,cache:'no-store'})
+    const r=await fetch(`${SB}/rest/v1/players?select=player_id,nick,best,best_level,games_played,coins,last_seen,is_online&is_online=eq.true&order=last_seen.desc&limit=100`,{headers:H,cache:'no-store'})
     if(r.ok){
       const data=await r.json()
       onlineEvts=(Array.isArray(data)?data:[]).map(p=>({
