@@ -291,7 +291,7 @@ tr:hover td{background:#fafafa}
   <div class="g4" style="margin-bottom:12px">
     <div class="stat online">
       <div class="st-ico">🟢</div>
-      <div><div class="st-n" id="s-online">—</div><div class="st-l">Онлайн</div><div class="st-d">сейчас · окно 2 мин</div></div>
+      <div><div class="st-n" id="s-online">—</div><div class="st-l">Онлайн</div><div class="st-d">сейчас (±90с)</div></div>
     </div>
     <div class="stat">
       <div class="st-ico">🏆</div>
@@ -391,8 +391,8 @@ tr:hover td{background:#fafafa}
         <span class="preset-status" id="ps2"></span>
         <div class="preset-info"><div class="preset-lbl">🟢 Онлайн прямо сейчас</div><div class="preset-desc">Игроки с heartbeat за последние 2 минуты (реалтайм)</div></div>
         <div class="preset-btns">
-          <button class="pbtn pbtn-r" id="prun-2" onclick="runP(2,`SELECT COALESCE(nick,'Аноним') AS nick, MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes' GROUP BY nick, player_id ORDER BY last_seen DESC`)">▶ Run</button>
-          <button class="pbtn pbtn-c" onclick="copy(`SELECT COALESCE(nick,'Аноним') AS nick, MAX(created_at) AS last_seen FROM player_events WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes' GROUP BY nick, player_id ORDER BY last_seen DESC`)">Копировать</button>
+          <button class="pbtn pbtn-r" id="prun-2" onclick="runP(2,`SELECT COALESCE(nick,'Аноним') AS nick, last_seen FROM players WHERE last_seen > NOW()-INTERVAL '3 minutes' ORDER BY last_seen DESC`)">▶ Run</button>
+          <button class="pbtn pbtn-c" onclick="copy(`SELECT COALESCE(nick,'Аноним') AS nick, last_seen FROM players WHERE last_seen > NOW()-INTERVAL '3 minutes' ORDER BY last_seen DESC`)">Копировать</button>
         </div>
       </div>
       <div class="preset-row">
@@ -609,7 +609,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные обновляются каждые <b>5 сек</b> · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
+    Данные + онлайн обновляются каждые <b>5 сек</b> · Online = heartbeat ±90с · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
   </div>
 </div>
 
@@ -872,7 +872,7 @@ async function loadTbl(name, btn, silent){
             COUNT(*) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS today,
             COUNT(*) FILTER (WHERE event='game_over' AND created_at > NOW()-INTERVAL '24 hours') AS games_today,
             COUNT(DISTINCT player_id) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS players_today,
-            COUNT(DISTINCT player_id) FILTER (WHERE event='visit' AND created_at > NOW()-INTERVAL '2 minutes') AS online_now
+            (SELECT COUNT(*) FROM players WHERE last_seen > NOW()-INTERVAL '3 minutes') AS online_now
             FROM player_events`)
         : Promise.resolve(null)
       const cntSql = name==='player_events'
@@ -1079,18 +1079,26 @@ function updCharts(rows){
   document.getElementById('chBadge').textContent='последние '+Math.min(r20.length,20)
 }
 
-// ── Online events (slow, separate from main 5s loop) ──────────────────────
+// ── Online events — reads players.last_seen (heartbeat updates it every 90s) ──
 async function loadOnline(){
-  const r=await execSQL(`SELECT pe.player_id, pe.created_at,
-    COALESCE(p.nick,'Аноним') AS player_name,
-    COALESCE(p.best,0) AS best, COALESCE(p.best_level,1) AS best_level,
-    COALESCE(p.games_played,0) AS games, COALESCE(p.coins,0) AS coins
-    FROM player_events pe
-    LEFT JOIN players p ON p.player_id=pe.player_id
-    WHERE pe.event='visit' AND pe.created_at > NOW()-INTERVAL '2 minutes'
-    ORDER BY pe.created_at DESC LIMIT 100`)
-  if(Array.isArray(r.data)) onlineEvts=r.data
-  if(allRows.length) renderAll()
+  // Use REST API (no admin auth needed) — players last_seen within 3 minutes = online
+  try {
+    const r=await fetch(`${SB}/rest/v1/players?select=player_id,nick,best,best_level,games_played,coins,last_seen&last_seen=gte.${new Date(Date.now()-3*60*1000).toISOString()}&order=last_seen.desc&limit=100`,{headers:H,cache:'no-store'})
+    if(r.ok){
+      const data=await r.json()
+      // Map to same format as before for renderAll compatibility
+      onlineEvts=(Array.isArray(data)?data:[]).map(p=>({
+        player_id: p.player_id,
+        created_at: p.last_seen,
+        player_name: p.nick||'Аноним',
+        best: p.best||0,
+        best_level: p.best_level||1,
+        games: p.games_played||0,
+        coins: p.coins||0
+      }))
+    }
+  } catch(e){}
+  if(allRows.length||onlineEvts.length) renderAll()
 }
 
 // ── Main data load — only fast REST calls every 5s ─────────────────────────
@@ -1138,7 +1146,7 @@ function renderAll(){
 
   updCharts(rows)
 
-  // Online — only real heartbeat data (player_events visit, last 30 min)
+  // Online — heartbeat updates players.last_seen every 90s
   const ob=document.getElementById('onlineBadge')
   if(oIds.length){
     ob.textContent=oIds.length+' онлайн'; ob.className='badge bg'
@@ -1415,8 +1423,8 @@ async function loadTgStats(){
 
 function startApp(){
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers(); loadTbl(curTbl)
-  setInterval(loadData,5000)
-  setInterval(loadOnline,10000)
+  setInterval(()=>{loadData();loadOnline()},5000) // online + data every 5s
+  setInterval(()=>{}, 1) // placeholder — was loadOnline every 10s
   // Вкладка «Таблицы» обновляется сама, пока открыта (тихо, без мерцания)
   setInterval(()=>{
     if(document.getElementById('tab-tables')?.classList.contains('active')) loadTbl(curTbl,null,true)
