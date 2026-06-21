@@ -643,7 +643,7 @@ async function doLogin(){
   const v=document.getElementById('pwInput').value.trim(); if(!v) return
   const h=await sha256(v)
   // Verify against server — no hash stored in client code
-  const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:'SELECT 1 AS ok',auth:h})})
+  const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:'SELECT 1 AS ok',auth:h})})
   const d=await r.json()
   if(r.ok && !d.error){
     authHash=h; sessionStorage.setItem('authHash',h)
@@ -731,7 +731,7 @@ function openTab(n){
 async function execSQL(q){
   const t0=Date.now()
   try{
-    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:q.trim().replace(/;+\s*$/,''),auth:authHash})})
+    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q.trim().replace(/;+\s*$/,''),auth:authHash})})
     const ms=Date.now()-t0, json=await r.json()
     if(!r.ok) return {error:json.error||'HTTP '+r.status,ms}
     if(json.data&&json.data.error) return {error:json.data.error+(json.data.code?' ['+json.data.code+']':''),ms}
@@ -849,6 +849,10 @@ const TBL_SQL={
     return `SELECT created_at,name,score,level,mode
     FROM game_results ${w} ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`;
   },
+  leaderboard_best:(off,s)=>{
+    const w=s?`WHERE (nick ILIKE '%${_esc(s)}%' OR best::text ILIKE '%${_esc(s)}%')`:'';
+    return `SELECT nick,best AS score,best_level AS level,coins FROM players ${w} ORDER BY best DESC NULLS LAST LIMIT ${TBL_SZ} OFFSET ${off}`;
+  },
 }
 
 async function loadTbl(name, btn, silent){
@@ -918,16 +922,20 @@ async function loadTbl(name, btn, silent){
       document.getElementById('tblNext').disabled=(tblPageN+1)*TBL_SZ>=Number(total)
       document.getElementById('tblPageLbl').textContent='Стр. '+(tblPageN+1)
     } else {
-      // Regular tables via REST API
-      const TBL_ORDER={game_results:'id.desc',leaderboard_best:'score.desc'}
-      const r=await fetch(`${SB}/rest/v1/${name}?limit=${TBL_SZ}&offset=${off}&order=${TBL_ORDER[name]||'id.desc'}`,{headers:{...H,'Prefer':'count=exact'}})
-      const total=parseInt(r.headers.get('content-range')?.split('/')[1]||'0')
-      tblRows=await r.json()
+      // All remaining tables/views via admin-sql
+      const cntTable = name==='leaderboard_best' ? 'players' : name
+      const [res,cntRes]=await Promise.all([
+        execSQL(TBL_SQL[name](off,srch)),
+        execSQL(`SELECT COUNT(*)::int AS total FROM ${cntTable}`)
+      ])
+      if(res.error) throw new Error(res.error)
+      tblRows=Array.isArray(res.data)?res.data:[]
+      const total=cntRes.data?.[0]?.total||0
       renderTbl(tblRows)
       document.getElementById('tblMeta').textContent=`${total} строк`
       document.getElementById('tblCnt').textContent=`стр. ${tblPageN+1} / ${Math.ceil(total/TBL_SZ)||1}`
       document.getElementById('tblPrev').disabled=tblPageN<=0
-      document.getElementById('tblNext').disabled=(tblPageN+1)*TBL_SZ>=total
+      document.getElementById('tblNext').disabled=(tblPageN+1)*TBL_SZ>=Number(total)
       document.getElementById('tblPageLbl').textContent='Стр. '+(tblPageN+1)
     }
     log('📋 Таблица "'+name+'" ('+tblRows.length+' строк)')
@@ -1084,34 +1092,39 @@ function updCharts(rows){
   document.getElementById('chBadge').textContent='последние '+Math.min(r20.length,20)
 }
 
-// ── Online presence — is_online=true only (set by game heartbeat/pagehide) ──
+// ── Online presence — via admin-sql (service_role, sees telegram_id/is_online) ──
 async function loadOnline(){
   try {
-    const r=await fetch(`${SB}/rest/v1/players?select=player_id,nick,best,best_level,games_played,coins,last_seen,is_online&is_online=eq.true&order=last_seen.desc&limit=100`,{headers:H,cache:'no-store'})
-    if(r.ok){
-      const data=await r.json()
-      onlineEvts=(Array.isArray(data)?data:[]).map(p=>({
-        player_id: p.player_id,
-        created_at: p.last_seen,
-        player_name: p.nick||'Аноним',
-        best: p.best||0,
-        best_level: p.best_level||1,
-        games: p.games_played||0,
-        coins: p.coins||0
+    const res=await execSQL(`SELECT player_id,nick,best,best_level,games_played,coins,last_seen FROM players WHERE is_online=true ORDER BY last_seen DESC LIMIT 100`)
+    if(!res.error&&Array.isArray(res.data)){
+      onlineEvts=res.data.map(p=>({
+        player_id:p.player_id,
+        created_at:p.last_seen,
+        player_name:p.nick||'Аноним',
+        best:p.best||0,
+        best_level:p.best_level||1,
+        games:p.games_played||0,
+        coins:p.coins||0
       }))
     }
   } catch(e){}
   if(allRows.length||onlineEvts.length) renderAll()
 }
 
-// ── Main data load — only fast REST calls every 5s ─────────────────────────
+// ── Main data load — via admin-sql only (no anon REST) ──────────────────────
 async function loadData(){
   const t0=Date.now()
   try{
-    const rLB=await fetch(SB+'/rest/v1/game_results?select=name,score,level,mode,created_at&order=created_at.desc&limit=300',{headers:H,cache:'no-store'})
-    if(!rLB.ok) throw new Error('HTTP '+rLB.status)
-    allRows=await rLB.json()
+    const [rGames,rTg]=await Promise.all([
+      execSQL(`SELECT name,score,level,mode,created_at FROM game_results ORDER BY created_at DESC LIMIT 300`),
+      execSQL(`SELECT COUNT(*)::int AS cnt FROM players WHERE telegram_id IS NOT NULL`)
+    ])
+    if(rGames.error) throw new Error(rGames.error)
+    allRows=Array.isArray(rGames.data)?rGames.data:[]
     setDot('sb','on',Date.now()-t0)
+    if(!rTg.error&&rTg.data?.[0]!=null){
+      const el=document.getElementById('s-tg'); if(el) el.textContent=rTg.data[0].cnt??'—'
+    }
     renderAll()
     const lr=document.getElementById('lastRefresh'); if(lr) lr.textContent=new Date().toLocaleTimeString('ru',{timeZone:TZ})
   } catch(e){
@@ -1143,10 +1156,6 @@ function renderAll(){
   document.getElementById('s-top-d').textContent=byScore[0]?.name??'—'
   document.getElementById('s-week').textContent=weekRows.length
   document.getElementById('s-players').textContent=names.length
-  // Telegram users count
-  fetch(SB+'/rest/v1/players?select=player_id&telegram_id=not.is.null',{headers:H,cache:'no-store'})
-    .then(r=>r.json()).then(d=>{ const el=document.getElementById('s-tg'); if(el) el.textContent=Array.isArray(d)?d.length:'—'; }).catch(()=>{})
-
   updCharts(rows)
 
   // Online — heartbeat updates players.last_seen every 90s
@@ -1238,7 +1247,7 @@ function renderCmts(data,el,ageMs){
 async function pingEF(){
   const t0=Date.now()
   try{
-    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify({query:'SELECT 1 AS ok',auth:authHash})})
+    const r=await fetch(EF,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:'SELECT 1 AS ok',auth:authHash})})
     setDot('ef',r.ok?'on':'wrn',Date.now()-t0)
   } catch(e){setDot('ef','off')}
 }
@@ -1362,15 +1371,17 @@ function initTgCharts(){
 async function loadTgStats(){
   try {
     initTgCharts()
-    // 1. All TG players
-    const [rTg, rAll] = await Promise.all([
-      fetch(SB+'/rest/v1/players?select=nick,best,games_played,coins,photo_url,created_at&telegram_id=not.is.null&order=best.desc&limit=5000',{headers:H,cache:'no-store'}).then(r=>r.json()),
-      fetch(SB+'/rest/v1/players?select=player_id&telegram_id=is.null&limit=5000',{headers:H,cache:'no-store'}).then(r=>r.json())
+    // 1. All TG players + anon count via admin-sql (telegram_id hidden from anon key)
+    const [rTgRes, rAnonRes] = await Promise.all([
+      execSQL(`SELECT nick,best,games_played,coins,photo_url,created_at FROM players WHERE telegram_id IS NOT NULL ORDER BY best DESC LIMIT 5000`),
+      execSQL(`SELECT COUNT(*)::int AS cnt FROM players WHERE telegram_id IS NULL`)
     ])
-    if(!Array.isArray(rTg)||!Array.isArray(rAll)) return
+    if(rTgRes.error||rAnonRes.error) return
+    const rTg = Array.isArray(rTgRes.data)?rTgRes.data:[]
+    const rAll = []  // not used directly anymore
 
     const tgCount = rTg.length
-    const anonCount = rAll.length
+    const anonCount = rAnonRes.data?.[0]?.cnt??0
     const total = tgCount + anonCount
 
     document.getElementById('tg-total').textContent = tgCount
