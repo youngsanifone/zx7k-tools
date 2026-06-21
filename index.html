@@ -650,7 +650,11 @@ async function doLogin(){
     document.getElementById('loginWrap').style.display='none'
     log('🔐 Вход выполнен'); startApp()
   } else {
-    document.getElementById('loginErr').textContent='Неверный пароль'
+    let errMsg='Неверный пароль'
+    if(r.status===403) errMsg='Функция отключена — установи ADMIN_SQL_ENABLED=1'
+    else if(r.status===429) errMsg='Слишком много попыток, подожди 1 минуту'
+    else if(r.status===500) errMsg='Ошибка сервера: '+(d.error||'unknown')
+    document.getElementById('loginErr').textContent=errMsg
     const i=document.getElementById('pwInput')
     i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake'); i.value=''; i.focus()
   }
