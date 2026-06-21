@@ -610,7 +610,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные + онлайн обновляются каждые <b>5 сек</b> · Online = is_online flag (heartbeat ±30с) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
+    Данные + онлайн обновляются каждые <b>5 сек</b> · Online = is_online=true И last_seen ≤5 мин назад · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
   </div>
 </div>
 
@@ -1095,7 +1095,7 @@ function updCharts(rows){
 // ── Online presence — via admin-sql (service_role, sees telegram_id/is_online) ──
 async function loadOnline(){
   try {
-    const res=await execSQL(`SELECT player_id,nick,best,best_level,games_played,coins,last_seen FROM players WHERE is_online=true ORDER BY last_seen DESC LIMIT 100`)
+    const res=await execSQL(`SELECT player_id,nick,best,best_level,games_played,coins,last_seen FROM players WHERE is_online=true AND last_seen > NOW()-INTERVAL '5 minutes' ORDER BY last_seen DESC LIMIT 100`)
     if(!res.error&&Array.isArray(res.data)){
       onlineEvts=res.data.map(p=>({
         player_id:p.player_id,
@@ -1115,15 +1115,28 @@ async function loadOnline(){
 async function loadData(){
   const t0=Date.now()
   try{
-    const [rGames,rTg]=await Promise.all([
+    const [rGames,rStats]=await Promise.all([
       execSQL(`SELECT name,score,level,mode,created_at FROM game_results ORDER BY created_at DESC LIMIT 300`),
-      execSQL(`SELECT COUNT(*)::int AS cnt FROM players WHERE telegram_id IS NOT NULL`)
+      execSQL(`SELECT
+        COUNT(*)::int AS total_players,
+        COUNT(*) FILTER (WHERE telegram_id IS NOT NULL)::int AS tg_users,
+        MAX(best)::int AS top_score,
+        (SELECT nick FROM players ORDER BY best DESC LIMIT 1) AS top_nick,
+        COUNT(*) FILTER (WHERE last_seen > NOW()-INTERVAL '5 minutes' AND is_online=true)::int AS online_now
+      FROM players`)
     ])
     if(rGames.error) throw new Error(rGames.error)
     allRows=Array.isArray(rGames.data)?rGames.data:[]
     setDot('sb','on',Date.now()-t0)
-    if(!rTg.error&&rTg.data?.[0]!=null){
-      const el=document.getElementById('s-tg'); if(el) el.textContent=rTg.data[0].cnt??'—'
+    if(!rStats.error&&rStats.data?.[0]){
+      const st=rStats.data[0]
+      const eTg=document.getElementById('s-tg'); if(eTg) eTg.textContent=st.tg_users??'—'
+      const ePl=document.getElementById('s-players'); if(ePl) ePl.textContent=st.total_players??'—'
+      const eOn=document.getElementById('s-online'); if(eOn) eOn.textContent=st.online_now??0
+      if(st.top_score){
+        const eTop=document.getElementById('s-top'); if(eTop) eTop.textContent=st.top_score
+        const eTopD=document.getElementById('s-top-d'); if(eTopD) eTopD.textContent=st.top_nick||'—'
+      }
     }
     renderAll()
     const lr=document.getElementById('lastRefresh'); if(lr) lr.textContent=new Date().toLocaleTimeString('ru',{timeZone:TZ})
@@ -1150,12 +1163,9 @@ function renderAll(){
   Object.keys(_latestTmp).forEach(k=>{if(k.startsWith('p:')&&_namedPids.has(_latestTmp[k].player_id))delete _latestTmp[k]})
   const oIds=Object.keys(_latestTmp)
   const weekRows=rows.filter(r=>r.created_at&&new Date(utc(r.created_at))>=weekAgo)
-  // Stats
-  document.getElementById('s-online').textContent=oIds.length
-  document.getElementById('s-top').textContent=byScore[0]?.score??'—'
-  document.getElementById('s-top-d').textContent=byScore[0]?.name??'—'
+  // Stats — s-online/s-players/s-top come from loadData (accurate players table)
+  // s-week is computed here from game_results (games played in last 7 days)
   document.getElementById('s-week').textContent=weekRows.length
-  document.getElementById('s-players').textContent=names.length
   updCharts(rows)
 
   // Online — heartbeat updates players.last_seen every 90s
