@@ -610,7 +610,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤10 мин · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true (pg_cron чистит каждые 2 мин) · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
   </div>
 </div>
 
@@ -1095,7 +1095,7 @@ function updCharts(rows){
 // ── Online presence — via admin-sql (service_role, sees telegram_id/is_online) ──
 async function loadOnline(){
   try {
-    const res=await execSQL(`SELECT player_id,nick,best,best_level,games_played,coins,last_seen,online_since FROM players WHERE is_online=true AND last_seen > NOW()-INTERVAL '10 minutes' ORDER BY online_since ASC LIMIT 100`)
+    const res=await execSQL(`SELECT player_id,nick,best,best_level,games_played,coins,last_seen,online_since FROM players WHERE is_online=true ORDER BY online_since ASC LIMIT 100`)
     if(!res.error&&Array.isArray(res.data)){
       onlineEvts=res.data.map(p=>({
         player_id:p.player_id,
@@ -1123,7 +1123,7 @@ async function loadData(){
         COUNT(*) FILTER (WHERE telegram_id IS NOT NULL)::int AS tg_users,
         MAX(best)::int AS top_score,
         (SELECT nick FROM players ORDER BY best DESC LIMIT 1) AS top_nick,
-        COUNT(*) FILTER (WHERE last_seen > NOW()-INTERVAL '10 minutes' AND is_online=true)::int AS online_now,
+        COUNT(*) FILTER (WHERE is_online=true)::int AS online_now,
         COALESCE(SUM(games_played),0)::int AS total_games,
         COUNT(*) FILTER (WHERE last_seen > NOW()-INTERVAL '7 days')::int AS active_week
       FROM players`)
