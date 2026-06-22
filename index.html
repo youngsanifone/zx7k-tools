@@ -881,7 +881,7 @@ async function loadTbl(name, btn, silent){
             COUNT(*) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS today,
             COUNT(*) FILTER (WHERE event='game_over' AND created_at > NOW()-INTERVAL '24 hours') AS games_today,
             COUNT(DISTINCT player_id) FILTER (WHERE created_at > NOW()-INTERVAL '24 hours') AS players_today,
-            (SELECT COUNT(*) FROM players WHERE is_online = true) AS online_now
+            (SELECT COUNT(*) FROM players WHERE is_online = true AND last_seen > NOW()-INTERVAL '75 seconds') AS online_now
             FROM player_events`)
         : Promise.resolve(null)
       const cntSql = name==='player_events'
@@ -1162,7 +1162,7 @@ function renderAll(){
   // Build latest-per-key, then deduplicate: if same player_id appears as both Аноним and named, keep named
   const _latestTmp={}
   const _oKey=e=>(e.player_name&&e.player_name!=='Аноним')?'n:'+e.player_name:'p:'+e.player_id
-  onlineEvts.forEach(e=>{const k=_oKey(e);if(!_latestTmp[k]||new Date(utc(e.created_at))>new Date(utc(_latestTmp[k].created_at)))_latestTmp[k]=e})
+  onlineEvts.forEach(e=>{const k=_oKey(e);if(!_latestTmp[k]||new Date(utc(e.last_seen))>new Date(utc(_latestTmp[k].last_seen)))_latestTmp[k]=e})
   const _namedPids=new Set(Object.entries(_latestTmp).filter(([k])=>k.startsWith('n:')).map(([,e])=>e.player_id).filter(Boolean))
   Object.keys(_latestTmp).forEach(k=>{if(k.startsWith('p:')&&_namedPids.has(_latestTmp[k].player_id))delete _latestTmp[k]})
   const oIds=Object.keys(_latestTmp)
@@ -1356,7 +1356,7 @@ async function loadPlayers(){
       <td><span class="sk-badge">${skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
       <td style="font-size:.68rem;color:#7c3aed">${p.referred_by?'🔗 '+escH(p.referred_by.substring(0,8)):'—'}</td>
       <td style="font-size:.67rem;color:#94a3b8">${p.last_seen?ago(p.last_seen)+' назад':'—'}</td>
-      <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(p.created_at).toLocaleDateString('ru'):'—'}</td>
+      <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(utc(p.created_at)).toLocaleDateString('ru',{timeZone:TZ}):'—'}</td>
     </tr>`).join('')}</tbody>
   </table></div>`)
   log('👤 Профили: '+rows.length+' игроков')
@@ -1438,7 +1438,7 @@ async function loadTgStats(){
       <td style="text-align:right;font-weight:600;color:#6366f1">${(p.best??0).toLocaleString('ru')}</td>
       <td style="text-align:right">${p.games_played??0}</td>
       <td style="text-align:right" class="coin">${p.coins??0}</td>
-      <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(p.created_at).toLocaleDateString('ru'):'—'}</td>
+      <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(utc(p.created_at)).toLocaleDateString('ru',{timeZone:TZ}):'—'}</td>
     </tr>`).join('')
     setHTML(document.getElementById('tgTopList'),`<div style="overflow-x:auto"><table class="tbl"><thead><tr>
       <th>#</th><th>Фото</th><th>Ник</th><th style="text-align:right">Рекорд</th>
