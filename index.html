@@ -276,6 +276,7 @@ tr:hover td{background:#fafafa}
 
 <!-- QUICK ACTIONS BAR -->
 <div class="qa-bar">
+  <button class="qb qb-g" style="border:none;cursor:pointer;font:inherit" onclick="sendBroadcast()">📣 Разослать квесты</button>
   <a class="qb qb-g" href="https://youngsanifone.github.io/snake/" target="_blank">🎮 Открыть игру</a>
   <a class="qb qb-d" href="https://github.com/youngsanifone/snake" target="_blank">🐙 GitHub репо</a>
   <a class="qb" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/editor" target="_blank">🗄️ SQL редактор</a>
@@ -1299,6 +1300,20 @@ function tickClock(){
 setInterval(tickClock,1000); tickClock()
 
 function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log('🔄 Ручное обновление')}
+
+// ── Manual broadcast: trigger daily-quests edge function via net.http_post ──
+// The cron auth token is read server-side (subquery) — never exposed to the browser.
+async function sendBroadcast(){
+  if(!confirm('📣 Разослать «Квесты дня» всем активным игрокам в Telegram?\n\n(Кто заходил за 7 дней и кому сегодня ещё не отправляли.)\nОтправка реальная и необратима.')) return
+  log('📣 Запуск рассылки квестов…')
+  const sql="SELECT net.http_post("+
+    "url:='https://wopvlulqfzecujmfoezr.supabase.co/functions/v1/daily-quests',"+
+    "headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||(SELECT token FROM public.cron_auth WHERE id=1)),"+
+    "body:='{}'::jsonb) AS request_id"
+  const r=await execSQL(sql)
+  if(r.error){ log('❌ Рассылка: '+r.error); alert('Ошибка рассылки:\n'+r.error) }
+  else { log('✅ Рассылка запущена — бот рассылает «Квесты дня»'); alert('✅ Рассылка запущена!\nБот отправляет «Квесты дня» активным игрокам в Telegram.') }
+}
 
 // ── Start ──────────────────────────────────────────────────────────────────
 
