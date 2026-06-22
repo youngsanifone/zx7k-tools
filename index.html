@@ -1452,7 +1452,7 @@ async function loadTgStats(){
 function startApp(){
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers(); loadTbl(curTbl)
   setInterval(()=>{loadData()},5000)          // leaderboard / recent every 5s
-  setInterval(loadOnline,10000)               // online fallback poll every 10s
+  setInterval(loadOnline,3000)                // online poll every 3s (primary; realtime is best-effort bonus)
   // Realtime subscription — instant online presence updates
   try {
     const supa=window.supabase.createClient(SB,KEY)
