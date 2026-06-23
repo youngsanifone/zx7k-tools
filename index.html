@@ -685,7 +685,7 @@ function fmtTime(d){
   if(!d) return '—'
   return new Date(utc(d)).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',timeZone:TZ})
 }
-function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') }
 function copy(sql){ navigator.clipboard.writeText(sql).then(()=>toast('Скопировано ✓')) }
 function toast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show')
