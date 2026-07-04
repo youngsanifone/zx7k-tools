@@ -1340,6 +1340,7 @@ async function loadPlayers(){
       p.last_seen,
       p.photo_url,
       p.referred_by,
+      (SELECT r.nick FROM players r WHERE r.player_id::text = p.referred_by OR left(r.player_id::text,8) = p.referred_by LIMIT 1) AS referred_by_nick,
       p.telegram_id,
       jsonb_array_length(COALESCE(p.achievements,'[]'::jsonb)) AS ach_count,
       jsonb_array_length(COALESCE(p.bought_skins,'[]'::jsonb)) AS skins_count
@@ -1371,7 +1372,7 @@ async function loadPlayers(){
       <td style="color:#6366f1;font-weight:600">${(p.total_score??0).toLocaleString('ru')}</td>
       <td class="ach-cnt">${p.ach_count??0}</td>
       <td><span class="sk-badge">${skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
-      <td style="font-size:.68rem;color:#7c3aed">${p.referred_by?'🔗 '+escH(p.referred_by.substring(0,8)):'—'}</td>
+      <td style="font-size:.72rem;color:#7c3aed">${p.referred_by?(p.referred_by_nick?'🔗 '+escH(p.referred_by_nick):'🔗 '+escH(p.referred_by.substring(0,8))):'—'}</td>
       <td style="font-size:.67rem;color:#94a3b8">${p.last_seen?ago(p.last_seen)+' назад':'—'}</td>
       <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(utc(p.created_at)).toLocaleDateString('ru',{timeZone:TZ}):'—'}</td>
     </tr>`).join('')}</tbody>
