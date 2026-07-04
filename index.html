@@ -1054,13 +1054,13 @@ async function loadAuth(){
   const el=document.getElementById('authContent'); if(el.dataset.ok) return
   log('🔐 Auth')
   try{
-    const r=await fetch(SB+'/auth/v1/health')
+    const r=await fetch(SB+'/auth/v1/health',{headers:{apikey:KEY}})
     const h=r.ok?await r.json():{}
     el.innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;padding:10px 11px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:10px">
         <span style="font-size:1.1rem">🔐</span><div>
           <div style="font-size:.83rem;font-weight:700">GoTrue — <span style="color:#16a34a">активен</span></div>
-          <div style="font-size:.66rem;color:var(--mut)">${h.name||'GoTrue'} v${h.version||'—'}</div>
+          <div style="font-size:.66rem;color:var(--mut)">${h.name||'GoTrue'} ${h.version||''}</div>
         </div>
       </div>
       <div class="info-grid">
