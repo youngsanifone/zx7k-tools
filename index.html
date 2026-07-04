@@ -1350,8 +1350,8 @@ async function loadPlayers(){
   }
   const rows=r.data
   document.getElementById('profBadge').textContent=rows.length+' игроков'
-  const skinName=['🐍 Дефолт','🟢 Классик','⚡ Неон','👾 Ретро','🌊 Вода','🔥 Огонь','❄️ Лёд','🌿 Природа','👑 Золото','🎮 Пиксель']
-  const langFlag={'ru':'🇷🇺','sk':'🇸🇰','en':'🇬🇧'}
+  const skinName=['🟢 Зелёный','🔵 Синий','🔴 Красный','🌴 Джунгли','🟡 Золотой','🌸 Сакура','⚡ Молния','🟣 Фиолетовый','💗 Розовый','⚫ Тёмный','🌊 Океан','🌙 Ночной','🔥 Огонь','💎 Алмаз']
+  const langFlag={'ru':'🇷🇺','sk':'🇸🇰','en':'🇬🇧','uk':'🇺🇦','pl':'🇵🇱'}
   setHTML(el,`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
     <thead><tr>
       <th>#</th><th>Аватар</th><th>Игрок</th><th>TG</th><th>Lang</th><th>🪙</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>Всего очков</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Реферал от</th><th>Последний раз</th><th>Регистрация</th>
