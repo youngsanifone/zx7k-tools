@@ -83,6 +83,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pt td,.pt th{padding:5px 8px;font-size:.72rem;border-bottom:1px solid var(--brd)}
 .pt th{color:var(--mut);font-weight:600;white-space:nowrap}
 .pt td:first-child{color:#94a3b8;font-size:.68rem}
+.pt .stik{position:sticky;background:var(--card);z-index:1}
+.pt thead .stik{z-index:3}
+.pt .stik1{left:0;width:34px;min-width:34px;max-width:34px}
+.pt .stik2{left:34px;width:50px;min-width:50px;max-width:50px}
+.pt .stik3{left:84px;min-width:120px;box-shadow:1px 0 0 var(--brd)}
+.pt th.stik{cursor:default}
+.pt th[onclick]:hover{color:var(--acc)}
 .pid{font-size:.62rem;color:#94a3b8;font-family:monospace}
 .coin{color:#f59e0b;font-weight:700}
 .ach-cnt{color:#8b5cf6;font-weight:600}
@@ -1319,6 +1326,64 @@ async function sendBroadcast(){
 // ── Start ──────────────────────────────────────────────────────────────────
 
 // ── Player Profiles ────────────────────────────────────────────────────────
+let _profRows=[], _profSort={key:'last_seen',dir:-1}, _profSearch=''
+const _skinName=['🟢 Зелёный','🔵 Синий','🔴 Красный','🌿 Джунгли','🌟 Золотой','🌸 Сакура','⚡ Молния','🟣 Фиолетовый','🌈 Розовый','🖤 Тёмный','🌊 Океан','🌙 Ночной','🔥 Огонь','💎 Алмаз']
+const _langFlag={'ru':'🇷🇺','sk':'🇸🇰','en':'🇬🇧','uk':'🇺🇦','pl':'🇵🇱'}
+function sortProf(key){ if(_profSort.key===key) _profSort.dir*=-1; else _profSort={key,dir:(key==='nick'||key==='lang'||key==='difficulty')?1:-1}; renderProfiles() }
+function renderProfiles(){
+  const wrap=document.getElementById('profTableWrap'); if(!wrap) return
+  let rows=_profRows.slice()
+  const q=_profSearch.trim().toLowerCase()
+  if(q) rows=rows.filter(p=>(p.nick||'').toLowerCase().includes(q))
+  const k=_profSort.key, dir=_profSort.dir, dcol=(k==='last_seen'||k==='created_at'), scol=(k==='nick'||k==='lang'||k==='difficulty')
+  rows.sort((a,b)=>{
+    let va=a[k],vb=b[k]
+    if(dcol){va=va?+new Date(utc(va)):0;vb=vb?+new Date(utc(vb)):0}
+    else if(scol){va=(va||'').toString().toLowerCase();vb=(vb||'').toString().toLowerCase()}
+    else{va=Number(va)||0;vb=Number(vb)||0}
+    return va<vb?-dir:va>vb?dir:0
+  })
+  const ar=key=>_profSort.key===key?(_profSort.dir<0?' ▾':' ▴'):''
+  const sth=(key,label,cls='')=>`<th class="${cls}" onclick="sortProf('${key}')">${label}${ar(key)}</th>`
+  wrap.innerHTML=`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
+    <thead><tr>
+      <th class="stik stik1">#</th>
+      <th class="stik stik2">Аватар</th>
+      ${sth('nick','Игрок','stik stik3')}
+      <th>TG</th>
+      ${sth('lang','Lang')}
+      ${sth('difficulty','⚙️ Сложность')}
+      ${sth('coins','🪙')}
+      ${sth('best','🏆 Рекорд')}
+      ${sth('best_level','Ур.')}
+      ${sth('games_played','Игр')}
+      ${sth('total_score','Всего очков')}
+      ${sth('ach_count','🏅 Ачивок')}
+      <th>🎨 Скин</th>
+      <th>Реферал от</th>
+      ${sth('last_seen','Последний раз')}
+      ${sth('created_at','Регистрация')}
+    </tr></thead>
+    <tbody>${rows.map((p,i)=>`<tr>
+      <td class="stik stik1" style="color:#94a3b8">${i+1}</td>
+      <td class="stik stik2" style="text-align:center">${p.photo_url?`<img src="${escH(p.photo_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle" onerror="this.style.display='none'">`:'<span style="font-size:1.1rem">👤</span>'}</td>
+      <td class="stik stik3" style="font-weight:700" title="${escH(p.player_id||'')}">${escH((p.nick||'Аноним').substring(0,20))}</td>
+      <td style="text-align:center;font-size:.7rem">${p.telegram_id?`<span style="color:#2da7e0" title="${p.telegram_id}">✈️</span>`:'—'}</td>
+      <td style="text-align:center">${_langFlag[p.lang]||p.lang||'—'}</td>
+      <td style="text-align:center;font-size:.72rem">${diffLabel[p.difficulty]||escH(p.difficulty||'—')}</td>
+      <td class="coin">${p.coins??0}</td>
+      <td><span class="tsc">${p.best??0}</span></td>
+      <td style="color:#64748b">${p.best_level??1}</td>
+      <td>${p.games_played??0}</td>
+      <td style="color:#6366f1;font-weight:600">${(p.total_score??0).toLocaleString('ru')}</td>
+      <td class="ach-cnt">${p.ach_count??0}</td>
+      <td><span class="sk-badge">${_skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
+      <td style="font-size:.72rem;color:#7c3aed">${p.referred_by?(p.referred_by_nick?'🔗 '+escH(p.referred_by_nick):'🔗 '+escH(p.referred_by.substring(0,8))):'—'}</td>
+      <td style="font-size:.67rem;color:#94a3b8">${p.last_seen?ago(p.last_seen)+' назад':'—'}</td>
+      <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(utc(p.created_at)).toLocaleDateString('ru',{timeZone:TZ}):'—'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`
+}
 async function loadPlayers(){
   const el=document.getElementById('playerProfiles')
   if(!el.querySelector('table')) el.innerHTML='<div class="empty"><span class="sp"></span></div>'
@@ -1350,34 +1415,13 @@ async function loadPlayers(){
   if(!Array.isArray(r.data)||!r.data.length){
     setHTML(el,'<div class="empty">Нет данных</div>'); return
   }
-  const rows=r.data
-  document.getElementById('profBadge').textContent=rows.length+' игроков'
-  const skinName=['🟢 Зелёный','🔵 Синий','🔴 Красный','🌿 Джунгли','🌟 Золотой','🌸 Сакура','⚡ Молния','🟣 Фиолетовый','🌈 Розовый','🖤 Тёмный','🌊 Океан','🌙 Ночной','🔥 Огонь','💎 Алмаз']
-  const langFlag={'ru':'🇷🇺','sk':'🇸🇰','en':'🇬🇧','uk':'🇺🇦','pl':'🇵🇱'}
-  setHTML(el,`<div style="overflow-x:auto"><table class="pt" style="width:100%;border-collapse:collapse">
-    <thead><tr>
-      <th>#</th><th>Аватар</th><th>Игрок</th><th>TG</th><th>Lang</th><th>⚙️ Сложность</th><th>🪙</th><th>🏆 Рекорд</th><th>Ур.</th><th>Игр</th><th>Всего очков</th><th>🏅 Ачивок</th><th>🎨 Скин</th><th>Реферал от</th><th>Последний раз</th><th>Регистрация</th>
-    </tr></thead>
-    <tbody>${rows.map((p,i)=>`<tr>
-      <td style="color:#94a3b8">${i+1}</td>
-      <td style="text-align:center">${p.photo_url?`<img src="${escH(p.photo_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle" onerror="this.style.display='none'">`:'<span style="font-size:1.1rem">👤</span>'}</td>
-      <td style="font-weight:700" title="${escH(p.player_id||'')}">${escH((p.nick||'Аноним').substring(0,20))}</td>
-      <td style="text-align:center;font-size:.7rem">${p.telegram_id?`<span style="color:#2da7e0" title="${p.telegram_id}">✈️</span>`:'—'}</td>
-      <td style="text-align:center">${langFlag[p.lang]||p.lang||'—'}</td>
-      <td style="text-align:center;font-size:.72rem">${diffLabel[p.difficulty]||escH(p.difficulty||'—')}</td>
-      <td class="coin">${p.coins??0}</td>
-      <td><span class="tsc">${p.best??0}</span></td>
-      <td style="color:#64748b">${p.best_level??1}</td>
-      <td>${p.games_played??0}</td>
-      <td style="color:#6366f1;font-weight:600">${(p.total_score??0).toLocaleString('ru')}</td>
-      <td class="ach-cnt">${p.ach_count??0}</td>
-      <td><span class="sk-badge">${skinName[p.skin_idx]??'#'+p.skin_idx}</span></td>
-      <td style="font-size:.72rem;color:#7c3aed">${p.referred_by?(p.referred_by_nick?'🔗 '+escH(p.referred_by_nick):'🔗 '+escH(p.referred_by.substring(0,8))):'—'}</td>
-      <td style="font-size:.67rem;color:#94a3b8">${p.last_seen?ago(p.last_seen)+' назад':'—'}</td>
-      <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(utc(p.created_at)).toLocaleDateString('ru',{timeZone:TZ}):'—'}</td>
-    </tr>`).join('')}</tbody>
-  </table></div>`)
-  log('👤 Профили: '+rows.length+' игроков')
+  _profRows=r.data
+  document.getElementById('profBadge').textContent=_profRows.length+' игроков'
+  if(!document.getElementById('profTableWrap')){
+    el.innerHTML=`<div style="margin-bottom:8px"><input id="profSearch" type="text" placeholder="🔎 Поиск по нику…" value="${escH(_profSearch)}" oninput="_profSearch=this.value;renderProfiles()" style="width:100%;max-width:280px;padding:6px 10px;border:1px solid var(--brd);border-radius:8px;font-size:.75rem;background:var(--card);color:var(--txt)"></div><div id="profTableWrap"></div>`
+  }
+  renderProfiles()
+  log('👤 Профили: '+_profRows.length+' игроков')
 }
 
 // ── Telegram Stats ──────────────────────────────────────────────────────────
