@@ -515,7 +515,7 @@ tr:hover td{background:#fafafa}
 
   <!-- TAB: AUTH -->
   <div id="tab-auth" class="tb-body">
-    <div class="tb-desc"><b>Auth</b> — сервис аутентификации. Игра работает анонимно через UUID в localStorage.</div>
+    <div class="tb-desc"><b>Auth</b> — аутентификация. Вход только через Telegram Mini App или email+пароль — анонимной игры нет.</div>
     <div id="authContent" style="padding:12px 13px"><div class="empty"><span class="sp"></span></div></div>
   </div>
 
@@ -550,7 +550,7 @@ tr:hover td{background:#fafafa}
         <div class="chart-box"><canvas id="chartTgDays"></canvas></div>
       </div>
       <div class="card" style="margin-bottom:0">
-        <div class="ch"><span class="ct">🥧 TG vs Аноним</span><span class="badge bb" id="tgVsBadge"></span></div>
+        <div class="ch"><span class="ct">🥧 TG vs Email</span><span class="badge bb" id="tgVsBadge"></span></div>
         <div class="chart-box"><canvas id="chartTgVs"></canvas></div>
       </div>
     </div>
@@ -989,7 +989,7 @@ async function loadAdv(){
     execSQL(`SELECT relname AS tablename, indexrelname AS indexname, idx_scan AS scans FROM pg_stat_user_indexes WHERE schemaname='public' ORDER BY idx_scan DESC`)
   ])
   let html='<div class="adv-sec">БЕЗОПАСНОСТЬ</div><div class="adv-list">'
-  html+=adv('w','!','RLS INSERT без ограничений (game_results, player_events, players)','Намеренно для публичной игры без аккаунтов. Защита: rate-limit триггеры (макс 5/мин на game_results).')
+  html+=adv('w','!','RLS INSERT открыт (game_results, player_events, players)','Историческое решение; сейчас вход обязателен (Telegram/email), профильные записи идут через токен-RPC. Защита: rate-limit триггеры (макс 5/мин на game_results).')
   html+=adv('o','OK','admin_execute — только service_role','Функция SQL закрыта от anon/authenticated. Доступ только через Edge Function с проверкой пароля.')
   html+=adv('o','OK','Таймауты настроены','statement_timeout=30s, idle_in_transaction=30s, lock_timeout=10s для anon/authenticated.')
   html+='</div><div class="adv-sec">ПРОИЗВОДИТЕЛЬНОСТЬ</div><div class="adv-list">'
@@ -1034,7 +1034,7 @@ async function loadStor(){
       html=`<div style="text-align:center;padding:16px">
         <div style="font-size:1.8rem;margin-bottom:6px">🗂️</div>
         <div style="font-size:.85rem;font-weight:700;margin-bottom:5px">Бакетов нет</div>
-        <div style="font-size:.73rem;color:var(--mut);max-width:340px;margin:0 auto;line-height:1.5">Supabase Storage не используется. Рекомендация: перенести <b>Only Today.mp3 (~13 МБ)</b> из GitHub репо в Storage — это ускорит загрузку игры.</div>
+        <div style="font-size:.73rem;color:var(--mut);max-width:340px;margin:0 auto;line-height:1.5">Supabase Storage не используется — и это нормально: игра лёгкая (один HTML, музыка процедурная, MP3 давно удалён). Пригодится позже для аватарок или тяжёлых ассетов.</div>
       </div>`
     } else {
       html=bkts.map(b=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 11px;background:#f8fafc;border:1px solid var(--brd);border-radius:7px;margin-bottom:5px">
@@ -1042,7 +1042,7 @@ async function loadStor(){
         <div style="font-size:.66rem;color:var(--mut)">${b.public?'Публичный':'Приватный'} · ${b.id}</div></div></div>`).join('')
     }
     html+=`<div class="info-grid" style="margin-top:10px">
-      <div class="ic"><div class="ic-t">Когда использовать</div><div class="ic-b">Скины, иконки персонажей<br>Фоновая музыка<br>Аватарки игроков (Фаза 4)</div></div>
+      <div class="ic"><div class="ic-t">Когда использовать</div><div class="ic-b">Скины, иконки персонажей<br>Фоновая музыка<br>Аватарки email-игроков</div></div>
       <div class="ic"><div class="ic-t">Рекомендация</div><div class="ic-b">Перенести MP3 в Storage или CDN (Cloudflare R2). Сейчас 13МБ замедляют загрузку.</div></div>
     </div>`
     el.innerHTML=html; el.dataset.ok='1'
@@ -1064,10 +1064,10 @@ async function loadAuth(){
         </div>
       </div>
       <div class="info-grid">
-        <div class="ic"><div class="ic-t">Текущий подход</div><div class="ic-b">Игроки анонимны (UUID в localStorage). Нет паролей = нет утечек. Anon key для публичного доступа.</div></div>
-        <div class="ic"><div class="ic-t">Провайдеры</div><div class="ic-b"><span class="prov prov-on">✓ Anon</span><span class="prov prov-off">✗ Email</span><span class="prov prov-off">✗ Google</span><span class="prov prov-off">✗ Discord</span></div></div>
+        <div class="ic"><div class="ic-t">Текущий подход</div><div class="ic-b">Вход обязателен: Telegram (initData проверяется на сервере) или email+пароль (PBKDF2, хэш на сервере). Записи защищены per-player токеном.</div></div>
+        <div class="ic"><div class="ic-t">Способы входа</div><div class="ic-b"><span class="prov prov-on">✓ Telegram</span><span class="prov prov-on">✓ Email+пароль</span><span class="prov prov-off">✗ Google</span><span class="prov prov-off">✗ Discord</span></div></div>
         <div class="ic"><div class="ic-t">JWT</div><div class="ic-b">Expiry: 1 ч · Refresh: 14 дней · PKCE вкл.</div></div>
-        <div class="ic"><div class="ic-t">Фаза 4</div><div class="ic-b">Добавить Google OAuth для профилей с аватаркой при выходе в App Store.</div></div>
+        <div class="ic"><div class="ic-t">Идеи на будущее</div><div class="ic-b">Google OAuth как третий способ входа; аватарки email-игроков в Storage.</div></div>
       </div>
       <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap">
         <a class="qb" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/auth/users" target="_blank">👥 Пользователи</a>
@@ -1394,7 +1394,7 @@ function initTgCharts(){
   })
   cTgVs=new Chart(document.getElementById('chartTgVs').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['Telegram','Аноним'],datasets:[{data:[0,0],backgroundColor:['#2da7e0','#6366f1'],borderWidth:0}]},
+    data:{labels:['Telegram','Email'],datasets:[{data:[0,0],backgroundColor:['#2da7e0','#6366f1'],borderWidth:0}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'right',labels:{font:{size:12},boxWidth:12}}}}
   })
