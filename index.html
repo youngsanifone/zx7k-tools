@@ -1032,6 +1032,7 @@ function renderTbl(rows){
     })
   }
   const ar=c=>_tblSort.key===c?(_tblSort.dir<0?' ▾':' ▴'):''
+  const _sl=box?box.scrollLeft:0
   setHTML(box,`<table>
     <thead><tr>${cols.map(c=>`<th data-s="1" onclick="sortTbl('${c}')">${colLabel(c)}${ar(c)}</th>`).join('')}</tr></thead>
     <tbody>${rs.map(r=>`<tr>${cols.map(c=>{
@@ -1039,6 +1040,7 @@ function renderTbl(rows){
       return `<td class="${p.d?'dt-cell':''}" title="${escH(p.t)}">${p.h}</td>`
     }).join('')}</tr>`).join('')}</tbody>
   </table>`)
+  if(box&&_sl) box.scrollLeft=_sl
 }
 let _srchTimer
 function filterTbl(){clearTimeout(_srchTimer);_srchTimer=setTimeout(()=>{tblPageN=0;loadTbl(curTbl)},350)}
@@ -1389,6 +1391,7 @@ const _langFlag={'ru':'🇷🇺','sk':'🇸🇰','en':'🇬🇧','uk':'🇺🇦'
 function sortProf(key){ if(_profSort.key===key) _profSort.dir*=-1; else _profSort={key,dir:(key==='nick'||key==='lang'||key==='difficulty')?1:-1}; renderProfiles() }
 function renderProfiles(){
   const wrap=document.getElementById('profTableWrap'); if(!wrap) return
+  const _sc0=wrap.querySelector('div'); const _sl=_sc0?_sc0.scrollLeft:0
   let rows=_profRows.slice()
   const q=_profSearch.trim().toLowerCase()
   if(q) rows=rows.filter(p=>(p.nick||'').toLowerCase().includes(q))
@@ -1440,6 +1443,7 @@ function renderProfiles(){
       <td style="font-size:.67rem;color:#94a3b8">${p.created_at?new Date(utc(p.created_at)).toLocaleDateString('ru',{timeZone:TZ}):'—'}</td>
     </tr>`).join('')}</tbody>
   </table></div>`
+  const _sc1=wrap.querySelector('div'); if(_sc1&&_sl) _sc1.scrollLeft=_sl
 }
 async function loadPlayers(){
   const el=document.getElementById('playerProfiles')
