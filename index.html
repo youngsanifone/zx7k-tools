@@ -56,6 +56,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* ── Layout ── */
 .wrap{max-width:1720px;margin:0 auto;padding:14px 24px 6px}
+.app-shell{max-width:1720px;margin:0 auto;display:flex;align-items:flex-start}
+.sidebar{position:sticky;top:72px;align-self:flex-start;width:208px;min-width:208px;padding:14px 10px;display:flex;flex-direction:column;gap:3px;border-right:1px solid var(--brd);min-height:calc(100vh - 72px)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border:none;border-radius:9px;background:transparent;color:var(--sub);font-size:.82rem;font-weight:600;cursor:pointer;text-align:left;transition:all .12s;font-family:inherit}
+.nav-item:hover{background:var(--bg);color:var(--txt)}
+.nav-item.active{background:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.35)}
+.nav-cap{font-size:.6rem;font-weight:700;letter-spacing:.6px;color:var(--mut);text-transform:uppercase;padding:10px 12px 4px}
+.app-shell .wrap{flex:1;min-width:0;max-width:none;margin:0;padding:16px 20px 6px}
+.conn-viz{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;padding:18px 14px 8px}
+.conn-node{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 20px;border:1.5px solid var(--brd);border-radius:12px;background:var(--bg);min-width:118px}
+.conn-node .cn-ico{font-size:1.7rem;line-height:1}
+.conn-node .cn-t{font-size:.79rem;font-weight:700}
+.conn-node .cn-s{font-size:.63rem;color:var(--mut)}
+.conn-arrow{display:flex;flex-direction:column;align-items:center;color:var(--acc);font-weight:700;font-size:.62rem;padding:0 4px;min-width:74px}
+.conn-arrow .ca-line{font-size:1.3rem;letter-spacing:-3px;color:var(--acc)}
+@media(max-width:820px){.app-shell{flex-direction:column}.sidebar{position:static;width:auto;min-width:0;min-height:0;flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--brd);gap:4px}.nav-cap{display:none}.app-shell .wrap{padding:14px}}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -294,23 +309,39 @@ tr:hover td{background:#fafafa}
   <span class="sbar-r" id="svc-sum"></span>
 </div>
 
-<!-- QUICK ACTIONS BAR -->
-<div class="qa-bar">
-  <button class="qb qb-g" style="border:none;cursor:pointer;font:inherit" onclick="sendBroadcast()">📣 Разослать квесты</button>
-  <a class="qb qb-g" href="https://youngsanifone.github.io/snake/" target="_blank">🎮 Открыть игру</a>
-  <a class="qb qb-d" href="https://github.com/youngsanifone/snake" target="_blank">🐙 GitHub репо</a>
-  <a class="qb" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/editor" target="_blank">🗄️ SQL редактор</a>
-  <a class="qb" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/database/tables" target="_blank">📋 Tables</a>
-  <a class="qb" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/functions" target="_blank">⚡ Edge Functions</a>
-  <a class="qb" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/logs/explorer" target="_blank">📄 Логи</a>
-  <a class="qb" href="https://supabase.com/dashboard/project/wopvlulqfzecujmfoezr/storage" target="_blank">🗂️ Storage</a>
-  <a class="qb" href="https://analytics.google.com" target="_blank">📊 Analytics</a>
-</div>
 
+<div class="app-shell">
+<nav class="sidebar">
+  <div class="nav-cap">Обзор</div>
+  <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">📊 Дашборд</button>
+  <button class="nav-item" data-view="players" onclick="showView('players')">👤 Игроки</button>
+  <div class="nav-cap">Данные</div>
+  <button class="nav-item" data-view="data" onclick="showView('data')">🗄️ Таблицы</button>
+  <button class="nav-item" data-view="sql" onclick="showView('sql')">💻 SQL</button>
+  <button class="nav-item" data-view="advisors" onclick="showView('advisors')">🔍 Советники</button>
+  <button class="nav-item" data-view="telegram" onclick="showView('telegram')">✈️ Telegram</button>
+  <button class="nav-item" data-view="log" onclick="showView('log')">📝 Лог</button>
+  <div class="nav-cap">Действия</div>
+  <button class="nav-item" onclick="sendBroadcast()">📣 Разослать квесты</button>
+  <a class="nav-item" href="https://youngsanifone.github.io/snake/" target="_blank">🎮 Открыть игру</a>
+</nav>
 <div class="wrap">
 
+  <!-- ===== DASHBOARD ===== -->
+  <!-- CONNECTION -->
+  <div class="card" data-view="dashboard" data-disp="block" style="margin-bottom:12px">
+    <div class="ch"><span class="ct">🔗 Связь в реальном времени</span><span class="badge bg">live</span></div>
+    <div class="conn-viz">
+      <div class="conn-node"><div class="cn-ico">🎮</div><div class="cn-t">Игра</div><div class="cn-s">GitHub Pages</div></div>
+      <div class="conn-arrow"><span class="ca-line">⇄</span><span>пишет очки</span></div>
+      <div class="conn-node"><div class="cn-ico">🗄️</div><div class="cn-t">Supabase</div><div class="cn-s" id="cv-sb">—</div></div>
+      <div class="conn-arrow"><span class="ca-line">⇄</span><span id="cv-ef">—</span></div>
+      <div class="conn-node"><div class="cn-ico">🐍</div><div class="cn-t">Эта панель</div><div class="cn-s">admin-sql</div></div>
+    </div>
+    <div style="padding:0 14px 12px;font-size:.7rem;color:var(--mut);text-align:center;line-height:1.5">Игра пишет очки и события в Supabase → панель читает <b>те же таблицы</b> через защищённую edge-функцию. Данные живые, задержки — реальные пинги.</div>
+  </div>
   <!-- STATS -->
-  <div class="g4" style="margin-bottom:12px">
+  <div class="g4" data-view="dashboard" data-disp="grid" style="margin-bottom:12px">
     <div class="stat online">
       <div class="st-ico">🟢</div>
       <div><div class="st-n" id="s-online">—</div><div class="st-l">Онлайн</div><div class="st-d">сейчас (±30с)</div></div>
@@ -334,7 +365,7 @@ tr:hover td{background:#fafafa}
   </div>
 
   <!-- ONLINE + RECENT -->
-  <div class="g2">
+  <div class="g2" data-view="dashboard" data-disp="grid">
     <div class="card" style="margin-bottom:0">
       <div class="ch">
         <span class="ct">🟢 Онлайн сейчас</span>
@@ -350,10 +381,10 @@ tr:hover td{background:#fafafa}
       <div id="recentList"><div class="empty"><span class="sp"></span></div></div>
     </div>
   </div>
-  <div style="height:12px"></div>
+  <div style="height:12px" data-view="dashboard" data-disp="block"></div>
 
   <!-- CHARTS -->
-  <div class="g2">
+  <div class="g2" data-view="dashboard" data-disp="grid">
     <div class="card" style="margin-bottom:0">
       <div class="ch"><span class="ct">📈 Активность (последние 20)</span><span class="badge bq" id="chBadge"></span></div>
       <div class="chart-box"><canvas id="chartLine"></canvas></div>
@@ -363,32 +394,10 @@ tr:hover td{background:#fafafa}
       <div class="chart-box"><canvas id="chartMode"></canvas></div>
     </div>
   </div>
-  <div style="height:12px"></div>
+  <div style="height:12px" data-view="dashboard" data-disp="block"></div>
 
-  <!-- COMMITS — up here, important -->
-  <div class="card">
-    <div class="ch">
-      <span class="ct">🕐 Последние коммиты</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        <span class="badge bq" id="cmtBadge">—</span>
-        <a class="qb" style="padding:3px 9px;font-size:.68rem" href="https://github.com/youngsanifone/snake/commits/main" target="_blank">GitHub →</a>
-      </div>
-    </div>
-    <div id="commits"><div class="empty"><span class="sp"></span></div></div>
-  </div>
-
-  <!-- TABS -->
-  <div class="tb-nav">
-    <button class="tb-btn"        id="tbn-sql"      onclick="openTab('sql')">💻 SQL</button>
-    <button class="tb-btn active" id="tbn-tables"   onclick="openTab('tables')">📋 Таблицы</button>
-    <button class="tb-btn"        id="tbn-advisors" onclick="openTab('advisors')">🔍 Советники</button>
-    <button class="tb-btn"        id="tbn-auth"     onclick="openTab('auth')">🔐 Вход</button>
-    <button class="tb-btn"        id="tbn-telegram" onclick="openTab('telegram')">✈️ Telegram</button>
-    <button class="tb-btn"        id="tbn-actlog"   onclick="openTab('actlog')">📝 Лог</button>
-  </div>
-
-  <!-- TAB: SQL -->
-  <div id="tab-sql" class="tb-body">
+  <!-- ===== SQL VIEW ===== -->
+  <div id="tab-sql" class="tb-body" data-view="sql" data-disp="block">
     <div class="tb-desc">Нажми <b>▶ Run</b> — результат появится внизу этой секции. Без copy-paste.</div>
     <!-- PRESETS -->
     <div class="preset-list" id="presetList">
@@ -491,8 +500,8 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 
-  <!-- TAB: TABLES -->
-  <div id="tab-tables" class="tb-body active">
+  <!-- ===== DATA (TABLES) VIEW ===== -->
+  <div id="tab-tables" class="tb-body" data-view="data" data-disp="block">
     <div class="tb-desc"><b>Table Editor</b> — просмотр данных, пагинация 50 строк, поиск. Даты в твоём часовом поясе (Братислава). <b>Таблицы</b> хранят данные; <b>view</b> — виртуальная сводка поверх них (не дубликат, места не занимает).</div>
     <div class="tbl-tabs" style="align-items:center">
       <span style="font-size:.64rem;color:var(--mut);font-weight:700;letter-spacing:.5px">ТАБЛИЦЫ:</span>
@@ -516,8 +525,8 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 
-  <!-- TAB: ADVISORS -->
-  <div id="tab-advisors" class="tb-body">
+  <!-- ===== ADVISORS VIEW ===== -->
+  <div id="tab-advisors" class="tb-body" data-view="advisors" data-disp="block">
     <div class="tb-desc"><b>Советники</b> — автоматический анализ безопасности и производительности базы данных.</div>
     <div style="padding:8px 13px;border-bottom:1px solid var(--brd);display:flex;gap:6px;flex-wrap:wrap">
       <button class="pbtn pbtn-r" onclick="loadAdv()">Обновить анализ</button>
@@ -526,20 +535,8 @@ tr:hover td{background:#fafafa}
     <div id="advList"><div class="empty">Нажми "Обновить анализ"</div></div>
   </div>
 
-  <!-- TAB: STORAGE -->
-  <div id="tab-storage" class="tb-body">
-    <div class="tb-desc"><b>Storage</b> — файловое хранилище Supabase. Сейчас не используется.</div>
-    <div id="storContent" style="padding:12px 13px"><div class="empty"><span class="sp"></span></div></div>
-  </div>
-
-  <!-- TAB: AUTH -->
-  <div id="tab-auth" class="tb-body">
-    <div class="tb-desc"><b>Auth</b> — аутентификация. Вход только через Telegram Mini App или email+пароль — анонимной игры нет.</div>
-    <div id="authContent" style="padding:12px 13px"><div class="empty"><span class="sp"></span></div></div>
-  </div>
-
-  <!-- TAB: TELEGRAM -->
-  <div id="tab-telegram" class="tb-body">
+  <!-- ===== TELEGRAM VIEW ===== -->
+  <div id="tab-telegram" class="tb-body" data-view="telegram" data-disp="block">
     <div class="tb-desc">Статистика по пользователям, пришедшим через Telegram Mini App. Обновляется при открытии вкладки.</div>
 
     <!-- TG summary cards -->
@@ -586,8 +583,8 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 
-  <!-- TAB: LOG -->
-  <div id="tab-actlog" class="tb-body">
+  <!-- ===== LOG VIEW ===== -->
+  <div id="tab-actlog" class="tb-body" data-view="log" data-disp="block">
     <div class="tb-desc"><b>Лог</b> — все действия администратора в этой сессии.</div>
     <div class="log-list" id="logList"><div class="empty">Пока пусто</div></div>
     <div class="log-ft">
@@ -596,8 +593,8 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 
-  <!-- LEADERBOARD + TOP PLAYERS side-by-side -->
-  <div class="g2">
+  <!-- LEADERBOARD + TOP PLAYERS side-by-side (dashboard) -->
+  <div class="g2" data-view="dashboard" data-disp="grid">
     <div class="card" style="margin-bottom:0">
       <div class="ch">
         <span class="ct">🏆 Лидерборд (топ-20)</span>
@@ -614,10 +611,8 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 
-  <div style="height:12px"></div>
-
-  <!-- PLAYERS PROFILES -->
-  <div class="card">
+  <!-- ===== PLAYERS VIEW ===== -->
+  <div class="card" data-view="players" data-disp="block">
     <div class="ch">
       <span class="ct">👤 Профили игроков</span>
       <div style="display:flex;gap:6px;align-items:center">
@@ -632,7 +627,8 @@ tr:hover td{background:#fafafa}
   <div class="footer">
     Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b>
   </div>
-</div>
+</div><!-- /.wrap -->
+</div><!-- /.app-shell -->
 
 <script>
 // Disable browser scroll restoration — always start at top on refresh
@@ -737,18 +733,31 @@ function setDot(id,st,ms){
   const s=document.getElementById('svc-sum'); if(s) s.textContent=ok+' из 4 в сети'
 }
 
-// ── Tabs ───────────────────────────────────────────────────────────────────
-function openTab(n){
-  document.querySelectorAll('.tb-body').forEach(e=>e.classList.remove('active'))
-  document.querySelectorAll('.tb-btn').forEach(e=>e.classList.remove('active'))
-  document.getElementById('tab-'+n)?.classList.add('active')
-  document.getElementById('tbn-'+n)?.classList.add('active')
-  log('📂 '+n)
-  if(n==='storage')  loadStor()
-  if(n==='auth')     loadAuth()
-  if(n==='advisors') loadAdv()
-  if(n==='tables')   loadTbl(curTbl)
-  if(n==='telegram') setTimeout(loadTgStats, 50)
+// ── Views (sidebar navigation) ─────────────────────────────────────────────
+let curView='dashboard'
+function showView(v){
+  curView=v
+  document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===v))
+  document.querySelectorAll('[data-view]').forEach(el=>{
+    if(el.classList.contains('nav-item')) return
+    el.style.display = (el.dataset.view===v) ? (el.dataset.disp||'block') : 'none'
+  })
+  if(v==='players')       loadPlayers()
+  else if(v==='data')     loadTbl(curTbl||'players')
+  else if(v==='advisors') loadAdv()
+  else if(v==='telegram') setTimeout(loadTgStats,50)
+  else if(v==='log')      renderLog()
+  log('📂 '+v)
+  try{ window.scrollTo(0,0) }catch(_){}
+}
+// Back-compat: existing openTab(n) callers (e.g. advisors "Таблицы → SQL") → views
+function openTab(n){ const m={tables:'data',sql:'sql',advisors:'advisors',telegram:'telegram',actlog:'log',storage:'data',auth:'dashboard'}; showView(m[n]||n) }
+// Live connection block — mirror latency from the service strip
+function updateConnViz(){
+  const sb=document.getElementById('ms-sb'), ef=document.getElementById('ms-ef')
+  const cvsb=document.getElementById('cv-sb'), cvef=document.getElementById('cv-ef')
+  if(cvsb) cvsb.textContent = (sb&&sb.textContent.trim()) ? sb.textContent.trim() : 'подключено'
+  if(cvef) cvef.textContent = (ef&&ef.textContent.trim()) ? ('SQL · '+ef.textContent.trim()) : 'admin-sql'
 }
 
 // ── Edge Function / SQL ────────────────────────────────────────────────────
@@ -1299,6 +1308,10 @@ function renderAll(){
 // ── GitHub ─────────────────────────────────────────────────────────────────
 async function loadCommits(){
   const el=document.getElementById('commits')
+  if(!el){ // commits block removed in redesign — just ping GitHub for the status dot
+    try{ const r=await fetch('https://api.github.com/repos/youngsanifone/snake/commits?per_page=1',{headers:{Accept:'application/vnd.github.v3+json'}}); setDot('gh', r.ok?'on':((r.status===403||r.status===429)?'wrn':'off')); }catch(_){ setDot('gh','off'); }
+    return
+  }
   const [CK,CT]=['ghc','ght']
   const cached=sessionStorage.getItem(CK), age=Date.now()-Number(sessionStorage.getItem(CT)||0)
   if(cached&&age<15*60*1000){renderCmts(JSON.parse(cached),el,age);setDot('gh','on');return}
@@ -1572,7 +1585,9 @@ async function loadTgStats(){
 }
 
 function startApp(){
+  showView('dashboard')                       // set initial view (hide non-dashboard blocks)
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers(); loadTbl(curTbl)
+  updateConnViz(); setInterval(updateConnViz,2000)
   setInterval(()=>{loadData()},5000)          // leaderboard / recent every 5s
   setInterval(loadOnline,3000)                // online poll every 3s (primary; realtime is best-effort bonus)
   // Realtime subscription — instant online presence updates
@@ -1592,7 +1607,7 @@ function startApp(){
   } catch(e){ log('⚠️ Realtime недоступен: '+e.message) }
   // Вкладка «Таблицы» обновляется сама, пока открыта (тихо, без мерцания)
   setInterval(()=>{
-    if(document.getElementById('tab-tables')?.classList.contains('active')) loadTbl(curTbl,null,true)
+    if(curView==='data') loadTbl(curTbl,null,true)
   },5000)
   setInterval(loadPlayers,10000)
   setInterval(pingGame,30000)
