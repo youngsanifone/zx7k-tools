@@ -1564,8 +1564,9 @@ async function sysCheck(){
   try{const t0=Date.now();const g=await fetch('https://youngsanifone.github.io/snake/',{method:'HEAD',cache:'no-store'});add('🎮 Игра (GitHub Pages)',g.ok,(Date.now()-t0)+'ms')}catch(e){add('🎮 Игра',false,'нет ответа')}
   const t1=Date.now();const rq=await execSQL('SELECT 1 AS ok')
   add('⚡ admin-sql (SQL API)',!rq.error,rq.error?rq.error:(Date.now()-t1)+'ms')
+  // no-cors: жив = сервер ответил (тело не читаем — многие функции не шлют CORS-заголовки на GET)
   for(const f of ['telegram-auth','email-auth','daily-quests','broadcast','telegram-bot']){
-    try{const t=Date.now();const r=await fetch(SB+'/functions/v1/'+f,{method:'OPTIONS'});add('⚙️ '+f,r.ok,(Date.now()-t)+'ms')}catch(e){add('⚙️ '+f,false,'нет ответа')}
+    try{const t=Date.now();await fetch(SB+'/functions/v1/'+f,{method:'GET',mode:'no-cors',cache:'no-store'});add('⚙️ '+f,true,(Date.now()-t)+'ms')}catch(e){add('⚙️ '+f,false,'нет ответа')}
   }
   const db=await execSQL(`SELECT pg_size_pretty(pg_database_size(current_database())) AS sz,
     (SELECT count(*) FROM players)::int AS pl,(SELECT count(*) FROM game_results)::int AS gr,
