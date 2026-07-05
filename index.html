@@ -624,6 +624,19 @@ tr:hover td{background:#fafafa}
       </div>
 
       <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">📢 Объявление в игре</span><span class="badge bg">видят все</span></div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:.72rem;color:var(--mut)">Показывается баннером <b>каждому</b>, кто открывает игру — независимо от бота. Идеально для анонсов «всем всегда».</div>
+          <textarea id="annText" class="sq-area" style="min-height:70px" placeholder="Текст объявления (обычный текст, без HTML)…"></textarea>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="pbtn pbtn-r" onclick="saveAnnounce()">📢 Показать всем</button>
+            <button class="pbtn pbtn-c" onclick="clearAnnounce()">🧹 Убрать</button>
+            <span id="annState" style="font-size:.72rem;color:var(--mut)"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0">
         <div class="ch"><span class="ct">🛡 Модерация игрока</span><span class="badge bp">осторожно</span></div>
         <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
           <select id="modPlayer" class="tbl-inp" style="width:100%"><option value="">— выбери игрока —</option></select>
@@ -701,7 +714,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v38</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v39</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -823,7 +836,7 @@ function showView(v){
   else if(v==='advisors') loadAdv()
   else if(v==='telegram') setTimeout(loadTgStats,50)
   else if(v==='log')      renderLog()
-  else if(v==='actions')  { fillModSelect(); fillReportSelect() }
+  else if(v==='actions')  { fillModSelect(); fillReportSelect(); loadAnnounce() }
   log('📂 '+v)
   try{ window.scrollTo(0,0) }catch(_){}
 }
@@ -1620,6 +1633,29 @@ async function testReport(){
   const r=await execSQL(sql)
   st.textContent=r.error?('❌ '+r.error):'✅ Тест отправлен — проверь Telegram'
   log(r.error?('❌ Тест-отчёт: '+r.error):'🧪 Тест-отчёт отправлен')
+}
+async function loadAnnounce(){
+  const r=await execSQL('SELECT announce_text, announce_active FROM app_config WHERE id=1')
+  if(r.error||!r.data||!r.data[0]) return
+  const d=r.data[0], ta=document.getElementById('annText'), st=document.getElementById('annState')
+  if(ta && d.announce_text!=null && !ta.value) ta.value=d.announce_text
+  if(st) st.textContent=d.announce_active?'🟢 сейчас показывается всем':'⚪ выключено'
+}
+async function saveAnnounce(){
+  const ta=document.getElementById('annText'), st=document.getElementById('annState')
+  const txt=(ta.value||'').trim()
+  if(!txt){st.textContent='Введи текст объявления';return}
+  if(txt.length>1000){st.textContent='Максимум 1000 символов';return}
+  if(!confirm('Показать это объявление ВСЕМ игрокам в игре?')) return
+  const r=await execSQL("UPDATE app_config SET announce_text='"+_esc(txt)+"', announce_at=now(), announce_active=true WHERE id=1")
+  st.textContent=r.error?('❌ '+r.error):'🟢 Показывается всем — игроки увидят при открытии игры'
+  log(r.error?('❌ Объявление: '+r.error):'📢 Объявление опубликовано')
+}
+async function clearAnnounce(){
+  const st=document.getElementById('annState')
+  const r=await execSQL('UPDATE app_config SET announce_active=false WHERE id=1')
+  st.textContent=r.error?('❌ '+r.error):'⚪ Убрано — баннер больше не показывается'
+  log(r.error?('❌ Объявление: '+r.error):'🧹 Объявление снято')
 }
 
 // ── Start ──────────────────────────────────────────────────────────────────
