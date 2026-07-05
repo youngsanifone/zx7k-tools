@@ -853,8 +853,8 @@ const TBL_SQL={
   player_events:(off,s)=>{
     const w=s?`WHERE (pe.player_id::text ILIKE '%${_esc(s)}%' OR COALESCE(pe.nick,'') ILIKE '%${_esc(s)}%' OR pe.event ILIKE '%${_esc(s)}%')`:'';
     return `SELECT
-    pe.created_at,
     COALESCE(pe.nick,'—') AS nick,
+    pe.created_at,
     pe.event, pe.score, pe.mode,
     COALESCE(p.best,0) AS player_best,
     COALESCE(p.games_played,0) AS total_games,
@@ -871,7 +871,7 @@ const TBL_SQL={
   },
   game_results:(off,s)=>{
     const w=s?`WHERE (name ILIKE '%${_esc(s)}%' OR mode ILIKE '%${_esc(s)}%' OR score::text ILIKE '%${_esc(s)}%')`:'';
-    return `SELECT created_at,name,score,level,mode
+    return `SELECT name,created_at,score,level,mode
     FROM game_results ${w} ORDER BY created_at DESC LIMIT ${TBL_SZ} OFFSET ${off}`;
   },
   leaderboard_best:(off,s)=>{
@@ -970,7 +970,7 @@ const COL_RU={
   nick:'Ник', coins:'Монеты', best:'Рекорд', best_level:'Ур. рекорда',
   games_played:'Игр сыграно', total_score:'Всего очков', saved_level:'Сохр. уровень', difficulty:'Сложность',
   theme:'Тема', lang:'Язык', skin_idx:'Скин', updated_at:'Обновлён', player_id:'ID игрока',
-  last_seen:'Последний раз', created_at:'Дата рег.', event:'Событие', score:'Очки', mode:'Режим', level:'Уровень',
+  last_seen:'Последний раз', created_at:'Дата · время', event:'Событие', score:'Очки', mode:'Режим', level:'Уровень',
   name:'Игрок', pid_short:'ID (кратко)', player_name:'Ник игрока',
   player_best:'Рекорд игрока', total_games:'Игр всего',
   // health / indexes
