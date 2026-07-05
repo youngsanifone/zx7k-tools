@@ -323,13 +323,14 @@ tr:hover td{background:#fafafa}
   <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">📊 Дашборд</button>
   <button class="nav-item" data-view="players" onclick="showView('players')">👤 Игроки</button>
   <button class="nav-item" data-view="telegram" onclick="showView('telegram')">✈️ Telegram</button>
+  <button class="nav-item" data-view="actions" onclick="showView('actions')">🛠️ Инструменты</button>
   <div class="nav-cap">База данных</div>
   <button class="nav-item" data-view="data" onclick="showView('data')">🗄️ Таблицы</button>
   <button class="nav-item" data-view="sql" onclick="showView('sql')">💻 SQL-консоль</button>
-  <button class="nav-item" data-view="advisors" onclick="showView('advisors')">🩺 Здоровье</button>
+  <button class="nav-item" data-view="advisors" onclick="showView('advisors')">🩺 Здоровье БД</button>
   <button class="nav-item" data-view="log" onclick="showView('log')">📝 Журнал</button>
   <div class="side-grow"></div>
-  <div class="nav-cap">Действия</div>
+  <div class="nav-cap">Быстро</div>
   <button class="nav-act primary" onclick="sendBroadcast()">📣 Разослать квесты</button>
   <a class="nav-act ghost" href="https://youngsanifone.github.io/snake/" target="_blank">🎮 Открыть игру</a>
 </nav>
@@ -604,6 +605,57 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 
+  <!-- ===== ACTIONS (TOOLS) VIEW ===== -->
+  <div id="tab-actions" class="tb-body" data-view="actions" data-disp="block">
+    <div class="tb-desc"><b>Инструменты</b> — управление игрой: рассылка сообщений, модерация игроков, экспорт данных, проверка систем.</div>
+    <div class="g2" style="padding:12px 13px;gap:12px;align-items:start">
+
+      <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">📣 Сообщение всем игрокам</span><span class="badge bb">Telegram</span></div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <textarea id="bcMsg" class="sq-area" style="min-height:90px" placeholder="Текст сообщения… (можно <b>жирный</b> и <i>курсив</i>)"></textarea>
+          <label style="font-size:.75rem;display:flex;gap:6px;align-items:center;color:var(--sub)"><input type="checkbox" id="bcActive"> Только активным за 14 дней</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="pbtn pbtn-c" onclick="bcTest()">🧪 Тест себе</button>
+            <button class="pbtn pbtn-r" onclick="bcSend()">📤 Отправить всем</button>
+          </div>
+          <div style="font-size:.7rem;color:var(--mut)" id="bcStatus"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">🛡 Модерация игрока</span><span class="badge bp">осторожно</span></div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <select id="modPlayer" class="tbl-inp" style="width:100%"><option value="">— выбери игрока —</option></select>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="number" id="modCoins" class="tbl-inp" style="width:130px" placeholder="±монеты">
+            <button class="pbtn pbtn-r" onclick="modCoins()">🪙 Применить</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="pbtn pbtn-c" onclick="modRename()">✏️ Переименовать</button>
+            <button class="pbtn pbtn-red" onclick="modResetBest()">🧹 Полный сброс рекорда</button>
+          </div>
+          <div style="font-size:.7rem;color:var(--mut)" id="modStatus"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">📥 Экспорт / бэкап</span><span class="badge bg">безопасно</span></div>
+        <div style="padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="pbtn pbtn-c" onclick="expTbl('players')">👤 Игроки CSV</button>
+          <button class="pbtn pbtn-c" onclick="expTbl('game_results')">🏆 Игры CSV</button>
+          <button class="pbtn pbtn-c" onclick="expTbl('player_events')">📡 События CSV</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">🩺 Здоровье системы</span><button class="pbtn pbtn-r" onclick="sysCheck()">▶ Проверить всё</button></div>
+        <div id="sysCheckOut" style="padding:12px 14px;font-size:.76rem"><div class="empty">Нажми «Проверить всё» — пинги, cron, БД, edge-функции</div></div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- LEADERBOARD + TOP PLAYERS side-by-side (dashboard) -->
   <div class="g2" data-view="dashboard" data-disp="grid">
     <div class="card" style="margin-bottom:0">
@@ -758,6 +810,7 @@ function showView(v){
   else if(v==='advisors') loadAdv()
   else if(v==='telegram') setTimeout(loadTgStats,50)
   else if(v==='log')      renderLog()
+  else if(v==='actions')  fillModSelect()
   log('📂 '+v)
   try{ window.scrollTo(0,0) }catch(_){}
 }
@@ -1411,6 +1464,124 @@ async function sendBroadcast(){
   else { log('✅ Рассылка запущена — бот рассылает «Квесты дня»'); alert('✅ Рассылка запущена!\nБот отправляет «Квесты дня» активным игрокам в Telegram.') }
 }
 
+// ── Tools: custom broadcast / moderation / export / health ─────────────────
+function fillModSelect(){
+  const s=document.getElementById('modPlayer'); if(!s||!_profRows.length) return
+  const cur=s.value
+  s.innerHTML='<option value="">— выбери игрока —</option>'+_profRows.map(p=>
+    `<option value="${escH(p.player_id||'')}">${escH((p.nick||'?').substring(0,20))} · 🪙${p.coins??0} · 🏆${p.best??0}</option>`).join('')
+  if(cur) s.value=cur
+}
+function _bcSql(extra){
+  const msg=(document.getElementById('bcMsg').value||'').trim()
+  if(!msg){alert('Введи текст сообщения');return null}
+  if(msg.length>3500){alert('Максимум 3500 символов');return null}
+  const oa=document.getElementById('bcActive').checked
+  return "SELECT net.http_post(url:='"+SB+"/functions/v1/broadcast',"+
+    "headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||(SELECT token FROM public.cron_auth WHERE id=1)),"+
+    "body:=jsonb_build_object('message','"+_esc(msg)+"'::text,'only_active',"+(oa?'true':'false')+extra+")) AS request_id"
+}
+async function bcTest(){
+  const idRaw=prompt('Twój Telegram chat_id (число):','1618832636'); if(!idRaw) return
+  const id=Number(idRaw); if(!Number.isFinite(id)){alert('Нужно число');return}
+  const sql=_bcSql(",'test_chat_id',"+id); if(!sql) return
+  const st=document.getElementById('bcStatus'); st.textContent='Отправляю тест…'
+  const r=await execSQL(sql)
+  st.textContent=r.error?('❌ '+r.error):'✅ Тест отправлен — проверь Telegram'
+  log(r.error?('❌ Тест сообщения: '+r.error):'🧪 Тест сообщения отправлен')
+}
+async function bcSend(){
+  const oa=document.getElementById('bcActive').checked
+  const sql=_bcSql(''); if(!sql) return
+  if(!confirm('📣 Отправить это сообщение '+(oa?'игрокам, активным за 14 дней':'ВСЕМ Telegram-игрокам')+'?\n\nОтправка реальная и необратима.')) return
+  const st=document.getElementById('bcStatus'); st.textContent='Запускаю рассылку…'
+  const r=await execSQL(sql)
+  st.textContent=r.error?('❌ '+r.error):'✅ Рассылка запущена — бот шлёт в фоне'
+  log(r.error?('❌ Своя рассылка: '+r.error):'📣 Своя рассылка запущена')
+}
+function _modSel(){
+  const s=document.getElementById('modPlayer')
+  if(!s||!s.value){alert('Сначала выбери игрока');return null}
+  return {pid:s.value, nick:(s.options[s.selectedIndex].textContent.split(' ·')[0]||'').trim()}
+}
+async function modCoins(){
+  const sel=_modSel(); if(!sel) return
+  const n=Number(document.getElementById('modCoins').value)
+  if(!Number.isFinite(n)||n===0){alert('Введи число монет: 100 (начислить) или -50 (списать)');return}
+  if(!confirm((n>0?'Начислить +':'Списать ')+n+' 🪙 игроку '+sel.nick+'?')) return
+  const r=await execSQL("UPDATE players SET coins=GREATEST(0,coins+("+n+")) WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick,coins")
+  const st=document.getElementById('modStatus')
+  if(r.error){st.textContent='❌ '+r.error;return}
+  const row=r.data&&r.data[0]
+  st.textContent='✅ У '+(row?row.nick:sel.nick)+' теперь 🪙 '+(row?row.coins:'?')
+  log('🪙 Модерация: '+sel.nick+' '+(n>0?'+':'')+n+' монет'); loadPlayers()
+}
+async function modRename(){
+  const sel=_modSel(); if(!sel) return
+  const nn=prompt('Новый ник для '+sel.nick+':'); if(!nn) return
+  const clean=nn.trim().substring(0,20)
+  if(clean.length<2){alert('Ник — минимум 2 символа');return}
+  if(!confirm('Переименовать '+sel.nick+' → '+clean+'?\n(обновит профиль и историю игр)')) return
+  const st=document.getElementById('modStatus')
+  const r1=await execSQL("UPDATE players SET nick='"+_esc(clean)+"' WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick")
+  if(r1.error){st.textContent='❌ '+r1.error;return}
+  const r2=await execSQL("UPDATE game_results SET name='"+_esc(clean)+"' WHERE player_id::text='"+_esc(sel.pid)+"'")
+  st.textContent=r2.error?('⚠️ Профиль переименован, история: '+r2.error):('✅ Переименован в '+clean)
+  log('✏️ Модерация: '+sel.nick+' → '+clean); loadPlayers(); loadData()
+}
+async function modResetBest(){
+  const sel=_modSel(); if(!sel) return
+  if(!confirm('🧹 ПОЛНЫЙ сброс рекорда '+sel.nick+'?\n\n• best → 0, уровень → 1\n• все его партии удалятся из истории/лидерборда\n\nЭто необратимо.')) return
+  if(!confirm('Точно? Последнее подтверждение для '+sel.nick+'.')) return
+  const st=document.getElementById('modStatus')
+  const r1=await execSQL("DELETE FROM game_results WHERE player_id::text='"+_esc(sel.pid)+"'")
+  const r2=await execSQL("UPDATE players SET best=0,best_level=1,total_score=0 WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick")
+  st.textContent=(r1.error||r2.error)?('❌ '+(r1.error||r2.error)):('✅ Рекорд и история '+sel.nick+' сброшены')
+  log('🧹 Модерация: полный сброс '+sel.nick); loadPlayers(); loadData()
+}
+async function expTbl(t){
+  const sqls={
+    players:"SELECT player_id,nick,telegram_id,email,coins,best,best_level,games_played,total_score,lang,difficulty,theme,skin_idx,referred_by,created_at,last_seen FROM players ORDER BY created_at",
+    game_results:"SELECT id,player_id,name,score,level,mode,created_at FROM game_results ORDER BY created_at",
+    player_events:"SELECT id,player_id,nick,event,score,mode,created_at FROM player_events ORDER BY created_at"
+  }
+  const r=await execSQL(sqls[t]); if(r.error){alert('❌ '+r.error);return}
+  const rows=Array.isArray(r.data)?r.data:[]
+  if(!rows.length){alert('Нет данных для экспорта');return}
+  const cols=Object.keys(rows[0])
+  const csv=[cols.join(',')].concat(rows.map(rw=>cols.map(c=>{const v=rw[c];const s=v==null?'':String(v);return '"'+s.replace(/"/g,'""')+'"'}).join(','))).join('\n')
+  const a=document.createElement('a')
+  a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:'text/csv;charset=utf-8'}))
+  a.download='snake_'+t+'_'+new Date().toISOString().slice(0,10)+'.csv'; a.click()
+  log('📥 Экспорт '+t+': '+rows.length+' строк')
+}
+async function sysCheck(){
+  const out=document.getElementById('sysCheckOut')
+  out.innerHTML='<div class="empty"><span class="sp"></span> Проверяю…</div>'
+  log('🩺 Проверка систем')
+  const rows=[]
+  const add=(name,ok,detail)=>rows.push(`<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--brd)"><span>${ok?'✅':'❌'} ${name}</span><span style="color:var(--mut)">${escH(String(detail))}</span></div>`)
+  try{const t0=Date.now();const g=await fetch('https://youngsanifone.github.io/snake/',{method:'HEAD',cache:'no-store'});add('🎮 Игра (GitHub Pages)',g.ok,(Date.now()-t0)+'ms')}catch(e){add('🎮 Игра',false,'нет ответа')}
+  const t1=Date.now();const rq=await execSQL('SELECT 1 AS ok')
+  add('⚡ admin-sql (SQL API)',!rq.error,rq.error?rq.error:(Date.now()-t1)+'ms')
+  for(const f of ['telegram-auth','email-auth','daily-quests','broadcast','telegram-bot']){
+    try{const t=Date.now();const r=await fetch(SB+'/functions/v1/'+f,{method:'OPTIONS'});add('⚙️ '+f,r.ok,(Date.now()-t)+'ms')}catch(e){add('⚙️ '+f,false,'нет ответа')}
+  }
+  const db=await execSQL(`SELECT pg_size_pretty(pg_database_size(current_database())) AS sz,
+    (SELECT count(*) FROM players)::int AS pl,(SELECT count(*) FROM game_results)::int AS gr,
+    (SELECT count(*) FROM cron.job WHERE active)::int AS cj,
+    (SELECT count(*) FROM cron.job_run_details WHERE status='failed' AND start_time>now()-interval '24 hours')::int AS cf,
+    (SELECT max(created_at) FROM game_results) AS lastg`)
+  if(!db.error&&db.data&&db.data[0]){
+    const d=db.data[0]
+    add('🗄️ База данных',true,d.sz+' · игроков '+d.pl+' · игр '+d.gr)
+    add('🕐 Cron-задания',Number(d.cf)===0,d.cj+' активных · сбоев за 24ч: '+d.cf)
+    add('🕹️ Последняя партия',!!d.lastg,d.lastg?ago(d.lastg)+' назад':'нет данных')
+  } else add('🗄️ База данных',false,db.error||'нет данных')
+  out.innerHTML=rows.join('')
+  log('🩺 Проверка завершена')
+}
+
 // ── Start ──────────────────────────────────────────────────────────────────
 
 // ── Player Profiles ────────────────────────────────────────────────────────
@@ -1511,6 +1682,7 @@ async function loadPlayers(){
     el.innerHTML=`<div style="margin-bottom:8px"><input id="profSearch" type="text" placeholder="🔎 Поиск по нику…" value="${escH(_profSearch)}" oninput="_profSearch=this.value;renderProfiles()" style="width:100%;max-width:280px;padding:6px 10px;border:1px solid var(--brd);border-radius:8px;font-size:.75rem;background:var(--card);color:var(--txt)"></div><div id="profTableWrap"></div>`
   }
   renderProfiles()
+  fillModSelect()
   log('👤 Профили: '+_profRows.length+' игроков')
 }
 
