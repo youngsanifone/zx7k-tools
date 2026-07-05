@@ -653,6 +653,19 @@ tr:hover td{background:#fafafa}
         <div id="sysCheckOut" style="padding:12px 14px;font-size:.76rem"><div class="empty">Нажми «Проверить всё» — пинги, cron, БД, edge-функции</div></div>
       </div>
 
+      <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">📊 Отчёты о рассылках</span><span class="badge bb">в Telegram</span></div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:.72rem;color:var(--mut)">После каждой рассылки (квесты по расписанию + твои сообщения) бот пришлёт тебе отчёт: сколько получили, кому не дошло, сводку за день.</div>
+          <select id="repPlayer" class="tbl-inp" style="width:100%"><option value="">— кому слать отчёты —</option></select>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="pbtn pbtn-r" onclick="saveReportCfg()">💾 Сохранить</button>
+            <button class="pbtn pbtn-c" onclick="testReport()">🧪 Тест-отчёт</button>
+          </div>
+          <div style="font-size:.7rem;color:var(--mut)" id="repStatus"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -688,7 +701,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v37</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v38</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -810,7 +823,7 @@ function showView(v){
   else if(v==='advisors') loadAdv()
   else if(v==='telegram') setTimeout(loadTgStats,50)
   else if(v==='log')      renderLog()
-  else if(v==='actions')  fillModSelect()
+  else if(v==='actions')  { fillModSelect(); fillReportSelect() }
   log('📂 '+v)
   try{ window.scrollTo(0,0) }catch(_){}
 }
@@ -1582,6 +1595,32 @@ async function sysCheck(){
   out.innerHTML=rows.join('')
   log('🩺 Проверка завершена')
 }
+async function fillReportSelect(){
+  const s=document.getElementById('repPlayer'); if(!s) return
+  const withTg=_profRows.filter(p=>p.telegram_id)
+  s.innerHTML='<option value="">— кому слать отчёты —</option>'+withTg.map(p=>
+    `<option value="${escH(String(p.telegram_id))}">${escH((p.nick||'?').substring(0,20))} · ✈️${escH(String(p.telegram_id))}</option>`).join('')
+  try{ const r=await execSQL('SELECT report_chat_id FROM app_config WHERE id=1'); const cid=r.data&&r.data[0]&&r.data[0].report_chat_id; if(cid) s.value=String(cid) }catch(_){}
+}
+async function saveReportCfg(){
+  const s=document.getElementById('repPlayer'), st=document.getElementById('repStatus')
+  if(!s.value){st.textContent='Выбери игрока (себя) из списка';return}
+  const r=await execSQL("UPDATE app_config SET report_chat_id="+Number(s.value)+", updated_at=now() WHERE id=1")
+  st.textContent=r.error?('❌ '+r.error):('✅ Отчёты будут приходить: '+s.options[s.selectedIndex].textContent)
+  log(r.error?('❌ Отчёты: '+r.error):'📊 Адрес отчётов сохранён')
+}
+async function testReport(){
+  const s=document.getElementById('repPlayer'), st=document.getElementById('repStatus')
+  if(!s.value){st.textContent='Сначала выбери игрока';return}
+  st.textContent='Отправляю тест…'
+  const msg='🧪 <b>Тест-отчёт</b>\nСистема отчётов подключена ✅\nСюда будут приходить итоги рассылок и сводка за день.'
+  const sql="SELECT net.http_post(url:='"+SB+"/functions/v1/broadcast',"+
+    "headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||(SELECT token FROM public.cron_auth WHERE id=1)),"+
+    "body:=jsonb_build_object('message','"+_esc(msg)+"'::text,'test_chat_id',"+Number(s.value)+")) AS request_id"
+  const r=await execSQL(sql)
+  st.textContent=r.error?('❌ '+r.error):'✅ Тест отправлен — проверь Telegram'
+  log(r.error?('❌ Тест-отчёт: '+r.error):'🧪 Тест-отчёт отправлен')
+}
 
 // ── Start ──────────────────────────────────────────────────────────────────
 
@@ -1684,6 +1723,7 @@ async function loadPlayers(){
   }
   renderProfiles()
   fillModSelect()
+  if(curView==='actions') fillReportSelect()
   log('👤 Профили: '+_profRows.length+' игроков')
 }
 
