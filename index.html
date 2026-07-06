@@ -624,10 +624,23 @@ tr:hover td{background:#fafafa}
       </div>
 
       <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">📢 Объявление в игре</span><span class="badge bg">видят все</span></div>
+        <div class="ch"><span class="ct">📢 Объявление в игре</span><span class="badge bg">доходит до всех</span></div>
         <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:.72rem;color:var(--mut)">Показывается баннером <b>каждому</b>, кто открывает игру — независимо от бота. Идеально для анонсов «всем всегда».</div>
-          <textarea id="annText" class="sq-area" style="min-height:70px" placeholder="Текст объявления (обычный текст, без HTML)…"></textarea>
+          <div style="font-size:.72rem;color:var(--mut)">Баннер видит <b>каждый</b>, кто открывает игру — даже те, кто не запускал бота или входит по email. Показывается на языке игрока. <b>Русский — основной</b>, остальные подставляются при наличии.</div>
+          <label style="font-size:.7rem;color:var(--mut)">🇷🇺 Русский <b>(основной)</b></label>
+          <textarea id="ann_ru" class="sq-area" style="min-height:56px" placeholder="Текст объявления (обычный текст, без HTML)…"></textarea>
+          <details style="font-size:.72rem">
+            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): EN · UK · PL · SK</summary>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+              <textarea id="ann_en" class="sq-area" style="min-height:44px" placeholder="English…"></textarea>
+              <textarea id="ann_uk" class="sq-area" style="min-height:44px" placeholder="Українська…"></textarea>
+              <textarea id="ann_pl" class="sq-area" style="min-height:44px" placeholder="Polski…"></textarea>
+              <textarea id="ann_sk" class="sq-area" style="min-height:44px" placeholder="Slovenčina…"></textarea>
+            </div>
+          </details>
+          <label style="font-size:.72rem;color:var(--mut);display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="annTg"> Также отправить в Telegram (кто запускал бота) — на языке игрока
+          </label>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <button class="pbtn pbtn-r" onclick="saveAnnounce()">📢 Показать всем</button>
             <button class="pbtn pbtn-c" onclick="clearAnnounce()">🧹 Убрать</button>
@@ -714,7 +727,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v40</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v41</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -1634,22 +1647,52 @@ async function testReport(){
   st.textContent=r.error?('❌ '+r.error):'✅ Тест отправлен — проверь Telegram'
   log(r.error?('❌ Тест-отчёт: '+r.error):'🧪 Тест-отчёт отправлен')
 }
+const _ANN_LANGS=['ru','en','uk','pl','sk']
+function _annCollect(){
+  const i18n={}
+  for(const l of _ANN_LANGS){
+    const el=document.getElementById('ann_'+l)
+    const v=el?(el.value||'').trim():''
+    if(v) i18n[l]=v
+  }
+  return i18n
+}
 async function loadAnnounce(){
-  const r=await execSQL('SELECT announce_text, announce_active FROM app_config WHERE id=1')
+  const r=await execSQL('SELECT announce_i18n, announce_text, announce_active FROM app_config WHERE id=1')
   if(r.error||!r.data||!r.data[0]) return
-  const d=r.data[0], ta=document.getElementById('annText'), st=document.getElementById('annState')
-  if(ta && d.announce_text!=null && !ta.value) ta.value=d.announce_text
+  const d=r.data[0], st=document.getElementById('annState')
+  let i18n=d.announce_i18n||{}
+  if(typeof i18n==='string'){try{i18n=JSON.parse(i18n)}catch(_){i18n={}}}
+  // legacy fallback: single announce_text → ru field
+  if((!i18n||!Object.keys(i18n).length) && d.announce_text) i18n={ru:d.announce_text}
+  for(const l of _ANN_LANGS){
+    const el=document.getElementById('ann_'+l)
+    if(el && !el.value && i18n[l]!=null) el.value=i18n[l]
+  }
   if(st) st.textContent=d.announce_active?'🟢 сейчас показывается всем':'⚪ выключено'
 }
 async function saveAnnounce(){
-  const ta=document.getElementById('annText'), st=document.getElementById('annState')
-  const txt=(ta.value||'').trim()
-  if(!txt){st.textContent='Введи текст объявления';return}
-  if(txt.length>1000){st.textContent='Максимум 1000 символов';return}
-  if(!confirm('Показать это объявление ВСЕМ игрокам в игре?')) return
-  const r=await execSQL("UPDATE app_config SET announce_text='"+_esc(txt)+"', announce_at=now(), announce_active=true WHERE id=1")
-  st.textContent=r.error?('❌ '+r.error):'🟢 Показывается всем — игроки увидят при открытии игры'
-  log(r.error?('❌ Объявление: '+r.error):'📢 Объявление опубликовано')
+  const st=document.getElementById('annState')
+  const i18n=_annCollect()
+  const ru=i18n.ru||''
+  if(!ru){st.textContent='Русский текст обязателен (основной)';return}
+  for(const l of _ANN_LANGS){ if((i18n[l]||'').length>1000){st.textContent='Максимум 1000 символов ('+l+')';return} }
+  const alsoTg=document.getElementById('annTg') && document.getElementById('annTg').checked
+  const langs=Object.keys(i18n).join(', ')
+  if(!confirm('Показать объявление ВСЕМ игрокам в игре?\nЯзыки: '+langs+(alsoTg?'\n\n+ Отправить в Telegram (кто запускал бота) на языке игрока.':''))) return
+  const jsonStr=JSON.stringify(i18n)
+  const r=await execSQL("UPDATE app_config SET announce_i18n='"+_esc(jsonStr)+"'::jsonb, announce_text='"+_esc(ru)+"', announce_at=now(), announce_active=true WHERE id=1")
+  if(r.error){st.textContent='❌ '+r.error; log('❌ Объявление: '+r.error); return}
+  st.textContent='🟢 Показывается всем — игроки увидят при открытии игры'
+  log('📢 Объявление опубликовано ('+langs+')')
+  if(alsoTg){
+    const sql="SELECT net.http_post(url:='"+SB+"/functions/v1/broadcast',"+
+      "headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||(SELECT token FROM public.cron_auth WHERE id=1)),"+
+      "body:=jsonb_build_object('messages','"+_esc(jsonStr)+"'::jsonb,'only_active',false)) AS request_id"
+    const r2=await execSQL(sql)
+    st.textContent=r2.error?('🟢 Баннер опубликован, но Telegram: '+r2.error):'🟢 Баннер + Telegram-рассылка запущены (отчёт придёт в чат)'
+    log(r2.error?('❌ Telegram-пуш объявления: '+r2.error):'📣 Telegram-рассылка объявления запущена')
+  }
 }
 async function clearAnnounce(){
   const st=document.getElementById('annState')
