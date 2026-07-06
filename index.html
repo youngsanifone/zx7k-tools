@@ -758,7 +758,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v44</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v45</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -870,6 +870,7 @@ function setDot(id,st,ms){
 let curView='dashboard'
 function showView(v){
   curView=v
+  try{ localStorage.setItem('zx_view', v) }catch(_){}   // remember tab across reloads
   document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===v))
   document.querySelectorAll('[data-view]').forEach(el=>{
     if(el.classList.contains('nav-item')) return
@@ -1999,7 +2000,10 @@ async function loadTgStats(){
 }
 
 function startApp(){
-  showView('dashboard')                       // set initial view (hide non-dashboard blocks)
+  // Restore the last-opened tab across reloads (fallback to dashboard).
+  const _views=['dashboard','players','telegram','actions','data','sql','advisors','log']
+  let _v='dashboard'; try{ const s=localStorage.getItem('zx_view'); if(s&&_views.includes(s)) _v=s }catch(_){}
+  showView(_v)                                // set initial view (hide non-dashboard blocks)
   initCharts(); loadData(); loadCommits(); pingGame(); pingEF(); loadOnline(); loadPlayers(); loadTbl(curTbl)
   updateConnViz(); setInterval(updateConnViz,2000)
   setInterval(()=>{loadData()},5000)          // leaderboard / recent every 5s
