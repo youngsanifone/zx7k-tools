@@ -650,6 +650,35 @@ tr:hover td{background:#fafafa}
       </div>
 
       <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">🔁 Авто-рассылка</span><span class="badge bg">на автомате</span></div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:.72rem;color:var(--mut)">Бот <b>сам</b> напоминает игрокам вернуться — на их языке, с кнопкой «Играть». Отчёт приходит тебе в чат после каждой отправки.</div>
+          <label style="font-size:.74rem;display:flex;align-items:center;gap:6px"><input type="checkbox" id="autoActive"> <b>Включить авто-рассылку</b></label>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:.72rem;color:var(--mut)">Отправлять раз в</span>
+            <input type="number" id="autoDays" class="tbl-inp" style="width:70px" min="1" max="60" value="3">
+            <span style="font-size:.72rem;color:var(--mut)">дн.</span>
+          </div>
+          <label style="font-size:.7rem;color:var(--mut)">🇷🇺 Русский <b>(основной)</b></label>
+          <textarea id="auto_ru" class="sq-area" style="min-height:48px" placeholder="Текст напоминания…"></textarea>
+          <details style="font-size:.72rem">
+            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): EN · UK · PL · SK</summary>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+              <textarea id="auto_en" class="sq-area" style="min-height:40px" placeholder="English…"></textarea>
+              <textarea id="auto_uk" class="sq-area" style="min-height:40px" placeholder="Українська…"></textarea>
+              <textarea id="auto_pl" class="sq-area" style="min-height:40px" placeholder="Polski…"></textarea>
+              <textarea id="auto_sk" class="sq-area" style="min-height:40px" placeholder="Slovenčina…"></textarea>
+            </div>
+          </details>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="pbtn pbtn-r" onclick="saveAuto()">💾 Сохранить</button>
+            <button class="pbtn pbtn-c" onclick="autoSendNow()">▶️ Отправить сейчас</button>
+            <span id="autoState" style="font-size:.72rem;color:var(--mut)"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0">
         <div class="ch"><span class="ct">🛡 Модерация игрока</span><span class="badge bp">осторожно</span></div>
         <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
           <select id="modPlayer" class="tbl-inp" style="width:100%"><option value="">— выбери игрока —</option></select>
@@ -727,7 +756,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v41</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v42</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -849,7 +878,7 @@ function showView(v){
   else if(v==='advisors') loadAdv()
   else if(v==='telegram') setTimeout(loadTgStats,50)
   else if(v==='log')      renderLog()
-  else if(v==='actions')  { fillModSelect(); fillReportSelect(); loadAnnounce() }
+  else if(v==='actions')  { fillModSelect(); fillReportSelect(); loadAnnounce(); loadAuto() }
   log('📂 '+v)
   try{ window.scrollTo(0,0) }catch(_){}
 }
@@ -1699,6 +1728,60 @@ async function clearAnnounce(){
   const r=await execSQL('UPDATE app_config SET announce_active=false WHERE id=1')
   st.textContent=r.error?('❌ '+r.error):'⚪ Убрано — баннер больше не показывается'
   log(r.error?('❌ Объявление: '+r.error):'🧹 Объявление снято')
+}
+
+// ── Авто-рассылка: бот сам напоминает игрокам раз в N дней ──────────────────
+function _autoCollect(){
+  const i18n={}
+  for(const l of _ANN_LANGS){
+    const el=document.getElementById('auto_'+l)
+    const v=el?(el.value||'').trim():''
+    if(v) i18n[l]=v
+  }
+  return i18n
+}
+async function loadAuto(){
+  const r=await execSQL('SELECT auto_active, auto_every_days, auto_msg_i18n, auto_last_at FROM app_config WHERE id=1')
+  if(r.error||!r.data||!r.data[0]) return
+  const d=r.data[0], st=document.getElementById('autoState')
+  const ck=document.getElementById('autoActive'); if(ck) ck.checked=!!d.auto_active
+  const dy=document.getElementById('autoDays'); if(dy&&d.auto_every_days!=null) dy.value=d.auto_every_days
+  let i18n=d.auto_msg_i18n||{}
+  if(typeof i18n==='string'){try{i18n=JSON.parse(i18n)}catch(_){i18n={}}}
+  for(const l of _ANN_LANGS){
+    const el=document.getElementById('auto_'+l)
+    if(el && !el.value && i18n[l]!=null) el.value=i18n[l]
+  }
+  if(st){
+    const last=d.auto_last_at?('послед. отправка: '+new Date(d.auto_last_at).toLocaleString('ru-RU')):'ещё не отправлялась'
+    st.textContent=(d.auto_active?'🟢 включена':'⚪ выключена')+' · '+last
+  }
+}
+async function saveAuto(){
+  const st=document.getElementById('autoState')
+  const i18n=_autoCollect()
+  if(!i18n.ru){st.textContent='Русский текст обязателен (основной)';return}
+  for(const l of _ANN_LANGS){ if((i18n[l]||'').length>1000){st.textContent='Максимум 1000 символов ('+l+')';return} }
+  const active=document.getElementById('autoActive').checked
+  let days=parseInt(document.getElementById('autoDays').value,10); if(!Number.isFinite(days)||days<1) days=3; if(days>60) days=60
+  const jsonStr=JSON.stringify(i18n)
+  const r=await execSQL("UPDATE app_config SET auto_active="+(active?'true':'false')+", auto_every_days="+days+", auto_msg_i18n='"+_esc(jsonStr)+"'::jsonb WHERE id=1")
+  if(r.error){st.textContent='❌ '+r.error; log('❌ Авто-рассылка: '+r.error); return}
+  st.textContent=active?('🟢 включена · раз в '+days+' дн.'):'⚪ сохранено, выключена'
+  log('🔁 Авто-рассылка: '+(active?'вкл, раз в '+days+' дн.':'выкл'))
+}
+async function autoSendNow(){
+  const st=document.getElementById('autoState')
+  const i18n=_autoCollect()
+  if(!i18n.ru){st.textContent='Сначала впиши текст (рус.)';return}
+  if(!confirm('Отправить напоминание ВСЕМ Telegram-игрокам прямо сейчас?\n\nОтправка реальная и необратима.')) return
+  const jsonStr=JSON.stringify(i18n)
+  const sql="SELECT net.http_post(url:='"+SB+"/functions/v1/broadcast',"+
+    "headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||(SELECT token FROM public.cron_auth WHERE id=1)),"+
+    "body:=jsonb_build_object('messages','"+_esc(jsonStr)+"'::jsonb,'only_active',false)) AS request_id"
+  const r=await execSQL(sql)
+  st.textContent=r.error?('❌ '+r.error):'✅ Отправлено — отчёт придёт в чат'
+  log(r.error?('❌ Авто-рассылка (сейчас): '+r.error):'▶️ Авто-рассылка отправлена вручную')
 }
 
 // ── Start ──────────────────────────────────────────────────────────────────
