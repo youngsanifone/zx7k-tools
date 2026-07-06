@@ -626,13 +626,13 @@ tr:hover td{background:#fafafa}
       <div class="card" style="margin:0">
         <div class="ch"><span class="ct">📢 Объявление в игре</span><span class="badge bg">доходит до всех</span></div>
         <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:.72rem;color:var(--mut)">Баннер видит <b>каждый</b>, кто открывает игру — даже те, кто не запускал бота или входит по email. Показывается на языке игрока. <b>Русский — основной</b>, остальные подставляются при наличии.</div>
-          <label style="font-size:.7rem;color:var(--mut)">🇷🇺 Русский <b>(основной)</b></label>
-          <textarea id="ann_ru" class="sq-area" style="min-height:56px" placeholder="Текст объявления (обычный текст, без HTML)…"></textarea>
+          <div style="font-size:.72rem;color:var(--mut)">Баннер видит <b>каждый</b>, кто открывает игру — даже те, кто не запускал бота или входит по email. Показывается на языке игрока. <b>English — основной (дефолтный)</b>, остальные подставляются при наличии.</div>
+          <label style="font-size:.7rem;color:var(--mut)">🇬🇧 English <b>(основной / default)</b></label>
+          <textarea id="ann_en" class="sq-area" style="min-height:56px" placeholder="Announcement text (plain text, no HTML)…"></textarea>
           <details style="font-size:.72rem">
-            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): EN · UK · PL · SK</summary>
+            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): RU · UK · PL · SK</summary>
             <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-              <textarea id="ann_en" class="sq-area" style="min-height:44px" placeholder="English…"></textarea>
+              <textarea id="ann_ru" class="sq-area" style="min-height:44px" placeholder="Русский…"></textarea>
               <textarea id="ann_uk" class="sq-area" style="min-height:44px" placeholder="Українська…"></textarea>
               <textarea id="ann_pl" class="sq-area" style="min-height:44px" placeholder="Polski…"></textarea>
               <textarea id="ann_sk" class="sq-area" style="min-height:44px" placeholder="Slovenčina…"></textarea>
@@ -659,12 +659,12 @@ tr:hover td{background:#fafafa}
             <input type="number" id="autoDays" class="tbl-inp" style="width:70px" min="1" max="60" value="3">
             <span style="font-size:.72rem;color:var(--mut)">дн.</span>
           </div>
-          <label style="font-size:.7rem;color:var(--mut)">🇷🇺 Русский <b>(основной)</b></label>
-          <textarea id="auto_ru" class="sq-area" style="min-height:48px" placeholder="Текст напоминания…"></textarea>
+          <label style="font-size:.7rem;color:var(--mut)">🇬🇧 English <b>(основной / default)</b></label>
+          <textarea id="auto_en" class="sq-area" style="min-height:48px" placeholder="Reminder text…"></textarea>
           <details style="font-size:.72rem">
-            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): EN · UK · PL · SK</summary>
+            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): RU · UK · PL · SK</summary>
             <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-              <textarea id="auto_en" class="sq-area" style="min-height:40px" placeholder="English…"></textarea>
+              <textarea id="auto_ru" class="sq-area" style="min-height:40px" placeholder="Русский…"></textarea>
               <textarea id="auto_uk" class="sq-area" style="min-height:40px" placeholder="Українська…"></textarea>
               <textarea id="auto_pl" class="sq-area" style="min-height:40px" placeholder="Polski…"></textarea>
               <textarea id="auto_sk" class="sq-area" style="min-height:40px" placeholder="Slovenčina…"></textarea>
@@ -756,7 +756,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v42</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v43</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -1676,7 +1676,7 @@ async function testReport(){
   st.textContent=r.error?('❌ '+r.error):'✅ Тест отправлен — проверь Telegram'
   log(r.error?('❌ Тест-отчёт: '+r.error):'🧪 Тест-отчёт отправлен')
 }
-const _ANN_LANGS=['ru','en','uk','pl','sk']
+const _ANN_LANGS=['en','ru','uk','pl','sk']
 function _annCollect(){
   const i18n={}
   for(const l of _ANN_LANGS){
@@ -1703,14 +1703,14 @@ async function loadAnnounce(){
 async function saveAnnounce(){
   const st=document.getElementById('annState')
   const i18n=_annCollect()
-  const ru=i18n.ru||''
-  if(!ru){st.textContent='Русский текст обязателен (основной)';return}
+  const base=i18n.en||''
+  if(!base){st.textContent='English текст обязателен (основной)';return}
   for(const l of _ANN_LANGS){ if((i18n[l]||'').length>1000){st.textContent='Максимум 1000 символов ('+l+')';return} }
   const alsoTg=document.getElementById('annTg') && document.getElementById('annTg').checked
   const langs=Object.keys(i18n).join(', ')
   if(!confirm('Показать объявление ВСЕМ игрокам в игре?\nЯзыки: '+langs+(alsoTg?'\n\n+ Отправить в Telegram (кто запускал бота) на языке игрока.':''))) return
   const jsonStr=JSON.stringify(i18n)
-  const r=await execSQL("UPDATE app_config SET announce_i18n='"+_esc(jsonStr)+"'::jsonb, announce_text='"+_esc(ru)+"', announce_at=now(), announce_active=true WHERE id=1")
+  const r=await execSQL("UPDATE app_config SET announce_i18n='"+_esc(jsonStr)+"'::jsonb, announce_text='"+_esc(base)+"', announce_at=now(), announce_active=true WHERE id=1")
   if(r.error){st.textContent='❌ '+r.error; log('❌ Объявление: '+r.error); return}
   st.textContent='🟢 Показывается всем — игроки увидят при открытии игры'
   log('📢 Объявление опубликовано ('+langs+')')
@@ -1760,7 +1760,7 @@ async function loadAuto(){
 async function saveAuto(){
   const st=document.getElementById('autoState')
   const i18n=_autoCollect()
-  if(!i18n.ru){st.textContent='Русский текст обязателен (основной)';return}
+  if(!i18n.en){st.textContent='English текст обязателен (основной)';return}
   for(const l of _ANN_LANGS){ if((i18n[l]||'').length>1000){st.textContent='Максимум 1000 символов ('+l+')';return} }
   const active=document.getElementById('autoActive').checked
   let days=parseInt(document.getElementById('autoDays').value,10); if(!Number.isFinite(days)||days<1) days=3; if(days>60) days=60
@@ -1773,7 +1773,7 @@ async function saveAuto(){
 async function autoSendNow(){
   const st=document.getElementById('autoState')
   const i18n=_autoCollect()
-  if(!i18n.ru){st.textContent='Сначала впиши текст (рус.)';return}
+  if(!i18n.en){st.textContent='Сначала впиши текст (English)';return}
   if(!confirm('Отправить напоминание ВСЕМ Telegram-игрокам прямо сейчас?\n\nОтправка реальная и необратима.')) return
   const jsonStr=JSON.stringify(i18n)
   const sql="SELECT net.http_post(url:='"+SB+"/functions/v1/broadcast',"+
