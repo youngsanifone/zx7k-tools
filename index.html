@@ -714,7 +714,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v39</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v40</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -1535,7 +1535,7 @@ async function modCoins(){
   const n=Number(document.getElementById('modCoins').value)
   if(!Number.isFinite(n)||n===0){alert('Введи число монет: 100 (начислить) или -50 (списать)');return}
   if(!confirm((n>0?'Начислить +':'Списать ')+n+' 🪙 игроку '+sel.nick+'?')) return
-  const r=await execSQL("UPDATE players SET coins=GREATEST(0,coins+("+n+")) WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick,coins")
+  const r=await execSQL("UPDATE players SET coins=GREATEST(0,coins+("+n+")), mod_rev=mod_rev+1 WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick,coins")
   const st=document.getElementById('modStatus')
   if(r.error){st.textContent='❌ '+r.error;return}
   const row=r.data&&r.data[0]
@@ -1549,7 +1549,7 @@ async function modRename(){
   if(clean.length<2){alert('Ник — минимум 2 символа');return}
   if(!confirm('Переименовать '+sel.nick+' → '+clean+'?\n(обновит профиль и историю игр)')) return
   const st=document.getElementById('modStatus')
-  const r1=await execSQL("UPDATE players SET nick='"+_esc(clean)+"' WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick")
+  const r1=await execSQL("UPDATE players SET nick='"+_esc(clean)+"', mod_rev=mod_rev+1 WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick")
   if(r1.error){st.textContent='❌ '+r1.error;return}
   const r2=await execSQL("UPDATE game_results SET name='"+_esc(clean)+"' WHERE player_id::text='"+_esc(sel.pid)+"'")
   st.textContent=r2.error?('⚠️ Профиль переименован, история: '+r2.error):('✅ Переименован в '+clean)
@@ -1561,7 +1561,7 @@ async function modResetBest(){
   if(!confirm('Точно? Последнее подтверждение для '+sel.nick+'.')) return
   const st=document.getElementById('modStatus')
   const r1=await execSQL("DELETE FROM game_results WHERE player_id::text='"+_esc(sel.pid)+"'")
-  const r2=await execSQL("UPDATE players SET best=0,best_level=1,total_score=0 WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick")
+  const r2=await execSQL("UPDATE players SET best=0,best_level=1,total_score=0,games_played=0,mod_rev=mod_rev+1 WHERE player_id='"+_esc(sel.pid)+"' RETURNING nick")
   st.textContent=(r1.error||r2.error)?('❌ '+(r1.error||r2.error)):('✅ Рекорд и история '+sel.nick+' сброшены')
   log('🧹 Модерация: полный сброс '+sel.nick); loadPlayers(); loadData()
 }
