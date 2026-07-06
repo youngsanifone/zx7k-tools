@@ -82,6 +82,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .card{background:var(--card);border-radius:11px;border:1px solid var(--brd);box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:12px}
+.tools-sec{font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:0 2px 9px;padding-bottom:5px;border-bottom:1px solid var(--brd)}
+.tools-group{margin-bottom:18px}
+.tools-masonry{columns:2;column-gap:12px}
+.tools-masonry>.card{break-inside:avoid;width:100%;display:inline-block;margin:0 0 12px}
+@media(max-width:900px){.tools-masonry{columns:1}}
 .ch{padding:10px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
 .ct{font-size:.82rem;font-weight:700}
 .badge{font-size:.6rem;padding:2px 7px;border-radius:14px;font-weight:700}
@@ -608,7 +613,10 @@ tr:hover td{background:#fafafa}
   <!-- ===== ACTIONS (TOOLS) VIEW ===== -->
   <div id="tab-actions" class="tb-body" data-view="actions" data-disp="block">
     <div class="tb-desc"><b>Инструменты</b> — управление игрой: рассылка сообщений, модерация игроков, экспорт данных, проверка систем.</div>
-    <div class="g2" style="padding:12px 13px;gap:12px;align-items:start">
+    <div class="tools-wrap" style="padding:12px 13px">
+      <div class="tools-group">
+        <div class="tools-sec">✉️ Сообщения и рассылки</div>
+        <div class="tools-masonry">
 
       <div class="card" style="margin:0">
         <div class="ch"><span class="ct">📣 Сообщение всем игрокам</span><span class="badge bb">Telegram</span></div>
@@ -681,6 +689,25 @@ tr:hover td{background:#fafafa}
       </div>
 
       <div class="card" style="margin:0">
+        <div class="ch"><span class="ct">📊 Отчёты о рассылках</span><span class="badge bb">в Telegram</span></div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:.72rem;color:var(--mut)">После каждой рассылки (квесты по расписанию + твои сообщения) бот пришлёт тебе отчёт: сколько получили, кому не дошло, сводку за день.</div>
+          <select id="repPlayer" class="tbl-inp" style="width:100%"><option value="">— кому слать отчёты —</option></select>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="pbtn pbtn-r" onclick="saveReportCfg()">💾 Сохранить</button>
+            <button class="pbtn pbtn-c" onclick="testReport()">🧪 Тест-отчёт</button>
+          </div>
+          <div style="font-size:.7rem;color:var(--mut)" id="repStatus"></div>
+        </div>
+      </div>
+
+        </div>
+      </div>
+      <div class="tools-group">
+        <div class="tools-sec">🛡 Игроки и данные</div>
+        <div class="tools-masonry">
+
+      <div class="card" style="margin:0">
         <div class="ch"><span class="ct">🛡 Модерация игрока</span><span class="badge bp">осторожно</span></div>
         <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
           <select id="modPlayer" class="tbl-inp" style="width:100%"><option value="">— выбери игрока —</option></select>
@@ -710,19 +737,8 @@ tr:hover td{background:#fafafa}
         <div id="sysCheckOut" style="padding:12px 14px;font-size:.76rem"><div class="empty">Нажми «Проверить всё» — пинги, cron, БД, edge-функции</div></div>
       </div>
 
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">📊 Отчёты о рассылках</span><span class="badge bb">в Telegram</span></div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:.72rem;color:var(--mut)">После каждой рассылки (квесты по расписанию + твои сообщения) бот пришлёт тебе отчёт: сколько получили, кому не дошло, сводку за день.</div>
-          <select id="repPlayer" class="tbl-inp" style="width:100%"><option value="">— кому слать отчёты —</option></select>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="pbtn pbtn-r" onclick="saveReportCfg()">💾 Сохранить</button>
-            <button class="pbtn pbtn-c" onclick="testReport()">🧪 Тест-отчёт</button>
-          </div>
-          <div style="font-size:.7rem;color:var(--mut)" id="repStatus"></div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -758,7 +774,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v45</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v46</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
