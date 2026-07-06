@@ -643,6 +643,7 @@ tr:hover td{background:#fafafa}
           </label>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <button class="pbtn pbtn-r" onclick="saveAnnounce()">📢 Показать всем</button>
+            <button class="pbtn pbtn-c" onclick="autoTranslate('ann','annState')">🌐 Перевести с English</button>
             <button class="pbtn pbtn-c" onclick="clearAnnounce()">🧹 Убрать</button>
             <span id="annState" style="font-size:.72rem;color:var(--mut)"></span>
           </div>
@@ -672,6 +673,7 @@ tr:hover td{background:#fafafa}
           </details>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <button class="pbtn pbtn-r" onclick="saveAuto()">💾 Сохранить</button>
+            <button class="pbtn pbtn-c" onclick="autoTranslate('auto','autoState')">🌐 Перевести с English</button>
             <button class="pbtn pbtn-c" onclick="autoSendNow()">▶️ Отправить сейчас</button>
             <span id="autoState" style="font-size:.72rem;color:var(--mut)"></span>
           </div>
@@ -756,7 +758,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v43</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v44</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -1728,6 +1730,26 @@ async function clearAnnounce(){
   const r=await execSQL('UPDATE app_config SET announce_active=false WHERE id=1')
   st.textContent=r.error?('❌ '+r.error):'⚪ Убрано — баннер больше не показывается'
   log(r.error?('❌ Объявление: '+r.error):'🧹 Объявление снято')
+}
+
+// ── Автоперевод текста с English на остальные языки (edge-функция translate) ──
+async function autoTranslate(prefix, statusId){
+  const st=document.getElementById(statusId)
+  const baseEl=document.getElementById(prefix+'_en')
+  const base=(baseEl&&baseEl.value||'').trim()
+  if(!base){ if(st) st.textContent='Сначала впиши текст на English'; return }
+  if(st) st.textContent='🌐 Перевожу…'
+  try{
+    const r=await fetch(SB+'/functions/v1/translate',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({auth:authHash,text:base,source:'en',targets:['ru','uk','pl','sk']})})
+    const j=await r.json()
+    if(!r.ok||j.error){ if(st) st.textContent='❌ '+(j.error||('HTTP '+r.status)); return }
+    const tr=j.translations||{}; let n=0
+    for(const l of ['ru','uk','pl','sk']){ const el=document.getElementById(prefix+'_'+l); if(el&&tr[l]){ el.value=tr[l]; n++ } }
+    const det=baseEl.parentElement&&baseEl.parentElement.querySelector('details'); if(det) det.open=true
+    if(st) st.textContent='✅ Переведено ('+n+' яз.) — проверь и сохрани'
+    log('🌐 Автоперевод: '+prefix+' ('+n+' языков)')
+  }catch(e){ if(st) st.textContent='❌ '+e.message }
 }
 
 // ── Авто-рассылка: бот сам напоминает игрокам раз в N дней ──────────────────
