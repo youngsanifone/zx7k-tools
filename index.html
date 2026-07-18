@@ -87,6 +87,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tools-masonry{columns:2;column-gap:12px}
 .tools-masonry>.card{break-inside:avoid;width:100%;display:inline-block;margin:0 0 12px}
 @media(max-width:900px){.tools-masonry{columns:1}}
+/* Modern tool launcher */
+.tool-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:16px}
+.tool-tile{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px 13px;border:1px solid var(--brd);border-radius:13px;background:var(--card);cursor:pointer;transition:transform .14s,border-color .14s,box-shadow .14s;font:inherit;position:relative}
+.tool-tile:hover{border-color:var(--acc);transform:translateY(-2px);box-shadow:0 7px 20px rgba(0,0,0,.10)}
+.tool-tile.active{border-color:var(--acc);box-shadow:0 0 0 1.5px var(--acc) inset;background:rgba(99,102,241,.09)}
+.tt-ic{font-size:1.35rem;line-height:1;margin-bottom:3px}
+.tt-name{font-size:.84rem;font-weight:700}
+.tt-desc{font-size:.68rem;color:var(--mut);line-height:1.25}
+.tt-badge{position:absolute;top:9px;right:10px;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--brd);color:var(--mut)}
+.tool-panel{display:none;animation:tpin .18s ease}
+.tool-panel.active{display:block}
+.tool-panel>.card{margin:0}
+@keyframes tpin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .ch{padding:10px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
 .ct{font-size:.82rem;font-weight:700}
 .badge{font-size:.6rem;padding:2px 7px;border-radius:14px;font-weight:700}
@@ -613,131 +626,146 @@ tr:hover td{background:#fafafa}
   <!-- ===== ACTIONS (TOOLS) VIEW ===== -->
   <div id="tab-actions" class="tb-body" data-view="actions" data-disp="block">
     <div class="tb-desc"><b>Инструменты</b> — управление игрой: рассылка сообщений, модерация игроков, экспорт данных, проверка систем.</div>
-    <div class="tools-wrap" style="padding:12px 13px">
-      <div class="tools-group">
-        <div class="tools-sec">✉️ Сообщения и рассылки</div>
-        <div class="tools-masonry">
-
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">📣 Сообщение всем игрокам</span><span class="badge bb">Telegram</span></div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <textarea id="bcMsg" class="sq-area" style="min-height:90px" placeholder="Текст сообщения… (можно <b>жирный</b> и <i>курсив</i>)"></textarea>
-          <label style="font-size:.75rem;display:flex;gap:6px;align-items:center;color:var(--sub)"><input type="checkbox" id="bcActive"> Только активным за 14 дней</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="pbtn pbtn-c" onclick="bcTest()">🧪 Тест себе</button>
-            <button class="pbtn pbtn-r" onclick="bcSend()">📤 Отправить всем</button>
-          </div>
-          <div style="font-size:.7rem;color:var(--mut)" id="bcStatus"></div>
-        </div>
+    <div class="tools-wrap" style="padding:14px 14px 8px">
+      <div class="tool-tiles">
+        <button class="tool-tile" data-tool="bc"   onclick="showTool('bc')"><span class="tt-ic">📣</span><span class="tt-name">Сообщение всем</span><span class="tt-desc">Рассылка в Telegram</span></button>
+        <button class="tool-tile" data-tool="ann"  onclick="showTool('ann')"><span class="tt-badge">всем</span><span class="tt-ic">📢</span><span class="tt-name">Объявление в игре</span><span class="tt-desc">Баннер видят все</span></button>
+        <button class="tool-tile" data-tool="auto" onclick="showTool('auto')"><span class="tt-badge">авто</span><span class="tt-ic">🔁</span><span class="tt-name">Авто-рассылка</span><span class="tt-desc">Напоминания сами</span></button>
+        <button class="tool-tile" data-tool="rep"  onclick="showTool('rep')"><span class="tt-ic">📊</span><span class="tt-name">Отчёты</span><span class="tt-desc">Сводки в чат</span></button>
+        <button class="tool-tile" data-tool="mod"  onclick="showTool('mod')"><span class="tt-ic">🛡</span><span class="tt-name">Модерация</span><span class="tt-desc">Монеты · сброс · ник</span></button>
+        <button class="tool-tile" data-tool="exp"  onclick="showTool('exp')"><span class="tt-ic">📥</span><span class="tt-name">Экспорт / бэкап</span><span class="tt-desc">CSV-выгрузка</span></button>
+        <button class="tool-tile" data-tool="sys"  onclick="showTool('sys')"><span class="tt-ic">🩺</span><span class="tt-name">Здоровье</span><span class="tt-desc">Проверка систем</span></button>
       </div>
 
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">📢 Объявление в игре</span><span class="badge bg">доходит до всех</span></div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:.72rem;color:var(--mut)">Баннер видит <b>каждый</b>, кто открывает игру — даже те, кто не запускал бота или входит по email. Показывается на языке игрока. <b>English — основной (дефолтный)</b>, остальные подставляются при наличии.</div>
-          <label style="font-size:.7rem;color:var(--mut)">🇬🇧 English <b>(основной / default)</b></label>
-          <textarea id="ann_en" class="sq-area" style="min-height:56px" placeholder="Announcement text (plain text, no HTML)…"></textarea>
-          <details style="font-size:.72rem">
-            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): RU · UK · PL · SK</summary>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-              <textarea id="ann_ru" class="sq-area" style="min-height:44px" placeholder="Русский…"></textarea>
-              <textarea id="ann_uk" class="sq-area" style="min-height:44px" placeholder="Українська…"></textarea>
-              <textarea id="ann_pl" class="sq-area" style="min-height:44px" placeholder="Polski…"></textarea>
-              <textarea id="ann_sk" class="sq-area" style="min-height:44px" placeholder="Slovenčina…"></textarea>
+      <div class="tool-panels">
+
+        <div class="tool-panel" id="tp-bc">
+          <div class="card">
+            <div class="ch"><span class="ct">📣 Сообщение всем игрокам</span><span class="badge bb">Telegram</span></div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+              <textarea id="bcMsg" class="sq-area" style="min-height:90px" placeholder="Текст сообщения… (можно <b>жирный</b> и <i>курсив</i>)"></textarea>
+              <label style="font-size:.75rem;display:flex;gap:6px;align-items:center;color:var(--sub)"><input type="checkbox" id="bcActive"> Только активным за 14 дней</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="pbtn pbtn-c" onclick="bcTest()">🧪 Тест себе</button>
+                <button class="pbtn pbtn-r" onclick="bcSend()">📤 Отправить всем</button>
+              </div>
+              <div style="font-size:.7rem;color:var(--mut)" id="bcStatus"></div>
             </div>
-          </details>
-          <label style="font-size:.72rem;color:var(--mut);display:flex;align-items:center;gap:6px">
-            <input type="checkbox" id="annTg"> Также отправить в Telegram (кто запускал бота) — на языке игрока
-          </label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="pbtn pbtn-r" onclick="saveAnnounce()">📢 Показать всем</button>
-            <button class="pbtn pbtn-c" onclick="autoTranslate('ann','annState')">🌐 Перевести с English</button>
-            <button class="pbtn pbtn-c" onclick="clearAnnounce()">🧹 Убрать</button>
-            <span id="annState" style="font-size:.72rem;color:var(--mut)"></span>
           </div>
         </div>
-      </div>
 
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">🔁 Авто-рассылка</span><span class="badge bg">на автомате</span></div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:.72rem;color:var(--mut)">Бот <b>сам</b> напоминает игрокам вернуться — на их языке, с кнопкой «Играть». Отчёт приходит тебе в чат после каждой отправки.</div>
-          <label style="font-size:.74rem;display:flex;align-items:center;gap:6px"><input type="checkbox" id="autoActive"> <b>Включить авто-рассылку</b></label>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span style="font-size:.72rem;color:var(--mut)">Отправлять раз в</span>
-            <input type="number" id="autoDays" class="tbl-inp" style="width:70px" min="1" max="60" value="3">
-            <span style="font-size:.72rem;color:var(--mut)">дн.</span>
-          </div>
-          <label style="font-size:.7rem;color:var(--mut)">🇬🇧 English <b>(основной / default)</b></label>
-          <textarea id="auto_en" class="sq-area" style="min-height:48px" placeholder="Reminder text…"></textarea>
-          <details style="font-size:.72rem">
-            <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): RU · UK · PL · SK</summary>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-              <textarea id="auto_ru" class="sq-area" style="min-height:40px" placeholder="Русский…"></textarea>
-              <textarea id="auto_uk" class="sq-area" style="min-height:40px" placeholder="Українська…"></textarea>
-              <textarea id="auto_pl" class="sq-area" style="min-height:40px" placeholder="Polski…"></textarea>
-              <textarea id="auto_sk" class="sq-area" style="min-height:40px" placeholder="Slovenčina…"></textarea>
+        <div class="tool-panel" id="tp-ann">
+          <div class="card">
+            <div class="ch"><span class="ct">📢 Объявление в игре</span><span class="badge bg">доходит до всех</span></div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:.72rem;color:var(--mut)">Баннер видит <b>каждый</b>, кто открывает игру — даже те, кто не запускал бота или входит по email. Показывается на языке игрока. <b>English — основной (дефолтный)</b>, остальные подставляются при наличии.</div>
+              <label style="font-size:.7rem;color:var(--mut)">🇬🇧 English <b>(основной / default)</b></label>
+              <textarea id="ann_en" class="sq-area" style="min-height:56px" placeholder="Announcement text (plain text, no HTML)…"></textarea>
+              <details style="font-size:.72rem">
+                <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): RU · UK · PL · SK</summary>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+                  <textarea id="ann_ru" class="sq-area" style="min-height:44px" placeholder="Русский…"></textarea>
+                  <textarea id="ann_uk" class="sq-area" style="min-height:44px" placeholder="Українська…"></textarea>
+                  <textarea id="ann_pl" class="sq-area" style="min-height:44px" placeholder="Polski…"></textarea>
+                  <textarea id="ann_sk" class="sq-area" style="min-height:44px" placeholder="Slovenčina…"></textarea>
+                </div>
+              </details>
+              <label style="font-size:.72rem;color:var(--mut);display:flex;align-items:center;gap:6px">
+                <input type="checkbox" id="annTg"> Также отправить в Telegram (кто запускал бота) — на языке игрока
+              </label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <button class="pbtn pbtn-r" onclick="saveAnnounce()">📢 Показать всем</button>
+                <button class="pbtn pbtn-c" onclick="autoTranslate('ann','annState')">🌐 Перевести с English</button>
+                <button class="pbtn pbtn-c" onclick="clearAnnounce()">🧹 Убрать</button>
+                <span id="annState" style="font-size:.72rem;color:var(--mut)"></span>
+              </div>
             </div>
-          </details>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="pbtn pbtn-r" onclick="saveAuto()">💾 Сохранить</button>
-            <button class="pbtn pbtn-c" onclick="autoTranslate('auto','autoState')">🌐 Перевести с English</button>
-            <button class="pbtn pbtn-c" onclick="autoSendNow()">▶️ Отправить сейчас</button>
-            <span id="autoState" style="font-size:.72rem;color:var(--mut)"></span>
           </div>
         </div>
-      </div>
 
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">📊 Отчёты о рассылках</span><span class="badge bb">в Telegram</span></div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:.72rem;color:var(--mut)">После каждой рассылки (квесты по расписанию + твои сообщения) бот пришлёт тебе отчёт: сколько получили, кому не дошло, сводку за день.</div>
-          <select id="repPlayer" class="tbl-inp" style="width:100%"><option value="">— кому слать отчёты —</option></select>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="pbtn pbtn-r" onclick="saveReportCfg()">💾 Сохранить</button>
-            <button class="pbtn pbtn-c" onclick="testReport()">🧪 Тест-отчёт</button>
+        <div class="tool-panel" id="tp-auto">
+          <div class="card">
+            <div class="ch"><span class="ct">🔁 Авто-рассылка</span><span class="badge bg">на автомате</span></div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:.72rem;color:var(--mut)">Бот <b>сам</b> напоминает игрокам вернуться — на их языке, с кнопкой «Играть». Отчёт приходит тебе в чат после каждой отправки.</div>
+              <label style="font-size:.74rem;display:flex;align-items:center;gap:6px"><input type="checkbox" id="autoActive"> <b>Включить авто-рассылку</b></label>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:.72rem;color:var(--mut)">Отправлять раз в</span>
+                <input type="number" id="autoDays" class="tbl-inp" style="width:70px" min="1" max="60" value="3">
+                <span style="font-size:.72rem;color:var(--mut)">дн.</span>
+              </div>
+              <label style="font-size:.7rem;color:var(--mut)">🇬🇧 English <b>(основной / default)</b></label>
+              <textarea id="auto_en" class="sq-area" style="min-height:48px" placeholder="Reminder text…"></textarea>
+              <details style="font-size:.72rem">
+                <summary style="cursor:pointer;color:var(--mut)">🌍 Переводы (необязательно): RU · UK · PL · SK</summary>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+                  <textarea id="auto_ru" class="sq-area" style="min-height:40px" placeholder="Русский…"></textarea>
+                  <textarea id="auto_uk" class="sq-area" style="min-height:40px" placeholder="Українська…"></textarea>
+                  <textarea id="auto_pl" class="sq-area" style="min-height:40px" placeholder="Polski…"></textarea>
+                  <textarea id="auto_sk" class="sq-area" style="min-height:40px" placeholder="Slovenčina…"></textarea>
+                </div>
+              </details>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <button class="pbtn pbtn-r" onclick="saveAuto()">💾 Сохранить</button>
+                <button class="pbtn pbtn-c" onclick="autoTranslate('auto','autoState')">🌐 Перевести с English</button>
+                <button class="pbtn pbtn-c" onclick="autoSendNow()">▶️ Отправить сейчас</button>
+                <span id="autoState" style="font-size:.72rem;color:var(--mut)"></span>
+              </div>
+            </div>
           </div>
-          <div style="font-size:.7rem;color:var(--mut)" id="repStatus"></div>
         </div>
-      </div>
 
-        </div>
-      </div>
-      <div class="tools-group">
-        <div class="tools-sec">🛡 Игроки и данные</div>
-        <div class="tools-masonry">
-
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">🛡 Модерация игрока</span><span class="badge bp">осторожно</span></div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <select id="modPlayer" class="tbl-inp" style="width:100%"><option value="">— выбери игрока —</option></select>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <input type="number" id="modCoins" class="tbl-inp" style="width:130px" placeholder="±монеты">
-            <button class="pbtn pbtn-r" onclick="modCoins()">🪙 Применить</button>
+        <div class="tool-panel" id="tp-rep">
+          <div class="card">
+            <div class="ch"><span class="ct">📊 Отчёты о рассылках</span><span class="badge bb">в Telegram</span></div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:.72rem;color:var(--mut)">После каждой рассылки (квесты по расписанию + твои сообщения) бот пришлёт тебе отчёт: сколько получили, кому не дошло, сводку за день.</div>
+              <select id="repPlayer" class="tbl-inp" style="width:100%"><option value="">— кому слать отчёты —</option></select>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <button class="pbtn pbtn-r" onclick="saveReportCfg()">💾 Сохранить</button>
+                <button class="pbtn pbtn-c" onclick="testReport()">🧪 Тест-отчёт</button>
+              </div>
+              <div style="font-size:.7rem;color:var(--mut)" id="repStatus"></div>
+            </div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="pbtn pbtn-c" onclick="modRename()">✏️ Переименовать</button>
-            <button class="pbtn pbtn-red" onclick="modResetBest()">🧹 Полный сброс рекорда</button>
+        </div>
+
+        <div class="tool-panel" id="tp-mod">
+          <div class="card">
+            <div class="ch"><span class="ct">🛡 Модерация игрока</span><span class="badge bp">осторожно</span></div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+              <select id="modPlayer" class="tbl-inp" style="width:100%"><option value="">— выбери игрока —</option></select>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <input type="number" id="modCoins" class="tbl-inp" style="width:130px" placeholder="±монеты">
+                <button class="pbtn pbtn-r" onclick="modCoins()">🪙 Применить</button>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="pbtn pbtn-c" onclick="modRename()">✏️ Переименовать</button>
+                <button class="pbtn pbtn-red" onclick="modResetBest()">🧹 Полный сброс рекорда</button>
+              </div>
+              <div style="font-size:.7rem;color:var(--mut)" id="modStatus"></div>
+            </div>
           </div>
-          <div style="font-size:.7rem;color:var(--mut)" id="modStatus"></div>
         </div>
-      </div>
 
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">📥 Экспорт / бэкап</span><span class="badge bg">безопасно</span></div>
-        <div style="padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="pbtn pbtn-c" onclick="expTbl('players')">👤 Игроки CSV</button>
-          <button class="pbtn pbtn-c" onclick="expTbl('game_results')">🏆 Игры CSV</button>
-          <button class="pbtn pbtn-c" onclick="expTbl('player_events')">📡 События CSV</button>
+        <div class="tool-panel" id="tp-exp">
+          <div class="card">
+            <div class="ch"><span class="ct">📥 Экспорт / бэкап</span><span class="badge bg">безопасно</span></div>
+            <div style="padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="pbtn pbtn-c" onclick="expTbl('players')">👤 Игроки CSV</button>
+              <button class="pbtn pbtn-c" onclick="expTbl('game_results')">🏆 Игры CSV</button>
+              <button class="pbtn pbtn-c" onclick="expTbl('player_events')">📡 События CSV</button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="card" style="margin:0">
-        <div class="ch"><span class="ct">🩺 Здоровье системы</span><button class="pbtn pbtn-r" onclick="sysCheck()">▶ Проверить всё</button></div>
-        <div id="sysCheckOut" style="padding:12px 14px;font-size:.76rem"><div class="empty">Нажми «Проверить всё» — пинги, cron, БД, edge-функции</div></div>
-      </div>
-
+        <div class="tool-panel" id="tp-sys">
+          <div class="card">
+            <div class="ch"><span class="ct">🩺 Здоровье системы</span><button class="pbtn pbtn-r" onclick="sysCheck()">▶ Проверить всё</button></div>
+            <div id="sysCheckOut" style="padding:12px 14px;font-size:.76rem"><div class="empty">Нажми «Проверить всё» — пинги, cron, БД, edge-функции</div></div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -774,7 +802,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v46</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v47</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -897,12 +925,24 @@ function showView(v){
   else if(v==='advisors') loadAdv()
   else if(v==='telegram') setTimeout(loadTgStats,50)
   else if(v==='log')      renderLog()
-  else if(v==='actions')  { fillModSelect(); fillReportSelect(); loadAnnounce(); loadAuto() }
+  else if(v==='actions')  { let _t='bc'; try{const s=localStorage.getItem('zx_tool'); if(s) _t=s}catch(_){}; showTool(_t) }
   log('📂 '+v)
   try{ window.scrollTo(0,0) }catch(_){}
 }
 // Back-compat: existing openTab(n) callers (e.g. advisors "Таблицы → SQL") → views
 function openTab(n){ const m={tables:'data',sql:'sql',advisors:'advisors',telegram:'telegram',actlog:'log',storage:'data',auth:'dashboard'}; showView(m[n]||n) }
+// Tools launcher: show one tool panel, highlight its tile, load its data.
+function showTool(t){
+  document.querySelectorAll('.tool-tile').forEach(b=>b.classList.toggle('active', b.dataset.tool===t))
+  const panels=document.querySelectorAll('.tool-panel'); let found=false
+  panels.forEach(p=>{ const on=p.id==='tp-'+t; p.classList.toggle('active',on); if(on) found=true })
+  if(!found){ t='bc'; document.getElementById('tp-bc')?.classList.add('active'); document.querySelector('.tool-tile[data-tool="bc"]')?.classList.add('active') }
+  try{ localStorage.setItem('zx_tool', t) }catch(_){}
+  if(t==='mod') fillModSelect()
+  else if(t==='rep') fillReportSelect()
+  else if(t==='ann') loadAnnounce()
+  else if(t==='auto') loadAuto()
+}
 // Live connection block — mirror latency from the service strip
 function updateConnViz(){
   const sb=document.getElementById('ms-sb'), ef=document.getElementById('ms-ef')
