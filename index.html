@@ -654,6 +654,7 @@ tr:hover td{background:#fafafa}
         <button class="tool-tile" data-tool="auto" onclick="showTool('auto')"><span class="tt-badge">авто</span><span class="tt-ic">🔁</span><span class="tt-name">Авто-рассылка</span><span class="tt-desc">Напоминания сами</span></button>
         <button class="tool-tile" data-tool="rep"  onclick="showTool('rep')"><span class="tt-ic">📊</span><span class="tt-name">Отчёты</span><span class="tt-desc">Сводки в чат</span></button>
         <button class="tool-tile" data-tool="sub"  onclick="showTool('sub')"><span class="tt-ic">💚</span><span class="tt-name">Подписка на канал</span><span class="tt-desc">Окно при входе в игру</span></button>
+        <button class="tool-tile" data-tool="ref"  onclick="showTool('ref')"><span class="tt-ic">🎁</span><span class="tt-name">Рефералы</span><span class="tt-desc">Кто кого пригласил</span></button>
         <button class="tool-tile" data-tool="mod"  onclick="showTool('mod')"><span class="tt-ic">🛡</span><span class="tt-name">Модерация</span><span class="tt-desc">Монеты · сброс · ник</span></button>
         <button class="tool-tile" data-tool="exp"  onclick="showTool('exp')"><span class="tt-ic">📥</span><span class="tt-name">Экспорт / бэкап</span><span class="tt-desc">CSV-выгрузка</span></button>
         <button class="tool-tile" data-tool="sys"  onclick="showTool('sys')"><span class="tt-ic">🩺</span><span class="tt-name">Здоровье</span><span class="tt-desc">Проверка систем</span></button>
@@ -775,6 +776,17 @@ tr:hover td{background:#fafafa}
           </div>
         </div>
 
+        <div class="tool-panel" id="tp-ref">
+          <div class="card">
+            <div class="ch"><span class="ct">🎁 Реферальная программа</span><span class="badge bp" id="refBadge">—</span></div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
+              <div style="font-size:.72rem;color:var(--mut)">Игроки зовут друзей ссылкой из профиля. За приглашение: <b>+100 🪙</b> пригласившему, <b>+50 🪙</b> новичку. Начисляется только Telegram-аккаунтам, с защитой от накрутки (не более 20 в сутки на человека, самоприглашение не считается).</div>
+              <div class="g3" id="refStats"></div>
+              <div id="refTop"><div class="empty"><span class="sp"></span></div></div>
+            </div>
+          </div>
+        </div>
+
         <div class="tool-panel" id="tp-mod">
           <div class="card">
             <div class="ch"><span class="ct">🛡 Модерация игрока</span><span class="badge bp">осторожно</span></div>
@@ -847,7 +859,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v51</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v52</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -983,7 +995,8 @@ function showTool(t){
   panels.forEach(p=>{ const on=p.id==='tp-'+t; p.classList.toggle('active',on); if(on) found=true })
   if(!found){ t='bc'; document.getElementById('tp-bc')?.classList.add('active'); document.querySelector('.tool-tile[data-tool="bc"]')?.classList.add('active') }
   try{ localStorage.setItem('zx_tool', t) }catch(_){}
-  if(t==='sub') loadSubCfg()
+  if(t==='ref') loadRefStats()
+  else if(t==='sub') loadSubCfg()
   else if(t==='mod') fillModSelect()
   else if(t==='rep') fillReportSelect()
   else if(t==='ann') loadAnnounce()
@@ -1860,6 +1873,31 @@ async function autoTranslate(prefix, statusId){
     if(st) st.textContent='✅ Переведено ('+n+' яз.) — проверь и сохрани'
     log('🌐 Автоперевод: '+prefix+' ('+n+' языков)')
   }catch(e){ if(st) st.textContent='❌ '+e.message }
+}
+
+// ── Referrals: who invited whom ────────────────────────────────────────────
+async function loadRefStats(){
+  const wrap=document.getElementById('refStats'), top=document.getElementById('refTop')
+  const r=await execSQL(`SELECT
+      (SELECT count(*)::int FROM players WHERE referred_by IS NOT NULL) AS invited,
+      (SELECT count(DISTINCT referred_by)::int FROM players WHERE referred_by IS NOT NULL) AS inviters,
+      (SELECT count(*)::int FROM players WHERE referred_by IS NOT NULL AND created_at > now()-interval '7 days') AS week`)
+  if(r.error){ if(top) top.innerHTML='<div class="empty">❌ '+escH(r.error)+'</div>'; return }
+  const d=(r.data&&r.data[0])||{}
+  const b=document.getElementById('refBadge'); if(b) b.textContent=(d.invited||0)+' приглашено'
+  if(wrap) wrap.innerHTML=
+    '<div class="stat"><span class="st-ico">🎁</span><div><div class="st-n">'+(d.invited||0)+'</div><div class="st-l">приглашено всего</div></div></div>'+
+    '<div class="stat"><span class="st-ico">👤</span><div><div class="st-n">'+(d.inviters||0)+'</div><div class="st-l">приглашающих</div></div></div>'+
+    '<div class="stat"><span class="st-ico">📈</span><div><div class="st-n">'+(d.week||0)+'</div><div class="st-l">за 7 дней</div></div></div>'
+  const t=await execSQL(`SELECT r.nick AS inviter, count(*)::int AS cnt,
+      string_agg(p.nick, ', ' ORDER BY p.created_at DESC) AS friends
+    FROM players p JOIN players r ON r.player_id::text = p.referred_by::text
+    WHERE p.referred_by IS NOT NULL
+    GROUP BY r.nick ORDER BY cnt DESC, r.nick LIMIT 20`)
+  if(t.error||!t.data||!t.data.length){ if(top) top.innerHTML='<div class="empty">Пока никто никого не приглашал</div>'; return }
+  top.innerHTML='<table class="pt"><thead><tr><th>Пригласил</th><th>Кол-во</th><th>Кого привёл</th></tr></thead><tbody>'+
+    t.data.map(x=>'<tr><td><b>'+escH(x.inviter||'—')+'</b></td><td>'+x.cnt+'</td><td style="color:var(--mut)">'+escH(String(x.friends||'').slice(0,120))+'</td></tr>').join('')+
+    '</tbody></table>'
 }
 
 // ── Channel subscribe gate (окно «Подпишитесь» при входе в игру) ───────────
