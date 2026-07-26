@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#f0f4f8;--card:#fff;--brd:#e2e8f0;--txt:#0f172a;--sub:#64748b;--mut:#94a3b8;--acc:#6366f1;--acc2:#4f46e5;--green:#16a34a;--red:#dc2626}
+:root{--bg:#eef2f7;--card:#fff;--brd:#e6ebf2;--txt:#0f172a;--sub:#64748b;--mut:#94a3b8;--acc:#6366f1;--acc2:#4f46e5;--green:#16a34a;--red:#dc2626;--r:14px;--shadow:0 1px 2px rgba(15,23,42,.04),0 10px 26px -14px rgba(15,23,42,.16);--shadow-h:0 10px 30px -10px rgba(15,23,42,.22);--ring:0 0 0 3px rgba(99,102,241,.18)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
 
@@ -17,7 +17,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .llogo{font-size:2.2rem;margin-bottom:6px}.ltitle{color:#fff;font-size:1.05rem;font-weight:700;margin-bottom:2px}
 .lsub{color:#475569;font-size:.74rem;margin-bottom:20px}
 .linput{width:100%;background:#0f172a;border:1.5px solid #334155;color:#fff;padding:10px 12px;border-radius:8px;font-size:.88rem;outline:none;transition:border-color .15s}
-.linput:focus{border-color:var(--acc)}.linput.shake{animation:shake .3s ease}
+.linput:focus{border-color:var(--acc);box-shadow:var(--ring)}.linput.shake{animation:shake .3s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-5px)}50%{transform:translateX(5px)}}
 .lbtn{width:100%;margin-top:9px;background:var(--acc);color:#fff;border:none;padding:10px;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer}
 .lbtn:hover{background:var(--acc2)}.lerr{color:#f87171;font-size:.72rem;margin-top:7px;min-height:15px}
@@ -60,7 +60,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sidebar{position:sticky;top:72px;align-self:flex-start;width:208px;min-width:208px;padding:14px 10px;display:flex;flex-direction:column;gap:3px;border-right:1px solid var(--brd);min-height:calc(100vh - 72px)}
 .nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border:none;border-radius:9px;background:transparent;color:var(--sub);font-size:.82rem;font-weight:600;cursor:pointer;text-align:left;transition:all .12s;font-family:inherit}
 .nav-item:hover{background:var(--bg);color:var(--txt)}
-.nav-item.active{background:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.35)}
+.nav-item.active{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 4px 14px -2px rgba(99,102,241,.45)}
 .nav-cap{font-size:.6rem;font-weight:700;letter-spacing:.6px;color:var(--mut);text-transform:uppercase;padding:10px 12px 4px}
 .app-shell .wrap{flex:1;min-width:0;max-width:none;margin:0;padding:16px 20px 6px}
 .conn-strip{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;padding:9px 14px}
@@ -81,7 +81,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.card{background:var(--card);border-radius:11px;border:1px solid var(--brd);box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:12px}
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--brd);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;transition:box-shadow .16s}
+.card:hover{box-shadow:var(--shadow-h)}
 .tools-sec{font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:0 2px 9px;padding-bottom:5px;border-bottom:1px solid var(--brd)}
 .tools-group{margin-bottom:18px}
 .tools-masonry{columns:2;column-gap:12px}
@@ -108,7 +109,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .by{background:#fef9c3;color:#854d0e}.br{background:#fee2e2;color:#dc2626}
 
 /* ── Stats ── */
-.stat{background:var(--card);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.stat{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:13px 15px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);transition:transform .14s,box-shadow .14s}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-h)}
 .st-ico{font-size:1.25rem;flex-shrink:0}
 .st-n{font-size:1.4rem;font-weight:800;line-height:1}
 .st-l{font-size:.59rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
@@ -219,7 +221,8 @@ tr:hover td{background:#fafafa}
 .preset-lbl{font-size:.77rem;font-weight:600;line-height:1.3}
 .preset-desc{font-size:.62rem;color:var(--mut);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .preset-btns{display:flex;gap:4px;flex-shrink:0}
-.pbtn{font-size:.72rem;padding:5px 11px;border:none;border-radius:6px;cursor:pointer;font-weight:700;transition:all .11s;white-space:nowrap}
+.pbtn{font-size:.72rem;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:all .12s;white-space:nowrap}
+.pbtn:active{transform:translateY(1px)}
 .pbtn-r{background:#16a34a;color:#fff}.pbtn-r:hover{background:#15803d}.pbtn-r:disabled{background:#86efac;cursor:wait}
 .pbtn-c{background:#ede9fe;color:#7c3aed}.pbtn-c:hover{background:#ddd6fe}
 .pbtn-red{background:var(--red);color:#fff}.pbtn-red:hover{background:#b91c1c}
@@ -238,8 +241,8 @@ tr:hover td{background:#fafafa}
 .ttb{padding:5px 12px;border:1.5px solid var(--brd);border-radius:16px;background:var(--card);color:var(--sub);font-size:.73rem;font-weight:600;cursor:pointer;transition:all .12s}
 .ttb:hover{border-color:var(--acc);color:var(--acc)}.ttb.active{background:var(--acc);border-color:var(--acc);color:#fff}
 .tbl-search-row{padding:7px 13px;border-bottom:1px solid var(--brd);display:flex;gap:7px;align-items:center}
-.tbl-inp{flex:1;border:1px solid var(--brd);border-radius:6px;padding:5px 9px;font-size:.77rem;outline:none}
-.tbl-inp:focus{border-color:var(--acc)}
+.tbl-inp{flex:1;border:1px solid var(--brd);border-radius:8px;padding:6px 10px;font-size:.77rem;outline:none;transition:border-color .12s,box-shadow .12s}
+.tbl-inp:focus{border-color:var(--acc);box-shadow:var(--ring)}
 .tbl-data{overflow-x:auto;max-height:360px;overflow-y:auto}
 .tbl-data table td{font-family:monospace;font-size:.72rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tbl-pager{display:flex;align-items:center;gap:7px;padding:6px 13px;border-top:1px solid var(--brd);font-size:.72rem;color:var(--sub)}
@@ -802,7 +805,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v47</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v48</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
