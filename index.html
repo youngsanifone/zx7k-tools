@@ -88,6 +88,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tools-masonry{columns:2;column-gap:12px}
 .tools-masonry>.card{break-inside:avoid;width:100%;display:inline-block;margin:0 0 12px}
 @media(max-width:900px){.tools-masonry{columns:1}}
+/* Broadcast master switch */
+.bc-master{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 16px;border:1px solid var(--brd);border-radius:var(--r);background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(99,102,241,.06));box-shadow:var(--shadow);margin-bottom:14px;transition:background .2s,border-color .2s}
+.bc-master.off{background:linear-gradient(135deg,rgba(220,38,38,.10),rgba(220,38,38,.04));border-color:#fecaca}
+.bc-m-l{display:flex;align-items:center;gap:12px;min-width:0}
+.bc-m-ic{font-size:1.7rem;line-height:1;flex-shrink:0}
+.bc-m-t{font-size:.92rem;font-weight:800}
+.bc-m-s{font-size:.7rem;color:var(--sub);margin-top:2px;line-height:1.3}
+.bc-m-btn{flex-shrink:0;font-size:.8rem;padding:9px 16px;border-radius:10px}
 /* Modern tool launcher */
 .tool-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:16px}
 .tool-tile{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px 13px;border:1px solid var(--brd);border-radius:13px;background:var(--card);cursor:pointer;transition:transform .14s,border-color .14s,box-shadow .14s;font:inherit;position:relative}
@@ -630,6 +638,16 @@ tr:hover td{background:#fafafa}
   <div id="tab-actions" class="tb-body" data-view="actions" data-disp="block">
     <div class="tb-desc"><b>Инструменты</b> — управление игрой: рассылка сообщений, модерация игроков, экспорт данных, проверка систем.</div>
     <div class="tools-wrap" style="padding:14px 14px 8px">
+      <div class="bc-master" id="bcMaster">
+        <div class="bc-m-l">
+          <div class="bc-m-ic" id="bcMIc">📡</div>
+          <div>
+            <div class="bc-m-t">Рассылки: <span id="bcMState" style="color:var(--mut)">…</span></div>
+            <div class="bc-m-s" id="bcMSub">Общий выключатель всех авто- и ручных рассылок</div>
+          </div>
+        </div>
+        <button class="pbtn bc-m-btn" id="bcMBtn" onclick="toggleBroadcasts()" disabled>…</button>
+      </div>
       <div class="tool-tiles">
         <button class="tool-tile" data-tool="bc"   onclick="showTool('bc')"><span class="tt-ic">📣</span><span class="tt-name">Сообщение всем</span><span class="tt-desc">Рассылка в Telegram</span></button>
         <button class="tool-tile" data-tool="ann"  onclick="showTool('ann')"><span class="tt-badge">всем</span><span class="tt-ic">📢</span><span class="tt-name">Объявление в игре</span><span class="tt-desc">Баннер видят все</span></button>
@@ -805,7 +823,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v48</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v49</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -928,7 +946,7 @@ function showView(v){
   else if(v==='advisors') loadAdv()
   else if(v==='telegram') setTimeout(loadTgStats,50)
   else if(v==='log')      renderLog()
-  else if(v==='actions')  { let _t='bc'; try{const s=localStorage.getItem('zx_tool'); if(s) _t=s}catch(_){}; showTool(_t) }
+  else if(v==='actions')  { loadBroadcastMaster(); let _t='bc'; try{const s=localStorage.getItem('zx_tool'); if(s) _t=s}catch(_){}; showTool(_t) }
   log('📂 '+v)
   try{ window.scrollTo(0,0) }catch(_){}
 }
@@ -1583,6 +1601,7 @@ function refresh(){loadData();loadCommits();pingGame();pingEF();loadOnline();log
 // ── Manual broadcast: trigger daily-quests edge function via net.http_post ──
 // The cron auth token is read server-side (subquery) — never exposed to the browser.
 async function sendBroadcast(){
+  if(!_bcGuard()) return
   if(!confirm('📣 Разослать «Квесты дня» всем активным игрокам в Telegram?\n\n(Кто заходил за 7 дней и кому сегодня ещё не отправляли.)\nОтправка реальная и необратима.')) return
   log('📣 Запуск рассылки квестов…')
   const sql="SELECT net.http_post("+
@@ -1621,6 +1640,7 @@ async function bcTest(){
   log(r.error?('❌ Тест сообщения: '+r.error):'🧪 Тест сообщения отправлен')
 }
 async function bcSend(){
+  if(!_bcGuard()) return
   const oa=document.getElementById('bcActive').checked
   const sql=_bcSql(''); if(!sql) return
   if(!confirm('📣 Отправить это сообщение '+(oa?'игрокам, активным за 14 дней':'ВСЕМ Telegram-игрокам')+'?\n\nОтправка реальная и необратима.')) return
@@ -1776,6 +1796,11 @@ async function saveAnnounce(){
   if(r.error){st.textContent='❌ '+r.error; log('❌ Объявление: '+r.error); return}
   st.textContent='🟢 Показывается всем — игроки увидят при открытии игры'
   log('📢 Объявление опубликовано ('+langs+')')
+  if(alsoTg && !_bcEnabled){
+    st.textContent='🟢 Баннер показан. Telegram-пуш пропущен — рассылки остановлены (вкл. мастер-выключатель).'
+    log('📢 Объявление: баннер показан, TG-пуш пропущен (рассылки остановлены)')
+    return
+  }
   if(alsoTg){
     const sql="SELECT net.http_post(url:='"+SB+"/functions/v1/broadcast',"+
       "headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||(SELECT token FROM public.cron_auth WHERE id=1)),"+
@@ -1810,6 +1835,57 @@ async function autoTranslate(prefix, statusId){
     if(st) st.textContent='✅ Переведено ('+n+' яз.) — проверь и сохрани'
     log('🌐 Автоперевод: '+prefix+' ('+n+' языков)')
   }catch(e){ if(st) st.textContent='❌ '+e.message }
+}
+
+// ── Master switch: enable/disable ALL broadcasts (auto + manual) ────────────
+// State lives in app_config.broadcasts_enabled (edge-функции broadcast/daily-quests
+// его проверяют серверно) + два cron-задания (18:00 квесты, 17:00 напоминания).
+let _bcEnabled=true;
+function _renderBcMaster(cronActive){
+  const box=document.getElementById('bcMaster'); if(!box) return
+  const stEl=document.getElementById('bcMState'), sub=document.getElementById('bcMSub'),
+        btn=document.getElementById('bcMBtn'), ic=document.getElementById('bcMIc')
+  if(btn) btn.disabled=false
+  if(_bcEnabled){
+    box.classList.remove('off'); if(ic) ic.textContent='📡'
+    if(stEl){stEl.textContent='включены'; stEl.style.color='var(--green)'}
+    if(sub) sub.textContent='Авто-квесты 18:00 · напоминания 17:00 · ручные — работают'
+    if(btn){btn.textContent='⏸ Остановить все рассылки'; btn.className='pbtn pbtn-red bc-m-btn'}
+  }else{
+    box.classList.add('off'); if(ic) ic.textContent='🔕'
+    if(stEl){stEl.textContent='остановлены'; stEl.style.color='var(--red)'}
+    if(sub) sub.textContent='Всё выключено — ничего не рассылается. Тест себе и баннер в игре — работают.'
+    if(btn){btn.textContent='▶️ Включить рассылки'; btn.className='pbtn pbtn-r bc-m-btn'}
+  }
+}
+async function loadBroadcastMaster(){
+  const r=await execSQL("SELECT (SELECT broadcasts_enabled FROM app_config WHERE id=1) AS en, (SELECT count(*)::int FROM cron.job WHERE jobname IN ('daily-quests-broadcast','auto-reminder-broadcast') AND active) AS cj")
+  if(r.error||!r.data||!r.data[0]){ return }
+  _bcEnabled = r.data[0].en!==false
+  _renderBcMaster(Number(r.data[0].cj||0))
+}
+async function toggleBroadcasts(){
+  const enable=!_bcEnabled
+  const msg=enable
+    ? 'Включить ВСЕ рассылки?\n\n• Авто-квесты (18:00)\n• Авто-напоминания (17:00)\n• Ручные кнопки рассылок'
+    : 'ОСТАНОВИТЬ все рассылки?\n\nОтключится:\n• Авто-квесты (18:00)\n• Авто-напоминания (17:00)\n• Ручные рассылки (кнопки блокируются)\n\nБаннер-объявление в игре останется (это не рассылка). Тест себе — работает.'
+  if(!confirm(msg)) return
+  const btn=document.getElementById('bcMBtn'); if(btn) btn.disabled=true
+  const b=enable?'true':'false'
+  const r1=await execSQL("UPDATE app_config SET broadcasts_enabled="+b+", updated_at=now() WHERE id=1")
+  if(r1.error){ if(btn) btn.disabled=false; alert('❌ '+r1.error); log('❌ Мастер-рассылки: '+r1.error); return }
+  const r2=await execSQL("SELECT cron.alter_job(jobid, active := "+b+") FROM cron.job WHERE jobname IN ('daily-quests-broadcast','auto-reminder-broadcast')")
+  if(r2.error){ log('⚠️ Флаг сохранён, но cron: '+r2.error) }
+  _bcEnabled=enable
+  _renderBcMaster(enable?2:0)
+  log(enable?'📡 Все рассылки ВКЛючены':'🔕 Все рассылки ОСТАНОВЛЕНЫ')
+  toast(enable?'Рассылки включены':'Все рассылки остановлены')
+}
+// Guard for manual send buttons — blocks when broadcasts are paused.
+function _bcGuard(){
+  if(_bcEnabled) return true
+  alert('🔕 Все рассылки сейчас остановлены.\n\nВключи их мастер-выключателем вверху раздела «Инструменты», чтобы отправлять.')
+  return false
 }
 
 // ── Авто-рассылка: бот сам напоминает игрокам раз в N дней ──────────────────
@@ -1854,6 +1930,7 @@ async function saveAuto(){
 }
 async function autoSendNow(){
   const st=document.getElementById('autoState')
+  if(!_bcGuard()) return
   const i18n=_autoCollect()
   if(!i18n.en){st.textContent='Сначала впиши текст (English)';return}
   if(!confirm('Отправить напоминание ВСЕМ Telegram-игрокам прямо сейчас?\n\nОтправка реальная и необратима.')) return
