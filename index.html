@@ -761,7 +761,10 @@ tr:hover td{background:#fafafa}
               <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
                 <span style="font-size:.72rem;color:var(--mut)">Канал</span>
                 <input type="text" id="subChannel" class="tbl-inp" style="max-width:220px" placeholder="@my_channel">
+                <span style="font-size:.72rem;color:var(--mut)">Название</span>
+                <input type="text" id="subName" class="tbl-inp" style="max-width:170px" placeholder="Snake game">
               </div>
+              <div style="font-size:.68rem;color:var(--mut)">Название и аватарка канала показываются игроку в окне. Аватарка подтягивается из Telegram сама — кнопкой «Проверить канал» её можно обновить.</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <button class="pbtn pbtn-r" onclick="saveSubCfg()">💾 Сохранить</button>
                 <button class="pbtn pbtn-c" onclick="checkSubChannel()">🔍 Проверить канал</button>
@@ -844,7 +847,7 @@ tr:hover td{background:#fafafa}
   <div style="height:12px"></div>
 
   <div class="footer">
-    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v50</b>
+    Данные каждые <b>5 сек</b> · Online = is_online=true + last_seen ≤75с · pg_cron чистит каждую минуту · ⏱ таймер = online_since (триггер БД) · GitHub кешируется <b>15 мин</b> · Часовой пояс: <b>Europe/Bratislava (CEST = UTC+2)</b> · Смещение браузера: <b id="tzOff">...</b> · Версия панели: <b style="color:var(--acc)">v51</b>
   </div>
 </div><!-- /.wrap -->
 </div><!-- /.app-shell -->
@@ -1861,11 +1864,12 @@ async function autoTranslate(prefix, statusId){
 
 // ── Channel subscribe gate (окно «Подпишитесь» при входе в игру) ───────────
 async function loadSubCfg(){
-  const r=await execSQL("SELECT sub_enabled, sub_channel, (SELECT count(*)::int FROM players WHERE subscribed_at IS NOT NULL) AS subs, (SELECT count(*)::int FROM players WHERE telegram_id IS NOT NULL) AS tot FROM app_config WHERE id=1")
+  const r=await execSQL("SELECT sub_enabled, sub_channel, sub_name, (SELECT count(*)::int FROM players WHERE subscribed_at IS NOT NULL) AS subs, (SELECT count(*)::int FROM players WHERE telegram_id IS NOT NULL) AS tot FROM app_config WHERE id=1")
   if(r.error||!r.data||!r.data[0]) return
   const d=r.data[0]
   const ck=document.getElementById('subEnabled'); if(ck) ck.checked=!!d.sub_enabled
   const inp=document.getElementById('subChannel'); if(inp&&!inp.value) inp.value=d.sub_channel||''
+  const nm=document.getElementById('subName'); if(nm&&!nm.value) nm.value=d.sub_name||''
   const b=document.getElementById('subBadge')
   if(b){ b.textContent=d.sub_enabled?'включено':'выключено'; b.className='badge '+(d.sub_enabled?'bg':'bq') }
   const st=document.getElementById('subStatus')
@@ -1878,7 +1882,8 @@ async function saveSubCfg(){
   if(on&&!ch){ st.textContent='Укажи канал, например @my_channel'; return }
   if(ch&&!ch.startsWith('@')&&!ch.startsWith('-')) ch='@'+ch
   const url=ch?('https://t.me/'+ch.replace(/^@/,'')):''
-  const r=await execSQL("UPDATE app_config SET sub_enabled="+(on?'true':'false')+", sub_channel="+(ch?("'"+_esc(ch)+"'"):'NULL')+", sub_url="+(url?("'"+_esc(url)+"'"):'NULL')+", updated_at=now() WHERE id=1")
+  const nm=(document.getElementById('subName').value||'').trim().substring(0,40)
+  const r=await execSQL("UPDATE app_config SET sub_enabled="+(on?'true':'false')+", sub_channel="+(ch?("'"+_esc(ch)+"'"):'NULL')+", sub_url="+(url?("'"+_esc(url)+"'"):'NULL')+", sub_name="+(nm?("'"+_esc(nm)+"'"):'NULL')+", updated_at=now() WHERE id=1")
   if(r.error){ st.textContent='❌ '+r.error; log('❌ Подписка: '+r.error); return }
   st.textContent=on?('✅ Сохранено — окно показывается, канал '+ch):'✅ Сохранено — окно выключено'
   log('💚 Подписка: '+(on?('вкл, '+ch):'выкл'))
